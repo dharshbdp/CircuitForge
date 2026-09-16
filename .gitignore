@@ -45,3 +45,7 @@ firmware/build/
 *.hex
 *.bin
 *.elf
+
+# IDE Agent Artifacts
+implementation_plan.md
+walkthrough.md
