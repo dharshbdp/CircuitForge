@@ -379,6 +379,11 @@ export default function BlocklyWorkspace({
 }: BlocklyWorkspaceProps): React.JSX.Element {
   const containerRef = useRef<HTMLDivElement>(null)
   const innerWorkspaceRef = useRef<Blockly.WorkspaceSvg | null>(null)
+  const onWorkspaceChangeRef = useRef(onWorkspaceChange)
+
+  useEffect(() => {
+    onWorkspaceChangeRef.current = onWorkspaceChange
+  }, [onWorkspaceChange])
 
   // Initialize Modern Blockly Workspace with Zelos renderer
   useEffect(() => {
@@ -396,14 +401,14 @@ export default function BlocklyWorkspace({
         snap: true
       },
       zoom: {
-        controls: true,
+        controls: false,
         wheel: true,
         startScale: 0.95,
         maxScale: 2.5,
         minScale: 0.4,
         scaleSpeed: 1.2
       },
-      trashcan: true,
+      trashcan: false,
       theme: selectedTheme,
       sounds: false
     })
@@ -426,12 +431,16 @@ export default function BlocklyWorkspace({
     }
 
     // Change listener
-    const changeListener = (): void => {
-      if (onWorkspaceChange) {
-        onWorkspaceChange(workspace)
+    const changeListener = (e?: any): void => {
+      if (e && e.isUiEvent) return
+      if (onWorkspaceChangeRef.current) {
+        onWorkspaceChangeRef.current(workspace)
       }
     }
     workspace.addChangeListener(changeListener)
+
+    // Trigger initial code generation on mount
+    changeListener()
 
     // Resize observer to handle dynamic pane resizing
     const resizeObserver = new ResizeObserver(() => {

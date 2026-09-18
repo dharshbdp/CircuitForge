@@ -2,6 +2,7 @@ import { useEffect, useState, useRef, useCallback } from 'react'
 import type { SerialPortDescriptor, ConnectionState } from '@shared/types'
 import type * as Blockly from 'blockly'
 import BlocklyWorkspace from './components/BlocklyWorkspace'
+import { arduinoGenerator } from './generators/arduinoGenerator'
 
 const BAUD_RATES = [9600, 19200, 38400, 57600, 115200, 230400]
 
@@ -50,6 +51,7 @@ export default function App(): React.JSX.Element {
   const [activeTab, setActiveTab] = useState<'terminal' | 'code' | 'device'>('terminal')
   const [blockCount, setBlockCount] = useState<number>(0)
   const [copiedCode, setCopiedCode] = useState<boolean>(false)
+  const [generatedCode, setGeneratedCode] = useState<string>('')
 
   const logEndRef = useRef<HTMLDivElement>(null)
   const workspaceRef = useRef<Blockly.WorkspaceSvg | null>(null)
@@ -155,10 +157,16 @@ export default function App(): React.JSX.Element {
     }
   }
 
-  // Blockly workspace change handler
+  // Blockly workspace change handler & live code generator
   const handleWorkspaceChange = useCallback((workspace: Blockly.WorkspaceSvg): void => {
     const count = workspace.getAllBlocks(false).length
     setBlockCount(count)
+    try {
+      const code = arduinoGenerator.workspaceToCode(workspace)
+      setGeneratedCode(code)
+    } catch (err) {
+      console.error('Failed to generate Arduino code:', err)
+    }
   }, [])
 
   // Clear workspace canvas
@@ -176,27 +184,17 @@ export default function App(): React.JSX.Element {
     }
   }
 
-  // Generate code preview string
-  const generatedCode = `// ==========================================
-// CircuitForge v0.2 — Generated Sketch
-// Target: Arduino / MicroPython Compatible
-// Active Canvas Blocks: ${blockCount}
-// ==========================================
-
-void setup() {
-  // Initialize Serial Telemetry link
-  Serial.begin(${selectedBaud});
-  while (!Serial) {
-    ; // Wait for serial port link
+  const handleExportIno = (): void => {
+    const blob = new Blob([generatedCode], { type: 'text/plain;charset=utf-8' })
+    const url = URL.createObjectURL(blob)
+    const link = document.createElement('a')
+    link.href = url
+    link.download = 'circuitforge_sketch.ino'
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+    URL.revokeObjectURL(url)
   }
-  Serial.println("[CircuitForge] System Online.");
-}
-
-void loop() {
-  ${blockCount === 0
-    ? '// [Canvas is empty: drag blocks from Logic, Loops, or Math to synthesize logic]'
-    : `// Synthesizing logic from ${blockCount} active visual block${blockCount === 1 ? '' : 's'}...\n  delay(100);`}
-}`
 
   const copyGeneratedCode = (): void => {
     navigator.clipboard.writeText(generatedCode)
@@ -543,17 +541,31 @@ void loop() {
             <div className="cf-tab-content cf-tab-code">
               <div className="cf-code-header">
                 <span className="cf-code-lang">ARDUINO C++ / INO</span>
-                <button
-                  className="cf-btn-sm"
-                  onClick={copyGeneratedCode}
-                  title="Copy code to clipboard"
-                >
-                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
-                    <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
-                  </svg>
-                  <span>{copiedCode ? 'Copied' : 'Copy'}</span>
-                </button>
+                <div style={{ display: 'flex', gap: '6px' }}>
+                  <button
+                    className="cf-btn-sm"
+                    onClick={copyGeneratedCode}
+                    title="Copy code to clipboard"
+                  >
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
+                      <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
+                    </svg>
+                    <span>{copiedCode ? 'Copied' : 'Copy'}</span>
+                  </button>
+                  <button
+                    className="cf-btn-sm"
+                    onClick={handleExportIno}
+                    title="Download .ino sketch file"
+                  >
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                      <polyline points="7 10 12 15 17 10" />
+                      <line x1="12" y1="15" x2="12" y2="3" />
+                    </svg>
+                    <span>Export .ino</span>
+                  </button>
+                </div>
               </div>
               <pre className="cf-code-view">
                 <code>{generatedCode}</code>

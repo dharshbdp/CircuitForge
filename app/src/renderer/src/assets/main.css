@@ -1077,29 +1077,8 @@ body {
   outline: none !important;
 }
 
-/* Zoom and Trash Controls */
-.blocklyZoom image {
-  opacity: 0.75;
-  transition: opacity 0.15s ease;
-}
-
-.blocklyZoom image:hover {
-  opacity: 1;
-}
-
-:root[data-theme='dark'] .blocklyZoom image {
-  filter: invert(1) brightness(0.85);
-}
-
+/* Zoom and Trash Controls - Hidden for clean minimalist workspace */
+.blocklyZoom,
 .blocklyTrash {
-  opacity: 0.75;
-  transition: opacity 0.15s ease;
-}
-
-.blocklyTrash:hover {
-  opacity: 1;
-}
-
-:root[data-theme='dark'] .blocklyTrash image {
-  filter: invert(1) brightness(0.85);
+  display: none !important;
 }
