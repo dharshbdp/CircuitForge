@@ -112,7 +112,16 @@ export function EditorPage(): React.JSX.Element {
       <header className="cf-header">
         <div className="cf-brand">
           <span className="cf-brand-icon" aria-hidden="true">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <svg
+              width="18"
+              height="18"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
               <rect x="4" y="4" width="16" height="16" rx="2" />
               <rect x="9" y="9" width="6" height="6" />
               <line x1="9" y1="1" x2="9" y2="4" />
@@ -136,7 +145,16 @@ export function EditorPage(): React.JSX.Element {
             onClick={() => setViewMode('split')}
             title="Split View (Canvas + Terminal)"
           >
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <svg
+              width="13"
+              height="13"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
               <rect x="3" y="3" width="18" height="18" rx="2" />
               <line x1="12" y1="3" x2="12" y2="21" />
             </svg>
@@ -147,7 +165,16 @@ export function EditorPage(): React.JSX.Element {
             onClick={() => setViewMode('canvas')}
             title="Full Visual Canvas"
           >
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <svg
+              width="13"
+              height="13"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
               <rect x="3" y="3" width="7" height="7" />
               <rect x="14" y="3" width="7" height="7" />
               <rect x="14" y="14" width="7" height="7" />
@@ -160,7 +187,16 @@ export function EditorPage(): React.JSX.Element {
             onClick={() => setViewMode('terminal')}
             title="Full Console & Telemetry"
           >
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <svg
+              width="13"
+              height="13"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
               <polyline points="4 17 10 11 4 5" />
               <line x1="12" y1="19" x2="20" y2="19" />
             </svg>
@@ -198,7 +234,16 @@ export function EditorPage(): React.JSX.Element {
             disabled={isScanning || isConnected || isConnecting}
             title="Scan for connected hardware"
           >
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <svg
+              width="12"
+              height="12"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
               <path d="M21 2v6h-6" />
               <path d="M3 12a9 9 0 0 1 15-6.7L21 8" />
               <path d="M3 22v-6h6" />
@@ -236,9 +281,7 @@ export function EditorPage(): React.JSX.Element {
           {/* Status Indicator */}
           <div className={`cf-status-badge cf-status-${connectionState.status}`}>
             <span className="cf-status-dot" aria-hidden="true" />
-            <span className="cf-status-text">
-              {connectionState.status.toUpperCase()}
-            </span>
+            <span className="cf-status-text">{connectionState.status.toUpperCase()}</span>
           </div>
 
           {/* Theme Toggle Button */}
@@ -249,7 +292,16 @@ export function EditorPage(): React.JSX.Element {
             aria-label={`Switch to ${theme === 'dark' ? 'Light' : 'Dark'} Mode`}
           >
             {theme === 'dark' ? (
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <svg
+                width="14"
+                height="14"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
                 <circle cx="12" cy="12" r="5" />
                 <line x1="12" y1="1" x2="12" y2="3" />
                 <line x1="12" y1="21" x2="12" y2="23" />
@@ -261,7 +313,16 @@ export function EditorPage(): React.JSX.Element {
                 <line x1="18.36" y1="5.64" x2="19.78" y2="4.22" />
               </svg>
             ) : (
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <svg
+                width="14"
+                height="14"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
                 <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
               </svg>
             )}
@@ -284,7 +345,16 @@ export function EditorPage(): React.JSX.Element {
                 onClick={handleZoomFit}
                 title="Zoom canvas to fit all blocks"
               >
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <svg
+                  width="12"
+                  height="12"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
                   <path d="M15 3h6v6" />
                   <path d="M9 21H3v-6" />
                   <path d="M21 3l-7 7" />
@@ -298,7 +368,16 @@ export function EditorPage(): React.JSX.Element {
                 disabled={blockCount === 0}
                 title="Clear all blocks from canvas"
               >
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <svg
+                  width="12"
+                  height="12"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
                   <polyline points="3 6 5 6 21 6" />
                   <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
                 </svg>
@@ -371,11 +450,7 @@ export function EditorPage(): React.JSX.Element {
                     />
                     Time
                   </label>
-                  <button
-                    className="cf-btn-sm"
-                    onClick={clearLogs}
-                    disabled={logs.length === 0}
-                  >
+                  <button className="cf-btn-sm" onClick={clearLogs} disabled={logs.length === 0}>
                     Clear
                   </button>
                 </div>
@@ -390,7 +465,10 @@ export function EditorPage(): React.JSX.Element {
                   </div>
                 ) : (
                   logs.map((log) => (
-                    <div key={log.id} className={log.isSent ? 'cf-terminal-line-sent' : 'cf-terminal-line'}>
+                    <div
+                      key={log.id}
+                      className={log.isSent ? 'cf-terminal-line-sent' : 'cf-terminal-line'}
+                    >
                       {showTimestamps && <span className="cf-timestamp">[{log.timestamp}]</span>}
                       {log.isSent && <span className="cf-timestamp">[TX] &gt; </span>}
                       <span>{log.text}</span>
@@ -448,7 +526,16 @@ export function EditorPage(): React.JSX.Element {
                     onClick={copyGeneratedCode}
                     title="Copy code to clipboard"
                   >
-                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <svg
+                      width="12"
+                      height="12"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    >
                       <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
                       <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
                     </svg>
@@ -459,7 +546,16 @@ export function EditorPage(): React.JSX.Element {
                     onClick={handleExportIno}
                     title="Download .ino sketch file"
                   >
-                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <svg
+                      width="12"
+                      height="12"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    >
                       <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
                       <polyline points="7 10 12 15 17 10" />
                       <line x1="12" y1="15" x2="12" y2="3" />
@@ -497,7 +593,9 @@ export function EditorPage(): React.JSX.Element {
                 <div className="cf-info-row">
                   <span className="cf-label">USB VID:PID</span>
                   <span className="cf-value">
-                    {activePortDetails?.vendorId ? `${activePortDetails.vendorId}:${activePortDetails.productId}` : 'N/A'}
+                    {activePortDetails?.vendorId
+                      ? `${activePortDetails.vendorId}:${activePortDetails.productId}`
+                      : 'N/A'}
                   </span>
                 </div>
               </div>
@@ -514,8 +612,12 @@ export function EditorPage(): React.JSX.Element {
                 <ol>
                   <li>Connect your microcontroller (Arduino, ESP32, RP2040) via USB.</li>
                   <li>Drag visual blocks from the left toolbox onto the canvas.</li>
-                  <li>Click <strong>CODE</strong> tab to preview synthesized sketch.</li>
-                  <li>Click <strong>MONITOR</strong> tab for real-time serial telemetry and debugging.</li>
+                  <li>
+                    Click <strong>CODE</strong> tab to preview synthesized sketch.
+                  </li>
+                  <li>
+                    Click <strong>MONITOR</strong> tab for real-time serial telemetry and debugging.
+                  </li>
                 </ol>
               </div>
             </div>

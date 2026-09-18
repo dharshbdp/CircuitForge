@@ -15,7 +15,22 @@ function getFormattedTime(): string {
   return `${time}.${ms}`
 }
 
-export function useSerial() {
+export interface UseSerialReturn {
+  ports: SerialPortDescriptor[]
+  selectedPort: string
+  setSelectedPort: React.Dispatch<React.SetStateAction<string>>
+  selectedBaud: number
+  setSelectedBaud: React.Dispatch<React.SetStateAction<number>>
+  connectionState: ConnectionState
+  logs: LogItem[]
+  isScanning: boolean
+  refreshPorts: () => Promise<void>
+  toggleConnection: () => Promise<void>
+  sendData: (text: string, lineEnding: string) => Promise<boolean>
+  clearLogs: () => void
+}
+
+export function useSerial(): UseSerialReturn {
   const [ports, setPorts] = useState<SerialPortDescriptor[]>([])
   const [selectedPort, setSelectedPort] = useState<string>('')
   const [selectedBaud, setSelectedBaud] = useState<number>(115200)
@@ -50,11 +65,28 @@ export function useSerial() {
 
   // Initial setup & IPC subscriptions
   useEffect(() => {
-    refreshPorts()
+    let isMounted = true
+
+    window.api
+      .listSerialPorts()
+      .then((portList) => {
+        if (!isMounted) return
+        setPorts(portList)
+        if (portList.length > 0) {
+          setSelectedPort((current) => {
+            const stillExists = portList.some((p) => p.path === current)
+            return stillExists ? current : portList[0].path
+          })
+        }
+      })
+      .catch((err) => {
+        console.error('Failed to list serial ports:', err)
+      })
 
     window.api
       .getConnectionState()
       .then((state) => {
+        if (!isMounted) return
         setConnectionState(state)
         if (state.path) setSelectedPort(state.path)
         if (state.baudRate) setSelectedBaud(state.baudRate)
@@ -77,10 +109,11 @@ export function useSerial() {
     })
 
     return () => {
+      isMounted = false
       unsubData()
       unsubState()
     }
-  }, [refreshPorts])
+  }, [])
 
   // Connect or disconnect toggle
   const toggleConnection = async (): Promise<void> => {

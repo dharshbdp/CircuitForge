@@ -1,4 +1,5 @@
 import * as Blockly from 'blockly'
+import { validatePwmPin, validateSerialPin } from '@core/validation'
 
 export const Order = {
   ATOMIC: 0,
@@ -36,7 +37,8 @@ export class ArduinoGenerator extends Blockly.CodeGenerator {
     this.initStandardGenerators()
   }
 
-  override init(_workspace: Blockly.Workspace): void {
+  override init(workspace: Blockly.Workspace): void {
+    super.init(workspace)
     this.definitions_ = Object.create(null)
     this.includes_ = Object.create(null)
     this.setups_ = Object.create(null)
@@ -83,6 +85,10 @@ export class ArduinoGenerator extends Blockly.CodeGenerator {
     this.forBlock['pin_digital_write'] = (block) => {
       const pin = block.getFieldValue('PIN')
       const state = block.getFieldValue('STATE')
+      const serialCheck = validateSerialPin(pin)
+      if (typeof block.setWarningText === 'function') {
+        block.setWarningText(serialCheck.warning ? serialCheck.warning : null)
+      }
       this.setups_[`pin_mode_${pin}`] = `pinMode(${pin}, OUTPUT);`
       return `  digitalWrite(${pin}, ${state});\n`
     }
@@ -98,8 +104,14 @@ export class ArduinoGenerator extends Blockly.CodeGenerator {
     this.forBlock['pin_analog_write'] = (block) => {
       const pin = block.getFieldValue('PIN')
       const value = this.valueToCode(block, 'VALUE', Order.NONE) || '0'
+      const validation = validatePwmPin(pin)
+      if (typeof block.setWarningText === 'function') {
+        block.setWarningText(validation.isValid ? null : (validation.warning ?? null))
+      }
+      const warningComment =
+        !validation.isValid && validation.warning ? `  // WARNING: ${validation.warning}\n` : ''
       this.setups_[`pin_mode_${pin}`] = `pinMode(${pin}, OUTPUT);`
-      return `  analogWrite(${pin}, ${value});\n`
+      return `${warningComment}  analogWrite(${pin}, ${value});\n`
     }
 
     // 4. Analog Read
@@ -226,7 +238,8 @@ export class ArduinoGenerator extends Blockly.CodeGenerator {
       const count = this.valueToCode(block, 'COUNT', Order.NONE) || '8'
 
       this.includes_['include_neopixel'] = '#include <Adafruit_NeoPixel.h>'
-      this.definitions_[`neopixel_${pin}`] = `Adafruit_NeoPixel strip_${pin}(${count}, ${pin}, NEO_GRB + NEO_KHZ800);`
+      this.definitions_[`neopixel_${pin}`] =
+        `Adafruit_NeoPixel strip_${pin}(${count}, ${pin}, NEO_GRB + NEO_KHZ800);`
       this.setups_[`neopixel_begin_${pin}`] = `strip_${pin}.begin();\n  strip_${pin}.show();`
 
       return `  // NeoPixel strip_${pin} initialized with ${count} pixels\n`
@@ -242,7 +255,8 @@ export class ArduinoGenerator extends Blockly.CodeGenerator {
 
       this.includes_['include_neopixel'] = '#include <Adafruit_NeoPixel.h>'
       if (!this.definitions_[`neopixel_${pin}`]) {
-        this.definitions_[`neopixel_${pin}`] = `Adafruit_NeoPixel strip_${pin}(8, ${pin}, NEO_GRB + NEO_KHZ800);`
+        this.definitions_[`neopixel_${pin}`] =
+          `Adafruit_NeoPixel strip_${pin}(8, ${pin}, NEO_GRB + NEO_KHZ800);`
         this.setups_[`neopixel_begin_${pin}`] = `strip_${pin}.begin();\n  strip_${pin}.show();`
       }
 
@@ -255,7 +269,8 @@ export class ArduinoGenerator extends Blockly.CodeGenerator {
 
       this.includes_['include_neopixel'] = '#include <Adafruit_NeoPixel.h>'
       if (!this.definitions_[`neopixel_${pin}`]) {
-        this.definitions_[`neopixel_${pin}`] = `Adafruit_NeoPixel strip_${pin}(8, ${pin}, NEO_GRB + NEO_KHZ800);`
+        this.definitions_[`neopixel_${pin}`] =
+          `Adafruit_NeoPixel strip_${pin}(8, ${pin}, NEO_GRB + NEO_KHZ800);`
         this.setups_[`neopixel_begin_${pin}`] = `strip_${pin}.begin();\n  strip_${pin}.show();`
       }
 
@@ -366,6 +381,58 @@ export class ArduinoGenerator extends Blockly.CodeGenerator {
     this.forBlock['text'] = (block) => {
       const text = block.getFieldValue('TEXT') || ''
       return [`"${text}"`, Order.ATOMIC]
+    }
+
+    // Text: Print to Serial
+    this.forBlock['text_print'] = (block) => {
+      const msg = this.valueToCode(block, 'TEXT', Order.NONE) || '""'
+      this.setups_['serial_begin'] = 'Serial.begin(115200);'
+      return `  Serial.println(${msg});\n`
+    }
+
+    // Loops: Count with (for loop)
+    this.forBlock['controls_for'] = (block) => {
+      const variable = block.getField('VAR')?.getText() || 'i'
+      const from = this.valueToCode(block, 'FROM', Order.ASSIGNMENT) || '0'
+      const to = this.valueToCode(block, 'TO', Order.ASSIGNMENT) || '0'
+      const by = this.valueToCode(block, 'BY', Order.ASSIGNMENT) || '1'
+      const branch = this.statementToCode(block, 'DO')
+      return `  for (long ${variable} = ${from}; ${variable} <= ${to}; ${variable} += ${by}) {\n${branch}  }\n`
+    }
+
+    // Math: Single operations (abs, sqrt, log, etc.)
+    this.forBlock['math_single'] = (block) => {
+      const operator = block.getFieldValue('OP')
+      let code: string
+      let arg: string
+      if (operator === 'NEG') {
+        arg = this.valueToCode(block, 'NUM', Order.UNARY) || '0'
+        return [`-${arg}`, Order.UNARY]
+      }
+      arg = this.valueToCode(block, 'NUM', Order.NONE) || '0'
+      switch (operator) {
+        case 'ABS':
+          code = `abs(${arg})`
+          break
+        case 'ROOT':
+          code = `sqrt(${arg})`
+          break
+        case 'LN':
+          code = `log(${arg})`
+          break
+        case 'LOG10':
+          code = `log10(${arg})`
+          break
+        case 'EXP':
+          code = `exp(${arg})`
+          break
+        case 'POW10':
+          code = `pow(10, ${arg})`
+          break
+        default:
+          code = `0`
+      }
+      return [code, Order.UNARY]
     }
 
     // Variables: Get

@@ -5,52 +5,43 @@ import '@core/blocks'
 // Fixed preview scale for the toolbox dock flyout
 const FIXED_FLYOUT_SCALE = 0.85
 
+interface FlyoutLayoutItem {
+  getElement(): {
+    moveBy(x: number, y: number): void
+    getBoundingRectangle(): { getHeight(): number }
+  }
+}
+
+interface VerticalFlyoutInternal {
+  workspace_: Blockly.WorkspaceSvg
+  tabWidth_: number
+  MARGIN: number
+  RTL: boolean
+  getFlyoutScale(): number
+}
+
 // 1. Decouple base Flyout scale from targetWorkspace.scale
 if (Blockly.Flyout?.prototype) {
-  Blockly.Flyout.prototype.getFlyoutScale = function (): number {
+  const flyoutProto = Blockly.Flyout.prototype as unknown as { getFlyoutScale: () => number }
+  flyoutProto.getFlyoutScale = function (): number {
     return FIXED_FLYOUT_SCALE
   }
 }
 
-// 2. Decouple VerticalFlyout layout_ and reflowInternal_ from targetWorkspace.scale
-if (Blockly.VerticalFlyout?.prototype) {
-  const vertProto = Blockly.VerticalFlyout.prototype as any
-  vertProto.getFlyoutScale = function (): number {
-    return FIXED_FLYOUT_SCALE
-  }
-
-  vertProto.layout_ = function (contents: any[]): void {
-    this.workspace_.scale = this.getFlyoutScale()
-    const margin = this.MARGIN
-    const x = this.RTL ? margin : margin + this.tabWidth_
-    let y = margin
-    for (const item of contents) {
-      const el = item.getElement()
-      el.moveBy(x, y)
-      y += el.getBoundingRectangle().getHeight()
-    }
-  }
-
-  const origReflow = vertProto.reflowInternal_
-  vertProto.reflowInternal_ = function (): void {
-    origReflow.call(this)
-    const ws = this.workspace_
-    if (ws && typeof ws.translate === 'function') {
-      ws.translate(ws.scrollX, ws.scrollY)
-    }
-  }
-}
-
-// 3. Register CircuitForgeFlyout with Blockly registry
+// 2. Register CircuitForgeFlyout with Blockly registry
 class CircuitForgeFlyout extends Blockly.VerticalFlyout {
   override getFlyoutScale(): number {
     return FIXED_FLYOUT_SCALE
   }
 
-  protected override layout_(contents: any[]): void {
-    ;(this as any).workspace_.scale = this.getFlyoutScale()
-    const margin = this.MARGIN
-    const x = this.RTL ? margin : margin + (this as any).tabWidth_
+  protected override layout_(contents: FlyoutLayoutItem[]): void {
+    const self = this as unknown as VerticalFlyoutInternal
+    if (self.workspace_) {
+      self.workspace_.scale = this.getFlyoutScale()
+    }
+    const margin = self.MARGIN
+    const tabWidth = self.tabWidth_ || 0
+    const x = self.RTL ? margin : margin + tabWidth
     let y = margin
     for (const item of contents) {
       const el = item.getElement()
@@ -61,7 +52,8 @@ class CircuitForgeFlyout extends Blockly.VerticalFlyout {
 
   protected override reflowInternal_(): void {
     super.reflowInternal_()
-    const ws = (this as any).workspace_
+    const self = this as unknown as VerticalFlyoutInternal
+    const ws = self.workspace_
     if (ws && typeof ws.translate === 'function') {
       ws.translate(ws.scrollX, ws.scrollY)
     }
@@ -75,9 +67,15 @@ Blockly.registry.register(
   true
 )
 
-// 4. Hook Zelos ConstantProvider for dynamic dark/light fieldBorderRectColour
+// 3. Hook Zelos ConstantProvider for dynamic dark/light fieldBorderRectColour
+interface ZelosConstantProviderInternal {
+  FIELD_BORDER_RECT_COLOUR: string
+  init(): void
+  setDynamicProperties_(theme: Blockly.Theme): void
+}
+
 if (Blockly.zelos?.ConstantProvider?.prototype) {
-  const proto = Blockly.zelos.ConstantProvider.prototype as any
+  const proto = Blockly.zelos.ConstantProvider.prototype as unknown as ZelosConstantProviderInternal
   const origInit = proto.init
   proto.init = function (): void {
     origInit.call(this)
@@ -85,7 +83,7 @@ if (Blockly.zelos?.ConstantProvider?.prototype) {
   }
 
   const origSetDynamic = proto.setDynamicProperties_
-  proto.setDynamicProperties_ = function (theme: any): void {
+  proto.setDynamicProperties_ = function (theme: Blockly.Theme): void {
     origSetDynamic.call(this, theme)
     const customFieldBorder = theme.getComponentStyle?.('fieldBorderRectColour')
     if (customFieldBorder) {
@@ -113,7 +111,7 @@ const DarkMonochromeTheme = Blockly.Theme.defineTheme('cf_dark', {
     selectedGlowColour: '#ffffff',
     selectedGlowOpacity: 0.4,
     fieldBorderRectColour: '#141418'
-  } as any,
+  } as unknown as Blockly.Theme.ComponentStyle,
   blockStyles: {
     gpio_blocks: {
       colourPrimary: '#18181c',
@@ -197,7 +195,7 @@ const LightMonochromeTheme = Blockly.Theme.defineTheme('cf_light', {
     selectedGlowColour: '#121212',
     selectedGlowOpacity: 0.35,
     fieldBorderRectColour: '#ffffff'
-  } as any,
+  } as unknown as Blockly.Theme.ComponentStyle,
   blockStyles: {
     gpio_blocks: {
       colourPrimary: '#ffffff',
@@ -463,7 +461,7 @@ export default function BlocklyWorkspace({
     })
 
     // Ensure the flyout instance explicitly stays at FIXED_FLYOUT_SCALE
-    const flyout = (workspace.getFlyout() || (workspace.getToolbox() as any)?.getFlyout()) as any
+    const flyout = workspace.getFlyout() as unknown as VerticalFlyoutInternal | null
     if (flyout) {
       flyout.getFlyoutScale = (): number => FIXED_FLYOUT_SCALE
       if (flyout.workspace_) {
@@ -480,7 +478,7 @@ export default function BlocklyWorkspace({
     }
 
     // Change listener
-    const changeListener = (e?: any): void => {
+    const changeListener = (e?: Blockly.Events.Abstract): void => {
       if (e && e.isUiEvent) return
       if (onWorkspaceChangeRef.current) {
         onWorkspaceChangeRef.current(workspace)
@@ -511,7 +509,8 @@ export default function BlocklyWorkspace({
         workspaceRef.current = null
       }
     }
-  }, []) // Mount once
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []) // Mount once to maintain persistent user canvas state
 
   // Synchronize Theme dynamically
   useEffect(() => {

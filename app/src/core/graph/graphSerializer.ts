@@ -19,7 +19,10 @@ export function serializeWorkspace(workspace: Blockly.WorkspaceSvg): SerializedW
   }
 }
 
-export function loadWorkspace(workspace: Blockly.WorkspaceSvg, serialized: SerializedWorkspace): void {
+export function loadWorkspace(
+  workspace: Blockly.WorkspaceSvg,
+  serialized: SerializedWorkspace
+): void {
   workspace.clear()
   if (serialized && serialized.state) {
     Blockly.serialization.workspaces.load(serialized.state, workspace)
