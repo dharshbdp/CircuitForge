@@ -856,44 +856,177 @@ body {
   background: var(--scrollbar-thumb-hover);
 }
 
-/* Blockly Monochromatic Theme Overrides */
+/* Blockly Modern Monochromatic Theme Overrides */
 .blocklyToolboxDiv {
   background-color: var(--bg-surface) !important;
   border-right: 1px solid var(--border-default) !important;
   color: var(--text-primary) !important;
-  padding: 6px 0 !important;
+  padding: 8px 4px !important;
 }
 
 .blocklyFlyoutBackground {
   fill: var(--bg-surface) !important;
-  fill-opacity: 0.96 !important;
+  fill-opacity: 0.98 !important;
 }
 
-.blocklyTreeRow {
-  padding: 6px 14px !important;
-  border-radius: 4px !important;
-  margin: 3px 8px !important;
-  transition: background-color 0.15s ease !important;
-  line-height: 22px !important;
-  height: auto !important;
+.blocklyFlyout {
+  border-right: 1px solid var(--border-default) !important;
 }
 
-.blocklyTreeRow:hover {
-  background-color: var(--bg-surface-hover) !important;
+/* Modern Block Paths with Elevation & Borders */
+:root[data-theme='dark'] .blocklyPath {
+  filter: drop-shadow(0 3px 6px rgba(0, 0, 0, 0.45));
+  stroke: #383840 !important;
+  stroke-width: 1.25px !important;
+  transition: filter 0.15s ease, stroke 0.15s ease;
 }
 
-.blocklyTreeRow.blocklyTreeSelected {
-  background-color: var(--bg-surface-active) !important;
+:root[data-theme='light'] .blocklyPath {
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.08));
+  stroke: #ced4da !important;
+  stroke-width: 1.25px !important;
+  transition: filter 0.15s ease, stroke 0.15s ease;
 }
 
-.blocklyTreeLabel {
+/* Selected Block Glow */
+:root[data-theme='dark'] .blocklySelected > .blocklyPath {
+  stroke: #ffffff !important;
+  stroke-width: 2px !important;
+  filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.3)) !important;
+}
+
+:root[data-theme='light'] .blocklySelected > .blocklyPath {
+  stroke: #121212 !important;
+  stroke-width: 2px !important;
+  filter: drop-shadow(0 0 8px rgba(0, 0, 0, 0.2)) !important;
+}
+
+/* Modern Rounded Input Badges & Fields */
+.blocklyEditableText rect,
+.blocklyNonEditableText rect {
+  rx: 5px !important;
+  ry: 5px !important;
+  stroke-width: 1px !important;
+  transition: fill 0.15s ease, stroke 0.15s ease;
+}
+
+:root[data-theme='dark'] .blocklyEditableText rect,
+:root[data-theme='dark'] .blocklyNonEditableText rect {
+  fill: #111114 !important;
+  stroke: #33333b !important;
+}
+
+:root[data-theme='light'] .blocklyEditableText rect,
+:root[data-theme='light'] .blocklyNonEditableText rect {
+  fill: #ffffff !important;
+  stroke: #d0d5dd !important;
+}
+
+/* Block Typography */
+.blocklyText {
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
   font-size: 11px !important;
   font-weight: 600 !important;
-  color: var(--text-primary) !important;
-  letter-spacing: 0.04em !important;
+  letter-spacing: 0.02em !important;
 }
 
+:root[data-theme='dark'] .blocklyText {
+  fill: #f4f4f6 !important;
+}
+
+:root[data-theme='light'] .blocklyText {
+  fill: #1a1a1a !important;
+}
+
+:root[data-theme='dark'] .blocklyEditableText text {
+  fill: #ffffff !important;
+}
+
+:root[data-theme='light'] .blocklyEditableText text {
+  fill: #09090b !important;
+}
+
+:root[data-theme='dark'] .blocklyDropdownText {
+  fill: #f4f4f6 !important;
+}
+
+:root[data-theme='light'] .blocklyDropdownText {
+  fill: #121212 !important;
+}
+
+/* Modern Toolbox Categories & Typography */
+.blocklyToolboxCategory {
+  display: flex !important;
+  align-items: center !important;
+  height: 28px !important;
+  min-height: 28px !important;
+  max-height: 28px !important;
+  line-height: 28px !important;
+  padding: 0 10px 0 10px !important;
+  margin: 2px 4px !important;
+  border-radius: 0 4px 4px 0 !important;
+  border-left-width: 3px !important;
+  border-top: none !important;
+  border-right: none !important;
+  border-bottom: none !important;
+  cursor: pointer !important;
+  box-sizing: border-box !important;
+  transition: background-color 0.15s ease !important;
+}
+
+.blocklyToolboxCategory:hover {
+  background-color: var(--bg-surface-hover) !important;
+}
+
+.blocklyToolboxCategory.blocklyToolboxSelected,
+.blocklyToolboxSelected {
+  background-color: var(--bg-surface-active) !important;
+}
+
+/* Content Container & Alignment */
+.blocklyTreeRowContentContainer {
+  display: flex !important;
+  align-items: center !important;
+  height: 100% !important;
+  width: 100% !important;
+}
+
+/* Hide empty ghost icon */
+.blocklyToolboxCategoryIcon {
+  display: none !important;
+}
+
+.blocklyToolboxCategoryLabel,
+.blocklyTreeLabel {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif !important;
+  font-size: 11px !important;
+  font-weight: 600 !important;
+  letter-spacing: 0.04em !important;
+  color: var(--text-secondary) !important;
+  transition: color 0.15s ease !important;
+  line-height: 1 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  display: inline-flex !important;
+  align-items: center !important;
+}
+
+.blocklyToolboxCategory:hover .blocklyToolboxCategoryLabel,
+.blocklyToolboxCategory.blocklyToolboxSelected .blocklyToolboxCategoryLabel {
+  color: var(--text-primary) !important;
+}
+
+.blocklyToolboxCategory.blocklyToolboxSelected .blocklyToolboxCategoryLabel {
+  font-weight: 700 !important;
+}
+
+.blocklyTreeSeparator {
+  border-bottom: 1px solid var(--border-default) !important;
+  margin: 8px 6px !important;
+  height: 0 !important;
+}
+
+/* Scrollbar */
 .blocklyScrollbarHandle {
   fill: var(--scrollbar-thumb) !important;
 }
@@ -902,8 +1035,51 @@ body {
   fill: var(--scrollbar-thumb-hover) !important;
 }
 
+/* Modern Dropdown Menu Popover */
+.blocklyDropDownDiv {
+  background-color: var(--bg-surface) !important;
+  border: 1px solid var(--border-strong) !important;
+  border-radius: 6px !important;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.35) !important;
+  color: var(--text-primary) !important;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
+  padding: 4px !important;
+}
+
+.blocklyMenuItem {
+  padding: 6px 12px !important;
+  border-radius: 4px !important;
+  font-size: 11px !important;
+  font-weight: 500 !important;
+  color: var(--text-primary) !important;
+  cursor: pointer !important;
+  transition: background-color 0.12s ease !important;
+}
+
+.blocklyMenuItemHighlight {
+  background-color: var(--bg-surface-active) !important;
+  color: var(--text-primary) !important;
+}
+
+.blocklyMenuItemContent {
+  color: var(--text-primary) !important;
+}
+
+/* Inline Text/Number Field Editor */
+.blocklyHtmlInput {
+  background-color: var(--bg-input) !important;
+  color: var(--text-primary) !important;
+  border: 1px solid var(--border-focus) !important;
+  border-radius: 4px !important;
+  font-family: 'Consolas', 'Courier New', monospace !important;
+  font-size: 12px !important;
+  padding: 3px 8px !important;
+  outline: none !important;
+}
+
+/* Zoom and Trash Controls */
 .blocklyZoom image {
-  opacity: 0.7;
+  opacity: 0.75;
   transition: opacity 0.15s ease;
 }
 
@@ -916,7 +1092,7 @@ body {
 }
 
 .blocklyTrash {
-  opacity: 0.7;
+  opacity: 0.75;
   transition: opacity 0.15s ease;
 }
 

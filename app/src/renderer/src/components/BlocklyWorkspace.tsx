@@ -1,53 +1,154 @@
 import { useEffect, useRef } from 'react'
 import * as Blockly from 'blockly'
+import '../blocks/hardwareBlocks'
 
-// Dark Monochromatic Theme
+// Fixed preview scale for the toolbox dock flyout
+const FIXED_FLYOUT_SCALE = 0.85
+
+// 1. Decouple base Flyout scale from targetWorkspace.scale
+if (Blockly.Flyout?.prototype) {
+  Blockly.Flyout.prototype.getFlyoutScale = function (): number {
+    return FIXED_FLYOUT_SCALE
+  }
+}
+
+// 2. Decouple VerticalFlyout layout_ and reflowInternal_ from targetWorkspace.scale
+if (Blockly.VerticalFlyout?.prototype) {
+  const vertProto = Blockly.VerticalFlyout.prototype as any
+  vertProto.getFlyoutScale = function (): number {
+    return FIXED_FLYOUT_SCALE
+  }
+
+  vertProto.layout_ = function (contents: any[]): void {
+    this.workspace_.scale = this.getFlyoutScale()
+    const margin = this.MARGIN
+    const x = this.RTL ? margin : margin + this.tabWidth_
+    let y = margin
+    for (const item of contents) {
+      const el = item.getElement()
+      el.moveBy(x, y)
+      y += el.getBoundingRectangle().getHeight()
+    }
+  }
+
+  const origReflow = vertProto.reflowInternal_
+  vertProto.reflowInternal_ = function (): void {
+    origReflow.call(this)
+    const ws = this.workspace_
+    if (ws && typeof ws.translate === 'function') {
+      ws.translate(ws.scrollX, ws.scrollY)
+    }
+  }
+}
+
+// 3. Register CircuitForgeFlyout with Blockly registry
+class CircuitForgeFlyout extends Blockly.VerticalFlyout {
+  override getFlyoutScale(): number {
+    return FIXED_FLYOUT_SCALE
+  }
+
+  protected override layout_(contents: any[]): void {
+    ;(this as any).workspace_.scale = this.getFlyoutScale()
+    const margin = this.MARGIN
+    const x = this.RTL ? margin : margin + (this as any).tabWidth_
+    let y = margin
+    for (const item of contents) {
+      const el = item.getElement()
+      el.moveBy(x, y)
+      y += el.getBoundingRectangle().getHeight()
+    }
+  }
+
+  protected override reflowInternal_(): void {
+    super.reflowInternal_()
+    const ws = (this as any).workspace_
+    if (ws && typeof ws.translate === 'function') {
+      ws.translate(ws.scrollX, ws.scrollY)
+    }
+  }
+}
+
+Blockly.registry.register(
+  Blockly.registry.Type.FLYOUTS_VERTICAL_TOOLBOX,
+  Blockly.registry.DEFAULT,
+  CircuitForgeFlyout,
+  true
+)
+
+// Modern Monochromatic Dark Theme (Zelos base)
 const DarkMonochromeTheme = Blockly.Theme.defineTheme('cf_dark', {
   name: 'cf_dark',
-  base: Blockly.Themes.Classic,
+  base: Blockly.Themes.Zelos,
   componentStyles: {
     workspaceBackgroundColour: '#09090b',
-    toolboxBackgroundColour: '#141416',
+    toolboxBackgroundColour: '#111114',
     toolboxForegroundColour: '#f4f4f6',
-    flyoutBackgroundColour: '#111113',
+    flyoutBackgroundColour: '#111114',
     flyoutForegroundColour: '#f4f4f6',
-    flyoutOpacity: 0.95,
+    flyoutOpacity: 0.98,
     scrollbarColour: '#27272a',
     insertionMarkerColour: '#ffffff',
-    insertionMarkerOpacity: 0.4,
-    scrollbarOpacity: 0.7,
-    cursorColour: '#ffffff'
+    insertionMarkerOpacity: 0.8,
+    scrollbarOpacity: 0.6,
+    cursorColour: '#ffffff',
+    selectedGlowColour: '#ffffff',
+    selectedGlowOpacity: 0.4
   },
   blockStyles: {
+    gpio_blocks: {
+      colourPrimary: '#18181c',
+      colourSecondary: '#2b2b32',
+      colourTertiary: '#101012'
+    },
+    timing_blocks: {
+      colourPrimary: '#222227',
+      colourSecondary: '#35353e',
+      colourTertiary: '#141417'
+    },
+    sensor_blocks: {
+      colourPrimary: '#282830',
+      colourSecondary: '#3d3d49',
+      colourTertiary: '#17171c'
+    },
+    actuator_blocks: {
+      colourPrimary: '#1f1f25',
+      colourSecondary: '#31313c',
+      colourTertiary: '#121216'
+    },
+    serial_blocks: {
+      colourPrimary: '#1a1a1f',
+      colourSecondary: '#2d2d36',
+      colourTertiary: '#111113'
+    },
     logic_blocks: {
-      colourPrimary: '#27272a',
-      colourSecondary: '#3f3f46',
-      colourTertiary: '#18181b'
+      colourPrimary: '#202026',
+      colourSecondary: '#33333d',
+      colourTertiary: '#131317'
     },
     loop_blocks: {
-      colourPrimary: '#3f3f46',
-      colourSecondary: '#52525b',
-      colourTertiary: '#27272a'
+      colourPrimary: '#26262d',
+      colourSecondary: '#3a3a46',
+      colourTertiary: '#16161a'
     },
     math_blocks: {
-      colourPrimary: '#27272a',
-      colourSecondary: '#3f3f46',
-      colourTertiary: '#18181b'
+      colourPrimary: '#1d1d23',
+      colourSecondary: '#2f2f39',
+      colourTertiary: '#111115'
     },
     text_blocks: {
-      colourPrimary: '#3f3f46',
-      colourSecondary: '#52525b',
-      colourTertiary: '#27272a'
+      colourPrimary: '#24242b',
+      colourSecondary: '#373742',
+      colourTertiary: '#151519'
     },
     variable_blocks: {
-      colourPrimary: '#27272a',
-      colourSecondary: '#3f3f46',
-      colourTertiary: '#18181b'
+      colourPrimary: '#2a2a33',
+      colourSecondary: '#40404e',
+      colourTertiary: '#18181e'
     },
     procedure_blocks: {
-      colourPrimary: '#3f3f46',
-      colourSecondary: '#52525b',
-      colourTertiary: '#27272a'
+      colourPrimary: '#222228',
+      colourSecondary: '#35353f',
+      colourTertiary: '#141417'
     }
   },
   fontStyle: {
@@ -57,53 +158,80 @@ const DarkMonochromeTheme = Blockly.Theme.defineTheme('cf_dark', {
   }
 })
 
-// Light Monochromatic Theme
+// Modern Monochromatic Light Theme (Zelos base)
 const LightMonochromeTheme = Blockly.Theme.defineTheme('cf_light', {
   name: 'cf_light',
-  base: Blockly.Themes.Classic,
+  base: Blockly.Themes.Zelos,
   componentStyles: {
     workspaceBackgroundColour: '#f8f9fa',
     toolboxBackgroundColour: '#ffffff',
     toolboxForegroundColour: '#121212',
     flyoutBackgroundColour: '#ffffff',
     flyoutForegroundColour: '#121212',
-    flyoutOpacity: 0.95,
+    flyoutOpacity: 0.98,
     scrollbarColour: '#ced4da',
     insertionMarkerColour: '#121212',
-    insertionMarkerOpacity: 0.4,
-    scrollbarOpacity: 0.7,
-    cursorColour: '#121212'
+    insertionMarkerOpacity: 0.8,
+    scrollbarOpacity: 0.6,
+    cursorColour: '#121212',
+    selectedGlowColour: '#121212',
+    selectedGlowOpacity: 0.35
   },
   blockStyles: {
+    gpio_blocks: {
+      colourPrimary: '#ffffff',
+      colourSecondary: '#e2e5e9',
+      colourTertiary: '#f1f3f5'
+    },
+    timing_blocks: {
+      colourPrimary: '#f8f9fa',
+      colourSecondary: '#d8dce2',
+      colourTertiary: '#ebedf0'
+    },
+    sensor_blocks: {
+      colourPrimary: '#f1f3f5',
+      colourSecondary: '#cfd4dc',
+      colourTertiary: '#e2e6eb'
+    },
+    actuator_blocks: {
+      colourPrimary: '#ffffff',
+      colourSecondary: '#d8dce2',
+      colourTertiary: '#edf0f4'
+    },
+    serial_blocks: {
+      colourPrimary: '#f8f9fa',
+      colourSecondary: '#d8dce2',
+      colourTertiary: '#ebedf0'
+    },
     logic_blocks: {
-      colourPrimary: '#dee2e6',
-      colourSecondary: '#ced4da',
-      colourTertiary: '#e9ecef'
+      colourPrimary: '#ffffff',
+      colourSecondary: '#e0e4e8',
+      colourTertiary: '#eff2f5'
     },
     loop_blocks: {
-      colourPrimary: '#ced4da',
-      colourSecondary: '#adb5bd',
-      colourTertiary: '#dee2e6'
+      colourPrimary: '#f3f4f6',
+      colourSecondary: '#d0d5dd',
+      colourTertiary: '#e4e7eb'
     },
     math_blocks: {
-      colourPrimary: '#dee2e6',
-      colourSecondary: '#ced4da',
-      colourTertiary: '#e9ecef'
+      colourPrimary: '#ffffff',
+      colourSecondary: '#dde2e7',
+      colourTertiary: '#edf0f4'
     },
     text_blocks: {
-      colourPrimary: '#ced4da',
-      colourSecondary: '#adb5bd',
-      colourTertiary: '#dee2e6'
+      colourPrimary: '#f8f9fa',
+      colourSecondary: '#d8dce2',
+      colourTertiary: '#ebedf0'
     },
     variable_blocks: {
-      colourPrimary: '#dee2e6',
-      colourSecondary: '#ced4da',
-      colourTertiary: '#e9ecef'
+      colourPrimary: '#f1f3f5',
+      colourSecondary: '#cfd4dc',
+      colourTertiary: '#e2e6eb'
     },
     procedure_blocks: {
-      colourPrimary: '#ced4da',
-      colourSecondary: '#adb5bd',
-      colourTertiary: '#dee2e6'
+      colourPrimary: '#ffffff',
+      colourSecondary: '#d8dce2',
+      colourTertiary: '#edf0f4'
     }
   },
   fontStyle: {
@@ -113,10 +241,81 @@ const LightMonochromeTheme = Blockly.Theme.defineTheme('cf_light', {
   }
 })
 
-// Initial Toolbox Specification
+// Curated Toolbox Specification with Modern Monochromatic Badges
 const toolboxConfig = {
   kind: 'categoryToolbox',
   contents: [
+    {
+      kind: 'category',
+      name: 'GPIO / Pins',
+      colour: '#52525b',
+      contents: [
+        { kind: 'block', type: 'pin_set_mode' },
+        { kind: 'block', type: 'pin_digital_write' },
+        { kind: 'block', type: 'pin_digital_read' },
+        {
+          kind: 'block',
+          type: 'pin_analog_write',
+          inputs: {
+            VALUE: { shadow: { type: 'math_number', fields: { NUM: 128 } } }
+          }
+        },
+        { kind: 'block', type: 'pin_analog_read' }
+      ]
+    },
+    {
+      kind: 'category',
+      name: 'Timing',
+      colour: '#71717a',
+      contents: [
+        {
+          kind: 'block',
+          type: 'time_delay',
+          inputs: {
+            DELAY_MS: { shadow: { type: 'math_number', fields: { NUM: 1000 } } }
+          }
+        },
+        {
+          kind: 'block',
+          type: 'time_delay_micros',
+          inputs: {
+            DELAY_US: { shadow: { type: 'math_number', fields: { NUM: 10 } } }
+          }
+        },
+        { kind: 'block', type: 'time_millis' }
+      ]
+    },
+    {
+      kind: 'category',
+      name: 'Sensors & Actuators',
+      colour: '#a1a1aa',
+      contents: [
+        { kind: 'block', type: 'sensor_ultrasonic' },
+        {
+          kind: 'block',
+          type: 'actuator_servo',
+          inputs: {
+            ANGLE: { shadow: { type: 'math_number', fields: { NUM: 90 } } }
+          }
+        },
+        { kind: 'block', type: 'actuator_relay' }
+      ]
+    },
+    {
+      kind: 'category',
+      name: 'Serial I/O',
+      colour: '#52525b',
+      contents: [
+        {
+          kind: 'block',
+          type: 'serial_print',
+          inputs: {
+            CONTENT: { shadow: { type: 'text', fields: { TEXT: 'Hello CircuitForge' } } }
+          }
+        }
+      ]
+    },
+    { kind: 'sep' },
     {
       kind: 'category',
       name: 'Logic',
@@ -132,7 +331,7 @@ const toolboxConfig = {
     {
       kind: 'category',
       name: 'Loops',
-      colour: '#71717a',
+      colour: '#a1a1aa',
       contents: [
         { kind: 'block', type: 'controls_repeat_ext' },
         { kind: 'block', type: 'controls_whileUntil' },
@@ -142,7 +341,7 @@ const toolboxConfig = {
     {
       kind: 'category',
       name: 'Math',
-      colour: '#71717a',
+      colour: '#52525b',
       contents: [
         { kind: 'block', type: 'math_number' },
         { kind: 'block', type: 'math_arithmetic' },
@@ -162,7 +361,7 @@ const toolboxConfig = {
       kind: 'category',
       name: 'Variables',
       custom: 'VARIABLE',
-      colour: '#71717a'
+      colour: '#a1a1aa'
     }
   ]
 }
@@ -181,7 +380,7 @@ export default function BlocklyWorkspace({
   const containerRef = useRef<HTMLDivElement>(null)
   const innerWorkspaceRef = useRef<Blockly.WorkspaceSvg | null>(null)
 
-  // Initialize Blockly Workspace
+  // Initialize Modern Blockly Workspace with Zelos renderer
   useEffect(() => {
     if (!containerRef.current) return
 
@@ -189,6 +388,7 @@ export default function BlocklyWorkspace({
 
     const workspace = Blockly.inject(containerRef.current, {
       toolbox: toolboxConfig,
+      renderer: 'zelos',
       grid: {
         spacing: 24,
         length: 2,
@@ -198,7 +398,7 @@ export default function BlocklyWorkspace({
       zoom: {
         controls: true,
         wheel: true,
-        startScale: 1.0,
+        startScale: 0.95,
         maxScale: 2.5,
         minScale: 0.4,
         scaleSpeed: 1.2
@@ -207,6 +407,18 @@ export default function BlocklyWorkspace({
       theme: selectedTheme,
       sounds: false
     })
+
+    // Ensure the flyout instance explicitly stays at FIXED_FLYOUT_SCALE
+    const flyout = (workspace.getFlyout() || (workspace.getToolbox() as any)?.getFlyout()) as any
+    if (flyout) {
+      flyout.getFlyoutScale = (): number => FIXED_FLYOUT_SCALE
+      if (flyout.workspace_) {
+        flyout.workspace_.scale = FIXED_FLYOUT_SCALE
+        if (typeof flyout.workspace_.translate === 'function') {
+          flyout.workspace_.translate(flyout.workspace_.scrollX, flyout.workspace_.scrollY)
+        }
+      }
+    }
 
     innerWorkspaceRef.current = workspace
     if (workspaceRef) {
@@ -254,7 +466,7 @@ export default function BlocklyWorkspace({
 
   return (
     <div className="cf-blockly-container" ref={containerRef}>
-      {/* Blockly injects its SVG canvas directly here */}
+      {/* Modern Zelos Blockly canvas injected here */}
     </div>
   )
 }
