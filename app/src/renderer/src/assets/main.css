@@ -905,24 +905,41 @@ body {
 }
 
 /* Modern Rounded Input Badges & Fields */
+.blocklyEditableField rect,
+.blocklyNonEditableField rect,
+.blocklyFieldRect,
 .blocklyEditableText rect,
 .blocklyNonEditableText rect {
-  rx: 5px !important;
-  ry: 5px !important;
+  rx: 6px !important;
+  ry: 6px !important;
   stroke-width: 1px !important;
   transition: fill 0.15s ease, stroke 0.15s ease;
 }
 
+:root[data-theme='dark'] .blocklyEditableField > rect,
+:root[data-theme='dark'] .blocklyNonEditableField > rect,
+:root[data-theme='dark'] .blocklyFieldRect,
 :root[data-theme='dark'] .blocklyEditableText rect,
 :root[data-theme='dark'] .blocklyNonEditableText rect {
-  fill: #111114 !important;
-  stroke: #33333b !important;
+  fill: #141418 !important;
+  stroke: #3b3b44 !important;
 }
 
+:root[data-theme='light'] .blocklyEditableField > rect,
+:root[data-theme='light'] .blocklyNonEditableField > rect,
+:root[data-theme='light'] .blocklyFieldRect,
 :root[data-theme='light'] .blocklyEditableText rect,
 :root[data-theme='light'] .blocklyNonEditableText rect {
   fill: #ffffff !important;
   stroke: #d0d5dd !important;
+}
+
+/* Failsafe for Zelos full-block number/string reporter paths in dark mode */
+:root[data-theme='dark'] .blocklyWorkspace path[fill='#fff'],
+:root[data-theme='dark'] .blocklyWorkspace path[fill='#ffffff'],
+:root[data-theme='dark'] .blocklyWorkspace path[fill='white'] {
+  fill: #141418 !important;
+  stroke: #3b3b44 !important;
 }
 
 /* Block Typography */
@@ -941,12 +958,25 @@ body {
   fill: #1a1a1a !important;
 }
 
+/* Field Text (Inside inputs, numbers, text boxes) */
+:root[data-theme='dark'] .blocklyFieldText,
+:root[data-theme='dark'] .blocklyEditableField text,
+:root[data-theme='dark'] .blocklyEditableField > text,
+:root[data-theme='dark'] .blocklyEditableField > g > text,
+:root[data-theme='dark'] .blocklyNonEditableField text,
 :root[data-theme='dark'] .blocklyEditableText text {
   fill: #ffffff !important;
+  font-weight: 600 !important;
 }
 
+:root[data-theme='light'] .blocklyFieldText,
+:root[data-theme='light'] .blocklyEditableField text,
+:root[data-theme='light'] .blocklyEditableField > text,
+:root[data-theme='light'] .blocklyEditableField > g > text,
+:root[data-theme='light'] .blocklyNonEditableField text,
 :root[data-theme='light'] .blocklyEditableText text {
   fill: #09090b !important;
+  font-weight: 600 !important;
 }
 
 :root[data-theme='dark'] .blocklyDropdownText {

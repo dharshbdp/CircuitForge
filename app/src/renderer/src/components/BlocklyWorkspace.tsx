@@ -75,6 +75,25 @@ Blockly.registry.register(
   true
 )
 
+// 4. Hook Zelos ConstantProvider for dynamic dark/light fieldBorderRectColour
+if (Blockly.zelos?.ConstantProvider?.prototype) {
+  const proto = Blockly.zelos.ConstantProvider.prototype as any
+  const origInit = proto.init
+  proto.init = function (): void {
+    origInit.call(this)
+    this.FIELD_BORDER_RECT_COLOUR = '#141418'
+  }
+
+  const origSetDynamic = proto.setDynamicProperties_
+  proto.setDynamicProperties_ = function (theme: any): void {
+    origSetDynamic.call(this, theme)
+    const customFieldBorder = theme.getComponentStyle?.('fieldBorderRectColour')
+    if (customFieldBorder) {
+      this.FIELD_BORDER_RECT_COLOUR = customFieldBorder
+    }
+  }
+}
+
 // Modern Monochromatic Dark Theme (Zelos base)
 const DarkMonochromeTheme = Blockly.Theme.defineTheme('cf_dark', {
   name: 'cf_dark',
@@ -92,8 +111,9 @@ const DarkMonochromeTheme = Blockly.Theme.defineTheme('cf_dark', {
     scrollbarOpacity: 0.6,
     cursorColour: '#ffffff',
     selectedGlowColour: '#ffffff',
-    selectedGlowOpacity: 0.4
-  },
+    selectedGlowOpacity: 0.4,
+    fieldBorderRectColour: '#141418'
+  } as any,
   blockStyles: {
     gpio_blocks: {
       colourPrimary: '#18181c',
@@ -175,8 +195,9 @@ const LightMonochromeTheme = Blockly.Theme.defineTheme('cf_light', {
     scrollbarOpacity: 0.6,
     cursorColour: '#121212',
     selectedGlowColour: '#121212',
-    selectedGlowOpacity: 0.35
-  },
+    selectedGlowOpacity: 0.35,
+    fieldBorderRectColour: '#ffffff'
+  } as any,
   blockStyles: {
     gpio_blocks: {
       colourPrimary: '#ffffff',
