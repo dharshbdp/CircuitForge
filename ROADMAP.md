@@ -49,34 +49,35 @@ graph TD
         P5 --> P6[Phase 6: Real-Time Dual-Pane Code Generator]
     end
 
-    subgraph Milestone_0_3 [v0.3: AI Hardware Copilot]
-        P6 --> P7[Phase 7: Context-Aware Circuit Explainer]
-        P7 --> P8[Phase 8: Natural Language to Block Synthesis]
-        P8 --> P9[Phase 9: Circuit & Pin Conflict Diagnostics]
+    subgraph Milestone_0_3 [v0.3: Compilation & One-Click Flashing]
+        P6 --> P7[Phase 7: Headless Embedded Toolchain Integration]
+        P7 --> P8[Phase 8: One-Click Compile & Flashing Pipeline]
     end
 
-    subgraph Milestone_0_4 [v0.4: Compilation & One-Click Flashing]
-        P9 --> P10[Phase 10: Headless Embedded Toolchain Integration]
-        P10 --> P11[Phase 11: One-Click Compile & Flashing Pipeline]
+    subgraph Milestone_0_4 [v0.4: Telemetry & Project Storage]
+        P8 --> P9[Phase 9: Real-Time Sensor Telemetry & Graphs]
+        P9 --> P10[Phase 10: Project File Format & Starter Library]
     end
 
-    subgraph Milestone_1_0 [v1.0: Telemetry, Projects & Distribution]
-        P11 --> P12[Phase 12: Real-Time Sensor Telemetry & Graphs]
-        P12 --> P13[Phase 13: Project File Format & Starter Library]
+    subgraph Milestone_1_0 [v1.0: AI Copilot & Production Release]
+        P10 --> P11[Phase 11: Context-Aware Circuit Explainer]
+        P11 --> P12[Phase 12: Natural Language to Block Synthesis]
+        P12 --> P13[Phase 13: Circuit & Pin Conflict Diagnostics]
         P13 --> P14[Phase 14: Cross-Platform Packaging & Distribution]
     end
 
     style P0 fill:#2e7d32,stroke:#1b5e20,color:#fff
-    style P1 fill:#f57f17,stroke:#e65100,color:#fff
-    style P2 fill:#f57f17,stroke:#e65100,color:#fff
-    style P3 fill:#f57f17,stroke:#e65100,color:#fff
+    style P1 fill:#2e7d32,stroke:#1b5e20,color:#fff
+    style P2 fill:#2e7d32,stroke:#1b5e20,color:#fff
+    style P3 fill:#2e7d32,stroke:#1b5e20,color:#fff
+    style P4 fill:#f57f17,stroke:#e65100,color:#fff
 ```
 
 ---
 
 ## 3. Detailed Phase Specifications
 
-### Milestone v0.1 — Hardware Link and Serial Core (Current)
+### Milestone v0.1 — Hardware Link and Serial Core (Completed)
 *Primary Objective: Establish reliable host-to-microcontroller two-way communication, port enumeration, and a live serial console.*
 
 #### Phase 0: Environment and Desktop Toolchain Stabilization
@@ -91,26 +92,27 @@ graph TD
 - [x] Implement IPC handler `serial:list-ports` in `src/main/index.ts`.
 - [x] Expose type-safe `listSerialPorts()` via preload `window.api`.
 - [x] Establish centralized shared contracts in `src/shared/types.ts`.
-- [ ] Build Port Selector dropdown in React UI with dynamic refresh button and device vendor metadata (e.g. "COM3 - Arduino Uno").
-- **Gate / Definition of Done**: Clicking "Refresh Ports" populates the dropdown with all currently plugged-in USB-to-UART devices on Windows.
+- [x] Build Port Selector dropdown in React UI with dynamic refresh button and device vendor metadata.
+- **Gate / Definition of Done**: Clicking "Refresh" populates the dropdown with all currently plugged-in USB-to-UART devices on Windows.
 
 #### Phase 2: Connection Lifecycle and Hardware Status Management
 - [x] Implement `connectSerialPort()` and `disconnectSerialPort()` in main process with error traps.
 - [x] Handle connection status transitions (`disconnected` → `connecting` → `connected` / `error`).
 - [x] Stream real-time status updates from main to renderer via `serial:state-change` IPC event.
-- [ ] Build UI controls: Baud rate selector (`9600`, `19200`, `38400`, `57600`, `115200`), Connect/Disconnect toggle button, and visual status pill.
-- [ ] Handle unexpected device unplugs (auto-cleanup and UI notification).
+- [x] Build UI controls: Baud rate selector (`9600`, `19200`, `38400`, `57600`, `115200`, `230400`), Connect/Disconnect toggle button, and monochromatic status badge.
+- [x] Handle unexpected device unplugs (auto-cleanup and UI error notification).
 - **Gate / Definition of Done**: User can select COM port and baud rate, connect to hardware, see the status change to "Connected", and disconnect cleanly without locking the COM port.
 
 #### Phase 3: Live Serial Monitor and Transmission Console
 - [x] Implement data forwarding from `serialport` `data` events to renderer via `serial:data` IPC.
 - [x] Implement `serial:write` IPC handler for transmitting data back to the microcontroller.
-- [ ] Build terminal/console display component in React renderer:
+- [x] Build terminal/console display component in React renderer:
   - Real-time auto-scrolling log with manual scroll-lock option.
-  - Line timestamping toggle (`[14:02:11.450] Hello World`).
+  - Line timestamping toggle (`[14:02:11.450]`).
   - Clear buffer button.
   - Transmission input bar with Enter-to-send and line ending options (`No Line Ending`, `Newline \n`, `Carriage Return \r`, `Both \r\n`).
-- **Gate / Definition of Done**: User can receive continuous serial output from an Arduino/ESP32 sketch (e.g. `Serial.println(counter)`) and send commands to toggle pins (e.g. typing `ON` turns an LED on).
+- [x] Monochromatic UI design system with zero emojis and functioning Light/Dark mode toggle.
+- **Gate / Definition of Done**: User can receive continuous serial output from a microcontroller and send commands to toggle pins or execute sketches.
 
 ---
 
@@ -120,7 +122,7 @@ graph TD
 #### Phase 4: Blockly Engine and Workspace Integration
 - [ ] Integrate Google Blockly into React renderer using a clean lifecycle wrapper.
 - [ ] Implement responsive dual-pane layout (Resizable Split-view: Block Workspace on left, Code/Monitor on right).
-- [ ] Create custom dark/neon engineering theme for Blockly canvas and blocks.
+- [ ] Create custom monochromatic technical theme for Blockly canvas and blocks matching the app theme.
 - [ ] Implement workspace state serialization (export/import block XML/JSON).
 - **Gate / Definition of Done**: Blockly canvas renders smoothly, allows dragging standard logic/math blocks, and scales responsively.
 
@@ -156,39 +158,10 @@ graph TD
 
 ---
 
-### Milestone v0.3 — AI Hardware Copilot
-*Primary Objective: Provide intelligent circuit guidance, automatic block synthesis, and electrical conflict validation.*
-
-#### Phase 7: Context-Aware Circuit Explainer
-- [ ] Implement Main-process AI provider client with streaming response support.
-- [ ] Create Context Extractor: serializes active blocks, pin mappings, and board model into structured prompt context.
-- [ ] Build Copilot sidebar in UI:
-  - Explains the purpose and runtime flow of the active visual program in plain English.
-  - Generates step-by-step breadboard wiring instructions (e.g. "Connect Servo Signal to Pin 9, Red to 5V, Brown to GND").
-- **Gate / Definition of Done**: User clicks "Explain Circuit" and receives an accurate, grounded explanation and wiring table corresponding to their active blocks.
-
-#### Phase 8: Natural Language to Block Synthesis
-- [ ] Define JSON schema for structured block synthesis (Block types, fields, inputs, and connections).
-- [ ] Implement "Prompt-to-Blocks" UI modal:
-  - User prompt: e.g. *"When the ultrasonic sensor detects an object closer than 10cm, sound the buzzer on pin 8 and flash the red LED on pin 13."*
-  - LLM returns structured block tree.
-  - Blockly workspace automatically clears or appends the synthesized blocks.
-- **Gate / Definition of Done**: Prompting a common IoT task generates valid, connected blocks in the workspace that immediately transpile to working C++.
-
-#### Phase 9: Circuit and Pin Conflict Diagnostics
-- [ ] Implement static hardware rules engine:
-  - Detect pin reuse conflicts (e.g. using Pin 0/1 for digital I/O while Serial is active).
-  - Detect PWM conflicts on non-PWM pins.
-  - Detect voltage mismatches (e.g. 5V sensor outputs connected to 3.3V GPIOs on ESP32 without divider warnings).
-- [ ] Inline warning badges in the Blockly workspace highlighting problematic blocks with suggested fixes.
-- **Gate / Definition of Done**: Workspace flags conflicting pin configurations before any code is flashed to hardware.
-
----
-
-### Milestone v0.4 — Compilation and One-Click Flashing
+### Milestone v0.3 — Embedded Compilation and One-Click Flashing
 *Primary Objective: Eliminate external IDE requirements by embedding local compilation and firmware flashing directly into CircuitForge.*
 
-#### Phase 10: Headless Embedded Toolchain Integration
+#### Phase 7: Headless Embedded Toolchain Integration
 - [ ] Integrate bundled `arduino-cli` binary manager in the Electron main process.
 - [ ] Implement background core and library indexer:
   - Arduino AVR core (`arduino:avr` for Uno/Nano).
@@ -197,7 +170,7 @@ graph TD
 - [ ] Download progress tracking for required toolchain dependencies on first run.
 - **Gate / Definition of Done**: `arduino-cli` runs headlessly from the Electron main process and reports installed cores.
 
-#### Phase 11: One-Click Compile and Upload Pipeline
+#### Phase 8: One-Click Compile and Upload Pipeline
 - [ ] Create temporary sketch builder in system cache.
 - [ ] Implement `compile` IPC: calls `arduino-cli compile --fqbn <board> <sketchPath>`.
 - [ ] Implement `upload` IPC:
@@ -209,10 +182,10 @@ graph TD
 
 ---
 
-### Milestone v1.0 — Dashboard, Telemetry, and Distribution
-*Primary Objective: Deliver a polished, classroom-ready desktop IoT platform with visual dashboards, project management, and automated installers.*
+### Milestone v0.4 — Sensor Telemetry and Project Management
+*Primary Objective: Provide visual instrumentation for sensor data, data logging, and complete project archive persistence.*
 
-#### Phase 12: Real-Time Sensor Telemetry and Visual Dashboard
+#### Phase 9: Real-Time Sensor Telemetry and Visual Dashboard
 - [ ] Telemetry Parser: auto-detects structured serial streams (e.g. `KEY:VALUE` or JSON strings like `{"temp":24.5,"hum":60}`).
 - [ ] Configurable dashboard visual widgets:
   - Real-time line graph / oscilloscope.
@@ -221,7 +194,7 @@ graph TD
 - [ ] Data logging: Export recorded session telemetry to CSV and JSON files.
 - **Gate / Definition of Done**: Microcontroller sending sensor readings over serial automatically plots live curves on the dashboard.
 
-#### Phase 13: Project Storage and Starter Library
+#### Phase 10: Project Storage and Starter Library
 - [ ] Standardize `.circuitforge` project file format (JSON bundle containing blocks, board profile, baud rate, and notes).
 - [ ] Project File Menu: New, Open, Save, Save As, and Recent Projects list.
 - [ ] Built-in Starter Project Library:
@@ -230,6 +203,35 @@ graph TD
   - "Weather Station" (DHT22 + Serial/OLED)
   - "RGB Mood Lamp" (NeoPixel WS2812B)
 - **Gate / Definition of Done**: User can save a complete project, close the app, reopen it, and resume work with identical canvas and settings.
+
+---
+
+### Milestone v1.0 — AI Hardware Copilot and Production Release
+*Primary Objective: Layer intelligent circuit reasoning, automated block synthesis, and automated cross-platform distribution as the final capstone.*
+
+#### Phase 11: Context-Aware Circuit Explainer
+- [ ] Implement Main-process AI provider client with streaming response support.
+- [ ] Create Context Extractor: serializes active blocks, pin mappings, and board model into structured prompt context.
+- [ ] Build Copilot sidebar in UI:
+  - Explains the purpose and runtime flow of the active visual program in plain English.
+  - Generates step-by-step breadboard wiring instructions (e.g. "Connect Servo Signal to Pin 9, Red to 5V, Brown to GND").
+- **Gate / Definition of Done**: User clicks "Explain Circuit" and receives an accurate, grounded explanation and wiring table corresponding to their active blocks.
+
+#### Phase 12: Natural Language to Block Synthesis
+- [ ] Define JSON schema for structured block synthesis (Block types, fields, inputs, and connections).
+- [ ] Implement "Prompt-to-Blocks" UI modal:
+  - User prompt: e.g. *"When the ultrasonic sensor detects an object closer than 10cm, sound the buzzer on pin 8 and flash the red LED on pin 13."*
+  - LLM returns structured block tree.
+  - Blockly workspace automatically clears or appends the synthesized blocks.
+- **Gate / Definition of Done**: Prompting a common IoT task generates valid, connected blocks in the workspace that immediately transpile to working C++.
+
+#### Phase 13: Circuit and Pin Conflict Diagnostics
+- [ ] Implement static hardware rules engine:
+  - Detect pin reuse conflicts (e.g. using Pin 0/1 for digital I/O while Serial is active).
+  - Detect PWM conflicts on non-PWM pins.
+  - Detect voltage mismatches (e.g. 5V sensor outputs connected to 3.3V GPIOs on ESP32 without divider warnings).
+- [ ] Inline warning badges in the Blockly workspace highlighting problematic blocks with suggested fixes.
+- **Gate / Definition of Done**: Workspace flags conflicting pin configurations before any code is flashed to hardware.
 
 #### Phase 14: Production Packaging and Distribution
 - [ ] Configure `electron-builder` for multi-platform distribution:
@@ -253,15 +255,18 @@ graph TD
 | **Visual Block Engine** | Google Blockly | Drag-and-drop programming canvas and AST |
 | **Code Generation** | Custom Blockly Generators | Transpiling visual blocks to Arduino C++ & MicroPython |
 | **Embedded Toolchain** | `arduino-cli` | Headless board compilation and firmware flashing |
-| **UI Design System** | Modern Vanilla CSS | Lightweight, high-performance dark engineering theme |
+| **AI Copilot** | Structured LLM Engine | Natural language synthesis, circuit explanation, conflict auditing |
+| **UI Design System** | Monochromatic Vanilla CSS | Minimalist, high-contrast dark and light engineering theme |
 
 ---
 
 ## 5. Development Principles and Engineering Rules
 
-1. **Strict Hardware Sandboxing**:
+1. **Hardware-First Completeness**:
+   The entire functional loop—from visual blocks to compilation, serial flashing, and telemetry—must be completely operational offline before the AI Copilot layer is introduced.
+2. **Strict Hardware Sandboxing**:
    The React renderer must never import Node.js or Electron modules directly. All hardware interactions pass through strongly-typed IPC APIs in `preload/index.ts` and `shared/types.ts`.
-2. **Deterministic Flashing & Serial Locking**:
+3. **Deterministic Flashing & Serial Locking**:
    On Windows, a COM port can only be accessed by one process at a time. The serial monitor must always safely pause and release the COM port handle before invoking `arduino-cli upload`, and automatically reacquire the port after flashing terminates.
-3. **Incremental Verification**:
-   No phase begins before the preceding phase satisfies its definition of done. Milestone v0.1 must be completely verified on physical hardware before block canvas development begins.
+4. **Incremental Verification**:
+   No phase begins before the preceding phase satisfies its definition of done.

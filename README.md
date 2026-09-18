@@ -10,16 +10,15 @@ CircuitForge is a desktop application designed to make microcontroller and IoT d
 
 ---
 
-## Current Milestone: v0.1 (Hardware Link and Serial Core)
+## Current Milestone: v0.2 (Visual Logic and Block Canvas)
 
-The v0.1 milestone establishes the foundational desktop architecture and direct serial communication between the host PC and microcontrollers:
-
+Milestone **v0.1 (Hardware Link and Serial Core)** has been completed:
 - [x] **Desktop Shell**: Electron + React + TypeScript + Vite running locally on Windows.
-- [ ] **Serial Port Discovery**: Auto-detection and listing of connected COM ports (Arduino, ESP32, etc.).
-- [ ] **Connection Manager**: Connect/disconnect lifecycle, baud rate selection, and status indicators.
-- [ ] **Live Serial Monitor**: Real-time incoming data display, autoscroll, and transmit console.
+- [x] **Serial Port Discovery**: Auto-detection and listing of connected COM ports (Arduino, ESP32, etc.).
+- [x] **Connection Manager**: Connect/disconnect lifecycle, baud rate selection, and monochromatic status indicators.
+- [x] **Live Serial Monitor**: Real-time incoming data display, autoscroll, and transmit console.
 
-For the full multi-phase project plan, refer to [ROADMAP.md](./ROADMAP.md).
+The active milestone is now **v0.2 (Visual Logic and Block Canvas)**. For the full multi-phase project plan, refer to [ROADMAP.md](./ROADMAP.md).
 
 ---
 
@@ -77,11 +76,11 @@ CircuitForge/
 
 ## Roadmap Overview
 
-- **v0.1**: Hardware Link and Serial Core (Current)
-- **v0.2**: Visual Logic and Block Canvas (Blockly integration)
-- **v0.3**: AI Hardware Copilot (Circuit reasoning and block synthesis)
-- **v0.4**: Compilation and One-Click Flashing (Embedded CLI toolchain)
-- **v1.0**: Live Telemetry Dashboard and Cross-Platform Distribution
+- **v0.1**: Hardware Link and Serial Core (Completed)
+- **v0.2**: Visual Logic and Block Canvas (Current — Blockly integration & live code generation)
+- **v0.3**: Embedded Compilation and One-Click Flashing (Headless CLI toolchain & firmware upload)
+- **v0.4**: Live Telemetry Dashboard and Project Management (Sensors, graphs & .circuitforge files)
+- **v1.0**: AI Hardware Copilot and Production Release (Circuit reasoning, prompt-to-blocks & cross-platform distribution)
 
 See [ROADMAP.md](./ROADMAP.md) for detailed tasks and architecture breakdown.
 
