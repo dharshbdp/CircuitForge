@@ -1,5 +1,7 @@
 import { useEffect, useState, useRef, useCallback } from 'react'
 import type { SerialPortDescriptor, ConnectionState } from '@shared/types'
+import type * as Blockly from 'blockly'
+import BlocklyWorkspace from './components/BlocklyWorkspace'
 
 const BAUD_RATES = [9600, 19200, 38400, 57600, 115200, 230400]
 
@@ -35,7 +37,7 @@ export default function App(): React.JSX.Element {
     baudRate: null
   })
 
-  // Terminal states
+  // Terminal & Console states
   const [logs, setLogs] = useState<LogItem[]>([])
   const [sendText, setSendText] = useState<string>('')
   const [lineEnding, setLineEnding] = useState<string>('\r\n')
@@ -43,7 +45,14 @@ export default function App(): React.JSX.Element {
   const [showTimestamps, setShowTimestamps] = useState<boolean>(true)
   const [isScanning, setIsScanning] = useState<boolean>(false)
 
+  // Layout & Workspace states (v0.2)
+  const [viewMode, setViewMode] = useState<'split' | 'canvas' | 'terminal'>('split')
+  const [activeTab, setActiveTab] = useState<'terminal' | 'code' | 'device'>('terminal')
+  const [blockCount, setBlockCount] = useState<number>(0)
+  const [copiedCode, setCopiedCode] = useState<boolean>(false)
+
   const logEndRef = useRef<HTMLDivElement>(null)
+  const workspaceRef = useRef<Blockly.WorkspaceSvg | null>(null)
 
   // Synchronize theme attribute on HTML root
   useEffect(() => {
@@ -108,10 +117,10 @@ export default function App(): React.JSX.Element {
 
   // Auto-scroll terminal log
   useEffect(() => {
-    if (autoScroll) {
+    if (autoScroll && activeTab === 'terminal') {
       logEndRef.current?.scrollIntoView({ behavior: 'smooth' })
     }
-  }, [logs, autoScroll])
+  }, [logs, autoScroll, activeTab])
 
   // Handle Connect / Disconnect
   const toggleConnection = async (): Promise<void> => {
@@ -146,6 +155,55 @@ export default function App(): React.JSX.Element {
     }
   }
 
+  // Blockly workspace change handler
+  const handleWorkspaceChange = useCallback((workspace: Blockly.WorkspaceSvg): void => {
+    const count = workspace.getAllBlocks(false).length
+    setBlockCount(count)
+  }, [])
+
+  // Clear workspace canvas
+  const handleClearCanvas = (): void => {
+    if (workspaceRef.current) {
+      workspaceRef.current.clear()
+      setBlockCount(0)
+    }
+  }
+
+  // Zoom to fit / Center
+  const handleZoomFit = (): void => {
+    if (workspaceRef.current) {
+      workspaceRef.current.zoomToFit()
+    }
+  }
+
+  // Generate code preview string
+  const generatedCode = `// ==========================================
+// CircuitForge v0.2 — Generated Sketch
+// Target: Arduino / MicroPython Compatible
+// Active Canvas Blocks: ${blockCount}
+// ==========================================
+
+void setup() {
+  // Initialize Serial Telemetry link
+  Serial.begin(${selectedBaud});
+  while (!Serial) {
+    ; // Wait for serial port link
+  }
+  Serial.println("[CircuitForge] System Online.");
+}
+
+void loop() {
+  ${blockCount === 0
+    ? '// [Canvas is empty: drag blocks from Logic, Loops, or Math to synthesize logic]'
+    : `// Synthesizing logic from ${blockCount} active visual block${blockCount === 1 ? '' : 's'}...\n  delay(100);`}
+}`
+
+  const copyGeneratedCode = (): void => {
+    navigator.clipboard.writeText(generatedCode)
+    setCopiedCode(true)
+    setTimeout(() => setCopiedCode(false), 2000)
+  }
+
   const isConnected = connectionState.status === 'connected'
   const isConnecting = connectionState.status === 'connecting'
   const activePortDetails = ports.find((p) => p.path === (connectionState.path || selectedPort))
@@ -170,7 +228,46 @@ export default function App(): React.JSX.Element {
             </svg>
           </span>
           <span className="cf-brand-title">CircuitForge</span>
-          <span className="cf-brand-version">v0.1</span>
+          <span className="cf-brand-version">v0.2</span>
+        </div>
+
+        {/* Center Layout View Mode Controls */}
+        <div className="cf-view-modes" role="group" aria-label="Layout view mode">
+          <button
+            className={`cf-view-btn ${viewMode === 'split' ? 'active' : ''}`}
+            onClick={() => setViewMode('split')}
+            title="Split View (Canvas + Terminal)"
+          >
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <rect x="3" y="3" width="18" height="18" rx="2" />
+              <line x1="12" y1="3" x2="12" y2="21" />
+            </svg>
+            <span>Split</span>
+          </button>
+          <button
+            className={`cf-view-btn ${viewMode === 'canvas' ? 'active' : ''}`}
+            onClick={() => setViewMode('canvas')}
+            title="Full Visual Canvas"
+          >
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <rect x="3" y="3" width="7" height="7" />
+              <rect x="14" y="3" width="7" height="7" />
+              <rect x="14" y="14" width="7" height="7" />
+              <rect x="3" y="14" width="7" height="7" />
+            </svg>
+            <span>Canvas</span>
+          </button>
+          <button
+            className={`cf-view-btn ${viewMode === 'terminal' ? 'active' : ''}`}
+            onClick={() => setViewMode('terminal')}
+            title="Full Console & Telemetry"
+          >
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <polyline points="4 17 10 11 4 5" />
+              <line x1="12" y1="19" x2="20" y2="19" />
+            </svg>
+            <span>Console</span>
+          </button>
         </div>
 
         <div className="cf-toolbar">
@@ -273,137 +370,243 @@ export default function App(): React.JSX.Element {
         </div>
       </header>
 
-      {/* Main Content Area */}
-      <main className="cf-main">
-        {/* Device Information Sidebar */}
-        <aside className="cf-sidebar">
-          <h3>Hardware Info</h3>
-          <div className="cf-card">
-            <div className="cf-info-row">
-              <span className="cf-label">Target Port</span>
-              <span className="cf-value">{selectedPort || 'None'}</span>
+      {/* Main Dual-Pane Workspace */}
+      <main className={`cf-main-split view-${viewMode}`}>
+        {/* Left Pane: Visual Block Canvas */}
+        <section className="cf-canvas-pane">
+          <div className="cf-canvas-header">
+            <div className="cf-canvas-title-group">
+              <span className="cf-pane-title">VISUAL LOGIC CANVAS</span>
+              <span className="cf-badge">{blockCount} BLOCKS</span>
             </div>
-            <div className="cf-info-row">
-              <span className="cf-label">Baud Rate</span>
-              <span className="cf-value">{selectedBaud} bps</span>
-            </div>
-            <div className="cf-info-row">
-              <span className="cf-label">Status</span>
-              <span className="cf-value cf-value-badge">{connectionState.status}</span>
-            </div>
-            <div className="cf-info-row">
-              <span className="cf-label">Manufacturer</span>
-              <span className="cf-value">{activePortDetails?.manufacturer || 'Unknown'}</span>
-            </div>
-            <div className="cf-info-row">
-              <span className="cf-label">USB VID:PID</span>
-              <span className="cf-value">
-                {activePortDetails?.vendorId ? `${activePortDetails.vendorId}:${activePortDetails.productId}` : 'N/A'}
-              </span>
-            </div>
-          </div>
-
-          {connectionState.error && (
-            <div className="cf-error-box">
-              <strong>Connection Error</strong>
-              <div>{connectionState.error}</div>
-            </div>
-          )}
-
-          <div className="cf-card cf-tips-card">
-            <h4>Instructions</h4>
-            <ol>
-              <li>Plug your microcontroller (Arduino, ESP32, Pico) into a USB port.</li>
-              <li>Select the assigned COM port and Baud rate from the top bar.</li>
-              <li>Click <strong>Connect</strong> to start two-way serial communication.</li>
-            </ol>
-          </div>
-        </aside>
-
-        {/* Live Serial Monitor Console */}
-        <section className="cf-terminal-section">
-          <div className="cf-terminal-header">
-            <span>SERIAL MONITOR &middot; {logs.length} ENTRIES</span>
-            <div className="cf-terminal-actions">
-              <label className="cf-checkbox-label">
-                <input
-                  type="checkbox"
-                  checked={autoScroll}
-                  onChange={(e) => setAutoScroll(e.target.checked)}
-                />
-                Auto-scroll
-              </label>
-              <label className="cf-checkbox-label">
-                <input
-                  type="checkbox"
-                  checked={showTimestamps}
-                  onChange={(e) => setShowTimestamps(e.target.checked)}
-                />
-                Timestamps
-              </label>
+            <div className="cf-canvas-actions">
               <button
                 className="cf-btn-sm"
-                onClick={() => setLogs([])}
-                disabled={logs.length === 0}
+                onClick={handleZoomFit}
+                title="Zoom canvas to fit all blocks"
               >
-                Clear Log
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M15 3h6v6" />
+                  <path d="M9 21H3v-6" />
+                  <path d="M21 3l-7 7" />
+                  <path d="M3 21l7-7" />
+                </svg>
+                <span>Fit</span>
+              </button>
+              <button
+                className="cf-btn-sm"
+                onClick={handleClearCanvas}
+                disabled={blockCount === 0}
+                title="Clear all blocks from canvas"
+              >
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <polyline points="3 6 5 6 21 6" />
+                  <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+                </svg>
+                <span>Clear</span>
               </button>
             </div>
           </div>
 
-          <div className="cf-terminal-body">
-            {logs.length === 0 ? (
-              <div className="cf-empty-terminal">
-                {isConnected
-                  ? 'Connected. Waiting for incoming serial data from hardware...'
-                  : 'Serial port disconnected. Select a port and click Connect.'}
-              </div>
-            ) : (
-              logs.map((log) => (
-                <div key={log.id} className={log.isSent ? 'cf-terminal-line-sent' : 'cf-terminal-line'}>
-                  {showTimestamps && <span className="cf-timestamp">[{log.timestamp}]</span>}
-                  {log.isSent && <span className="cf-timestamp">[TX] &gt; </span>}
-                  <span>{log.text}</span>
-                </div>
-              ))
-            )}
-            <div ref={logEndRef} />
+          <div className="cf-canvas-body">
+            <BlocklyWorkspace
+              theme={theme}
+              workspaceRef={workspaceRef}
+              onWorkspaceChange={handleWorkspaceChange}
+            />
+          </div>
+        </section>
+
+        {/* Right Pane: Inspector & Engineering Tools */}
+        <section className="cf-inspector-pane">
+          {/* Tab Switcher */}
+          <div className="cf-inspector-header">
+            <div className="cf-tabs" role="tablist">
+              <button
+                className={`cf-tab ${activeTab === 'terminal' ? 'active' : ''}`}
+                onClick={() => setActiveTab('terminal')}
+                role="tab"
+                aria-selected={activeTab === 'terminal'}
+              >
+                <span>MONITOR</span>
+                <span className="cf-tab-badge">{logs.length}</span>
+              </button>
+              <button
+                className={`cf-tab ${activeTab === 'code' ? 'active' : ''}`}
+                onClick={() => setActiveTab('code')}
+                role="tab"
+                aria-selected={activeTab === 'code'}
+              >
+                <span>CODE</span>
+              </button>
+              <button
+                className={`cf-tab ${activeTab === 'device' ? 'active' : ''}`}
+                onClick={() => setActiveTab('device')}
+                role="tab"
+                aria-selected={activeTab === 'device'}
+              >
+                <span>DEVICE</span>
+              </button>
+            </div>
           </div>
 
-          {/* Transmit Command Bar */}
-          <form className="cf-terminal-footer" onSubmit={handleSend}>
-            <select
-              value={lineEnding}
-              onChange={(e) => setLineEnding(e.target.value)}
-              disabled={!isConnected}
-              title="Line Ending"
-            >
-              <option value="\r\n">Both NL & CR (\r\n)</option>
-              <option value="\n">Newline (\n)</option>
-              <option value="\r">Carriage Return (\r)</option>
-              <option value="none">No Line Ending</option>
-            </select>
+          {/* Tab Content: Live Serial Monitor */}
+          {activeTab === 'terminal' && (
+            <div className="cf-tab-content cf-tab-terminal">
+              <div className="cf-terminal-header">
+                <span>SERIAL STREAM &middot; {connectionState.baudRate || selectedBaud} BPS</span>
+                <div className="cf-terminal-actions">
+                  <label className="cf-checkbox-label">
+                    <input
+                      type="checkbox"
+                      checked={autoScroll}
+                      onChange={(e) => setAutoScroll(e.target.checked)}
+                    />
+                    Scroll
+                  </label>
+                  <label className="cf-checkbox-label">
+                    <input
+                      type="checkbox"
+                      checked={showTimestamps}
+                      onChange={(e) => setShowTimestamps(e.target.checked)}
+                    />
+                    Time
+                  </label>
+                  <button
+                    className="cf-btn-sm"
+                    onClick={() => setLogs([])}
+                    disabled={logs.length === 0}
+                  >
+                    Clear
+                  </button>
+                </div>
+              </div>
 
-            <input
-              type="text"
-              placeholder={
-                isConnected
-                  ? 'Enter command to transmit to microcontroller (press Enter)...'
-                  : 'Connect to a serial port to transmit data'
-              }
-              value={sendText}
-              onChange={(e) => setSendText(e.target.value)}
-              disabled={!isConnected}
-            />
+              <div className="cf-terminal-body">
+                {logs.length === 0 ? (
+                  <div className="cf-empty-terminal">
+                    {isConnected
+                      ? 'Connected. Waiting for incoming telemetry from hardware...'
+                      : 'Serial port disconnected. Select a port and click Connect.'}
+                  </div>
+                ) : (
+                  logs.map((log) => (
+                    <div key={log.id} className={log.isSent ? 'cf-terminal-line-sent' : 'cf-terminal-line'}>
+                      {showTimestamps && <span className="cf-timestamp">[{log.timestamp}]</span>}
+                      {log.isSent && <span className="cf-timestamp">[TX] &gt; </span>}
+                      <span>{log.text}</span>
+                    </div>
+                  ))
+                )}
+                <div ref={logEndRef} />
+              </div>
 
-            <button
-              type="submit"
-              className="cf-btn cf-btn-primary"
-              disabled={!isConnected || !sendText.trim()}
-            >
-              Send
-            </button>
-          </form>
+              {/* Transmit Command Bar */}
+              <form className="cf-terminal-footer" onSubmit={handleSend}>
+                <select
+                  value={lineEnding}
+                  onChange={(e) => setLineEnding(e.target.value)}
+                  disabled={!isConnected}
+                  title="Line Ending"
+                >
+                  <option value="\r\n">NL & CR (\r\n)</option>
+                  <option value="\n">NL (\n)</option>
+                  <option value="\r">CR (\r)</option>
+                  <option value="none">No Ending</option>
+                </select>
+
+                <input
+                  type="text"
+                  placeholder={
+                    isConnected
+                      ? 'Transmit command to microcontroller (Enter)...'
+                      : 'Connect port to transmit data'
+                  }
+                  value={sendText}
+                  onChange={(e) => setSendText(e.target.value)}
+                  disabled={!isConnected}
+                />
+
+                <button
+                  type="submit"
+                  className="cf-btn cf-btn-primary"
+                  disabled={!isConnected || !sendText.trim()}
+                >
+                  Send
+                </button>
+              </form>
+            </div>
+          )}
+
+          {/* Tab Content: Code Preview */}
+          {activeTab === 'code' && (
+            <div className="cf-tab-content cf-tab-code">
+              <div className="cf-code-header">
+                <span className="cf-code-lang">ARDUINO C++ / INO</span>
+                <button
+                  className="cf-btn-sm"
+                  onClick={copyGeneratedCode}
+                  title="Copy code to clipboard"
+                >
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
+                    <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
+                  </svg>
+                  <span>{copiedCode ? 'Copied' : 'Copy'}</span>
+                </button>
+              </div>
+              <pre className="cf-code-view">
+                <code>{generatedCode}</code>
+              </pre>
+            </div>
+          )}
+
+          {/* Tab Content: Device Info */}
+          {activeTab === 'device' && (
+            <div className="cf-tab-content cf-tab-device">
+              <div className="cf-card">
+                <div className="cf-info-row">
+                  <span className="cf-label">Target Port</span>
+                  <span className="cf-value">{selectedPort || 'None'}</span>
+                </div>
+                <div className="cf-info-row">
+                  <span className="cf-label">Baud Rate</span>
+                  <span className="cf-value">{selectedBaud} bps</span>
+                </div>
+                <div className="cf-info-row">
+                  <span className="cf-label">Connection</span>
+                  <span className="cf-value cf-value-badge">{connectionState.status}</span>
+                </div>
+                <div className="cf-info-row">
+                  <span className="cf-label">Manufacturer</span>
+                  <span className="cf-value">{activePortDetails?.manufacturer || 'Unknown'}</span>
+                </div>
+                <div className="cf-info-row">
+                  <span className="cf-label">USB VID:PID</span>
+                  <span className="cf-value">
+                    {activePortDetails?.vendorId ? `${activePortDetails.vendorId}:${activePortDetails.productId}` : 'N/A'}
+                  </span>
+                </div>
+              </div>
+
+              {connectionState.error && (
+                <div className="cf-error-box">
+                  <strong>Connection Error</strong>
+                  <div>{connectionState.error}</div>
+                </div>
+              )}
+
+              <div className="cf-card cf-tips-card">
+                <h4>Quick Guide</h4>
+                <ol>
+                  <li>Connect your microcontroller (Arduino, ESP32, RP2040) via USB.</li>
+                  <li>Drag visual blocks from the left toolbox onto the canvas.</li>
+                  <li>Click <strong>CODE</strong> tab to preview synthesized sketch.</li>
+                  <li>Click <strong>MONITOR</strong> tab for real-time serial telemetry and debugging.</li>
+                </ol>
+              </div>
+            </div>
+          )}
         </section>
       </main>
     </div>

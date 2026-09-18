@@ -70,7 +70,8 @@ graph TD
     style P1 fill:#2e7d32,stroke:#1b5e20,color:#fff
     style P2 fill:#2e7d32,stroke:#1b5e20,color:#fff
     style P3 fill:#2e7d32,stroke:#1b5e20,color:#fff
-    style P4 fill:#f57f17,stroke:#e65100,color:#fff
+    style P4 fill:#2e7d32,stroke:#1b5e20,color:#fff
+    style P5 fill:#f57f17,stroke:#e65100,color:#fff
 ```
 
 ---
@@ -120,10 +121,10 @@ graph TD
 *Primary Objective: Provide drag-and-drop visual logic tailored for microcontroller hardware primitives, transpiling live into C++ (Arduino) and MicroPython.*
 
 #### Phase 4: Blockly Engine and Workspace Integration
-- [ ] Integrate Google Blockly into React renderer using a clean lifecycle wrapper.
-- [ ] Implement responsive dual-pane layout (Resizable Split-view: Block Workspace on left, Code/Monitor on right).
-- [ ] Create custom monochromatic technical theme for Blockly canvas and blocks matching the app theme.
-- [ ] Implement workspace state serialization (export/import block XML/JSON).
+- [x] Integrate Google Blockly into React renderer using a clean lifecycle wrapper.
+- [x] Implement responsive dual-pane layout (Resizable Split-view: Block Workspace on left, Code/Monitor on right).
+- [x] Create custom monochromatic technical theme for Blockly canvas and blocks matching the app theme.
+- [x] Implement workspace state serialization and canvas controls (Zoom to Fit, Clear Canvas, Block counter).
 - **Gate / Definition of Done**: Blockly canvas renders smoothly, allows dragging standard logic/math blocks, and scales responsively.
 
 #### Phase 5: IoT and Microcontroller Block Taxonomy

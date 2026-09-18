@@ -369,34 +369,270 @@ body {
   }
 }
 
-/* Main Area */
-.cf-main {
+/* Header View Modes */
+.cf-view-modes {
+  display: flex;
+  align-items: center;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-default);
+  border-radius: 4px;
+  padding: 2px;
+  gap: 2px;
+}
+
+.cf-view-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background: transparent;
+  color: var(--text-secondary);
+  border: 1px solid transparent;
+  border-radius: 3px;
+  padding: 4px 10px;
+  font-size: 11px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.cf-view-btn:hover {
+  color: var(--text-primary);
+  background: var(--bg-surface-hover);
+}
+
+.cf-view-btn.active {
+  background: var(--bg-surface-active);
+  color: var(--text-primary);
+  border-color: var(--border-strong);
+  font-weight: 600;
+}
+
+/* Main Dual-Pane Workspace */
+.cf-main-split {
   display: flex;
   flex: 1;
+  overflow: hidden;
+  position: relative;
+  background: var(--bg-app);
+}
+
+/* View Mode Visibility Rules */
+.cf-main-split.view-split .cf-canvas-pane {
+  flex: 1 1 58%;
+  display: flex;
+  min-width: 320px;
+}
+
+.cf-main-split.view-split .cf-inspector-pane {
+  flex: 1 1 42%;
+  display: flex;
+  min-width: 360px;
+  border-left: 1px solid var(--border-default);
+}
+
+.cf-main-split.view-canvas .cf-canvas-pane {
+  flex: 1;
+  display: flex;
+}
+
+.cf-main-split.view-canvas .cf-inspector-pane {
+  display: none !important;
+}
+
+.cf-main-split.view-terminal .cf-canvas-pane {
+  display: none !important;
+}
+
+.cf-main-split.view-terminal .cf-inspector-pane {
+  flex: 1;
+  display: flex;
+  border-left: none;
+}
+
+/* Left Canvas Pane */
+.cf-canvas-pane {
+  flex-direction: column;
+  height: 100%;
+  overflow: hidden;
+  background: var(--bg-app);
+  position: relative;
+}
+
+.cf-canvas-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 14px;
+  background: var(--bg-surface);
+  border-bottom: 1px solid var(--border-default);
+  z-index: 5;
+  transition: background-color 0.2s ease, border-color 0.2s ease;
+}
+
+.cf-canvas-title-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.cf-pane-title {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: var(--text-muted);
+  text-transform: uppercase;
+}
+
+.cf-badge {
+  font-size: 10px;
+  font-family: 'Consolas', 'Courier New', monospace;
+  padding: 2px 6px;
+  background: var(--bg-app);
+  color: var(--text-secondary);
+  border: 1px solid var(--border-subtle);
+  border-radius: 3px;
+}
+
+.cf-canvas-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.cf-canvas-body {
+  flex: 1;
+  position: relative;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.cf-blockly-container {
+  width: 100%;
+  height: 100%;
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+}
+
+/* Right Inspector Pane */
+.cf-inspector-pane {
+  flex-direction: column;
+  height: 100%;
   overflow: hidden;
   background: var(--bg-app);
 }
 
-.cf-sidebar {
-  width: 270px;
-  background: var(--bg-surface);
-  border-right: 1px solid var(--border-default);
-  padding: 16px;
+.cf-inspector-header {
   display: flex;
-  flex-direction: column;
-  gap: 16px;
-  overflow-y: auto;
+  align-items: center;
+  background: var(--bg-surface);
+  border-bottom: 1px solid var(--border-default);
+  padding: 0 10px;
+  min-height: 37px;
   transition: background-color 0.2s ease, border-color 0.2s ease;
 }
 
-.cf-sidebar h3 {
-  font-size: 12px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  color: var(--text-muted);
+.cf-tabs {
+  display: flex;
+  gap: 2px;
+  height: 100%;
 }
 
+.cf-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: transparent;
+  border: none;
+  border-bottom: 2px solid transparent;
+  padding: 8px 12px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.cf-tab:hover {
+  color: var(--text-primary);
+  background: var(--bg-surface-hover);
+}
+
+.cf-tab.active {
+  color: var(--text-primary);
+  border-bottom-color: var(--text-primary);
+  background: transparent;
+}
+
+.cf-tab-badge {
+  font-size: 9px;
+  font-family: 'Consolas', 'Courier New', monospace;
+  padding: 1px 5px;
+  background: var(--bg-card);
+  color: var(--text-secondary);
+  border: 1px solid var(--border-subtle);
+  border-radius: 8px;
+}
+
+.cf-tab-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  position: relative;
+}
+
+.cf-tab-terminal {
+  background: var(--bg-terminal);
+}
+
+.cf-tab-code {
+  background: var(--bg-surface);
+}
+
+.cf-code-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 16px;
+  background: var(--bg-surface);
+  border-bottom: 1px solid var(--border-default);
+}
+
+.cf-code-lang {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  color: var(--text-muted);
+  font-family: 'Consolas', 'Courier New', monospace;
+}
+
+.cf-code-view {
+  flex: 1;
+  padding: 16px;
+  margin: 0;
+  overflow: auto;
+  font-family: 'Consolas', 'Courier New', monospace;
+  font-size: 12px;
+  line-height: 1.6;
+  background: var(--bg-terminal);
+  color: var(--text-primary);
+}
+
+.cf-tab-device {
+  padding: 16px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* Cards & Information Panels */
 .cf-card {
   background: var(--bg-card);
   border: 1px solid var(--border-subtle);
@@ -475,16 +711,6 @@ body {
   text-transform: uppercase;
   letter-spacing: 0.04em;
   margin-bottom: 4px;
-}
-
-/* Terminal Section */
-.cf-terminal-section {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  background: var(--bg-terminal);
-  overflow: hidden;
-  transition: background-color 0.2s ease;
 }
 
 .cf-terminal-header {
@@ -628,4 +854,76 @@ body {
 
 ::-webkit-scrollbar-thumb:hover {
   background: var(--scrollbar-thumb-hover);
+}
+
+/* Blockly Monochromatic Theme Overrides */
+.blocklyToolboxDiv {
+  background-color: var(--bg-surface) !important;
+  border-right: 1px solid var(--border-default) !important;
+  color: var(--text-primary) !important;
+  padding: 6px 0 !important;
+}
+
+.blocklyFlyoutBackground {
+  fill: var(--bg-surface) !important;
+  fill-opacity: 0.96 !important;
+}
+
+.blocklyTreeRow {
+  padding: 6px 14px !important;
+  border-radius: 4px !important;
+  margin: 3px 8px !important;
+  transition: background-color 0.15s ease !important;
+  line-height: 22px !important;
+  height: auto !important;
+}
+
+.blocklyTreeRow:hover {
+  background-color: var(--bg-surface-hover) !important;
+}
+
+.blocklyTreeRow.blocklyTreeSelected {
+  background-color: var(--bg-surface-active) !important;
+}
+
+.blocklyTreeLabel {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
+  font-size: 11px !important;
+  font-weight: 600 !important;
+  color: var(--text-primary) !important;
+  letter-spacing: 0.04em !important;
+}
+
+.blocklyScrollbarHandle {
+  fill: var(--scrollbar-thumb) !important;
+}
+
+.blocklyScrollbarHandle:hover {
+  fill: var(--scrollbar-thumb-hover) !important;
+}
+
+.blocklyZoom image {
+  opacity: 0.7;
+  transition: opacity 0.15s ease;
+}
+
+.blocklyZoom image:hover {
+  opacity: 1;
+}
+
+:root[data-theme='dark'] .blocklyZoom image {
+  filter: invert(1) brightness(0.85);
+}
+
+.blocklyTrash {
+  opacity: 0.7;
+  transition: opacity 0.15s ease;
+}
+
+.blocklyTrash:hover {
+  opacity: 1;
+}
+
+:root[data-theme='dark'] .blocklyTrash image {
+  filter: invert(1) brightness(0.85);
 }
