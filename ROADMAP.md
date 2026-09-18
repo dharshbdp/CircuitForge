@@ -1,130 +1,267 @@
-# CircuitForge — Project Roadmap and Architecture
+# CircuitForge — Phase-Wise Project Roadmap and Architecture
 
-> **CircuitForge**: A beginner-friendly, visual IoT development environment that translates visual logic blocks into compiled embedded hardware firmware through AI-assisted programming.
+> **CircuitForge**: A visual IoT development environment that translates visual logic blocks into compiled embedded hardware firmware through AI-assisted programming.
 
 ---
 
-## Architecture Overview
+## 1. System Architecture
+
+CircuitForge follows an isolated multi-tier desktop architecture designed for hardware reliability, strict context isolation, and modular feature expansion:
 
 ```text
-┌────────────────────────────────────────────────────────┐
-│                   Renderer (React + TS)                │
-│  ┌──────────────────────┬───────────────────────────┐  │
-│  │ Visual Block Canvas  │  Live Code & Telemetry    │  │
-│  │ (Blockly Workspace)  │  (Serial Monitor & Graphs)│  │
-│  └──────────────────────┴───────────────────────────┘  │
-└───────────────────────────▲────────────────────────────┘
-                            │ IPC (Context Isolation / Preload)
-┌───────────────────────────▼────────────────────────────┐
-│                  Main Process (Electron)               │
-│  ┌──────────────────┬─────────────────┬─────────────┐  │
-│  │ Serial Manager   │ Compiler / CLI  │ AI Copilot  │  │
-│  │ (Node SerialPort)│ (Arduino-CLI)   │ (LLM Engine)│  │
-│  └──────────────────┴─────────────────┴─────────────┘  │
-└───────────────────────────▲────────────────────────────┘
-                            │ USB / Virtual COM / Wireless
-┌───────────────────────────▼────────────────────────────┐
-│             Physical Hardware / Microcontroller         │
-│         (Arduino Uno/Nano, ESP32, RP2040 Pico)         │
-└────────────────────────────────────────────────────────┘
+┌─────────────────────────────────────────────────────────────────────────┐
+│                        RENDERER PROCESS (React + TS)                    │
+│  ┌───────────────────────┬───────────────────────────────────────────┐  │
+│  │ Visual Block Canvas   │ Live Code Generator & Telemetry           │  │
+│  │ (Blockly Workspace)   │ (C++/MicroPython Preview, Serial Monitor) │  │
+│  └───────────────────────┴───────────────────────────────────────────┘  │
+└────────────────────────────────────▲────────────────────────────────────┘
+                                     │ IPC Bridge (`window.api`, Context Isolation)
+┌────────────────────────────────────▼────────────────────────────────────┐
+│                       ELECTRON MAIN PROCESS (Node.js)                   │
+│  ┌────────────────────┬────────────────────┬─────────────────────────┐  │
+│  │ Serial Manager     │ Compiler Toolchain │ AI Copilot Service      │  │
+│  │ (Node `serialport`)│ (`arduino-cli`)    │ (Structured LLM Engine) │  │
+│  └────────────────────┴────────────────────┴─────────────────────────┘  │
+└────────────────────────────────────▲────────────────────────────────────┘
+                                     │ USB Serial / Virtual COM (115200 / 9600 baud)
+┌────────────────────────────────────▼────────────────────────────────────┐
+│                       PHYSICAL MICROCONTROLLERS                         │
+│           (Arduino Uno/Nano, ESP32, ESP8266, RP2040 Raspberry Pi Pico) │
+└─────────────────────────────────────────────────────────────────────────┘
 ```
 
 ---
 
-## Version Milestones and Implementation Phases
+## 2. Phase-Wise Roadmap Overview
 
-### v0.1 — Hardware Link and Serial Core (Current Milestone)
-*Objective: Establish the desktop foundation and two-way serial communication between the host PC and microcontrollers.*
+```mermaid
+graph TD
+    subgraph Milestone_0_1 [v0.1: Hardware Link & Serial Core]
+        P0[Phase 0: Environment & Desktop Toolchain] --> P1[Phase 1: IPC Serial Bridge & Port Discovery]
+        P1 --> P2[Phase 2: Connection Lifecycle & Hardware Status]
+        P2 --> P3[Phase 3: Live Serial Monitor & Console]
+    end
 
-- [x] **Phase 0: Environment and Desktop Toolchain Stabilization**
-  - [x] Stabilize Electron + React + TypeScript + Vite scaffolding on Windows.
-  - [x] Resolve Electron binary extraction and path resolution.
-  - [x] Approve npm 11 build scripts (`esbuild`, `electron-winstaller`).
-  - [x] Establish repository hygiene (`.gitignore`, clean Git baseline).
-- [ ] **Phase 1: IPC Serial Bridge and Port Discovery**
-  - [ ] Implement Main-process IPC handler for serial port enumeration.
-  - [ ] Expose type-safe IPC APIs through `preload/index.ts` via `contextBridge`.
-  - [ ] Build UI Port Selector dropdown with dynamic auto-refresh.
-- [ ] **Phase 2: Connection Management and Hardware Status**
-  - [ ] Support standard baud rate selection (9600, 19200, 57600, 115200).
-  - [ ] Implement Connect, Disconnect, and Auto-Reconnect lifecycles.
-  - [ ] Add visual connection status indicator (Connected, Disconnected, Connecting, Error).
-- [ ] **Phase 3: Live Serial Monitor**
-  - [ ] Real-time incoming data stream with autoscroll toggle.
-  - [ ] Timestamps, ASCII / Hex display modes, and line-ending parsing (CR/LF).
-  - [ ] Clear buffer option, export log to text file, and transmit input console.
+    subgraph Milestone_0_2 [v0.2: Visual Logic & Block Canvas]
+        P3 --> P4[Phase 4: Blockly Engine & Workspace Integration]
+        P4 --> P5[Phase 5: IoT & Microcontroller Block Taxonomy]
+        P5 --> P6[Phase 6: Real-Time Dual-Pane Code Generator]
+    end
 
----
+    subgraph Milestone_0_3 [v0.3: AI Hardware Copilot]
+        P6 --> P7[Phase 7: Context-Aware Circuit Explainer]
+        P7 --> P8[Phase 8: Natural Language to Block Synthesis]
+        P8 --> P9[Phase 9: Circuit & Pin Conflict Diagnostics]
+    end
 
-### v0.2 — Visual Logic and Block Canvas
-*Objective: Deliver Scratch-style visual programming tailored for microcontroller pinouts and hardware primitives.*
+    subgraph Milestone_0_4 [v0.4: Compilation & One-Click Flashing]
+        P9 --> P10[Phase 10: Headless Embedded Toolchain Integration]
+        P10 --> P11[Phase 11: One-Click Compile & Flashing Pipeline]
+    end
 
-- [ ] **Phase 4: Block Workspace Engine**
-  - [ ] Integrate Google Blockly into the React renderer with custom hardware theme.
-  - [ ] Implement responsive layout (split-view: Blocks on left, Code/Monitor on right).
-- [ ] **Phase 5: IoT and Hardware Block Taxonomy**
-  - [ ] Digital and Analog Pin I/O blocks (`digitalWrite`, `digitalRead`, `analogRead`, PWM).
-  - [ ] Time and Delay blocks (`delay`, `millis`, non-blocking timers).
-  - [ ] Sensor blocks (Ultrasonic HC-SR04, DHT11/DHT22 Temperature & Humidity, LDR).
-  - [ ] Actuator blocks (Servo angle control, Relay switches, NeoPixel RGB LEDs).
-- [ ] **Phase 6: Dual-Pane Real-Time Code Generator**
-  - [ ] Real-time transpilation from visual blocks to C++ (Arduino wiring) and MicroPython.
-  - [ ] Syntax-highlighted code preview with copy and export features.
-  - [ ] Board profile presets (Arduino Uno R3/R4, ESP32 DevKit, Raspberry Pi Pico).
+    subgraph Milestone_1_0 [v1.0: Telemetry, Projects & Distribution]
+        P11 --> P12[Phase 12: Real-Time Sensor Telemetry & Graphs]
+        P12 --> P13[Phase 13: Project File Format & Starter Library]
+        P13 --> P14[Phase 14: Cross-Platform Packaging & Distribution]
+    end
+
+    style P0 fill:#2e7d32,stroke:#1b5e20,color:#fff
+    style P1 fill:#f57f17,stroke:#e65100,color:#fff
+    style P2 fill:#f57f17,stroke:#e65100,color:#fff
+    style P3 fill:#f57f17,stroke:#e65100,color:#fff
+```
 
 ---
 
-### v0.3 — AI Hardware Copilot
-*Objective: Provide context-aware hardware assistance for circuit wiring, logic design, and troubleshooting.*
+## 3. Detailed Phase Specifications
 
-- [ ] **Phase 7: Context-Aware Code and Circuit Explainer**
-  - [ ] Plain-English explanations of the active block graph and runtime flow.
-  - [ ] Dynamic wiring guides generated based on active blocks and assigned pins.
-- [ ] **Phase 8: Natural Language to Block Synthesis**
-  - [ ] Prompt-to-Blocks: Generate functional visual block arrangements from plain-text prompts.
-  - [ ] Automated block placement and auto-configuration of required pin assignments.
-- [ ] **Phase 9: Hardware Conflict and Diagnostic Assistant**
-  - [ ] Static validation: Detect pin collisions and conflicting hardware modes.
-  - [ ] Voltage and current rating warnings (e.g. 5V sensor to 3.3V GPIO protection warnings).
+### Milestone v0.1 — Hardware Link and Serial Core (Current)
+*Primary Objective: Establish reliable host-to-microcontroller two-way communication, port enumeration, and a live serial console.*
 
----
+#### Phase 0: Environment and Desktop Toolchain Stabilization
+- [x] Stabilize Electron 39 + React 19 + TypeScript + Vite on Windows.
+- [x] Configure native build permissions (`@serialport/bindings-cpp`, `esbuild`).
+- [x] Enforce PowerShell-safe build scripts (`npm.cmd`).
+- [x] Enforce strict process isolation with independent `tsconfig.node.json` and `tsconfig.web.json`.
+- **Gate / Definition of Done**: `npm.cmd run build` and `npm.cmd run typecheck` succeed with zero errors.
 
-### v0.4 — Compilation and One-Click Flashing
-*Objective: Provide headless local compilation and firmware flashing directly from the desktop application.*
+#### Phase 1: IPC Serial Bridge and Port Discovery
+- [x] Implement backend serial enumeration in `src/main/serial.ts` via `SerialPort.list()`.
+- [x] Implement IPC handler `serial:list-ports` in `src/main/index.ts`.
+- [x] Expose type-safe `listSerialPorts()` via preload `window.api`.
+- [x] Establish centralized shared contracts in `src/shared/types.ts`.
+- [ ] Build Port Selector dropdown in React UI with dynamic refresh button and device vendor metadata (e.g. "COM3 - Arduino Uno").
+- **Gate / Definition of Done**: Clicking "Refresh Ports" populates the dropdown with all currently plugged-in USB-to-UART devices on Windows.
 
-- [ ] **Phase 10: Embedded Toolchain Integration**
-  - [ ] Integrate headless `arduino-cli` orchestration within the Electron main process.
-  - [ ] Automated board package and core indexing.
-- [ ] **Phase 11: One-Click Compile and Upload Pipeline**
-  - [ ] Orchestrate compile, sketch export, and flash pipelines.
-  - [ ] Visual progress tracking for flashing status with automatic port re-acquisition.
-  - [ ] Translated compiler diagnostics formatted for beginners.
+#### Phase 2: Connection Lifecycle and Hardware Status Management
+- [x] Implement `connectSerialPort()` and `disconnectSerialPort()` in main process with error traps.
+- [x] Handle connection status transitions (`disconnected` → `connecting` → `connected` / `error`).
+- [x] Stream real-time status updates from main to renderer via `serial:state-change` IPC event.
+- [ ] Build UI controls: Baud rate selector (`9600`, `19200`, `38400`, `57600`, `115200`), Connect/Disconnect toggle button, and visual status pill.
+- [ ] Handle unexpected device unplugs (auto-cleanup and UI notification).
+- **Gate / Definition of Done**: User can select COM port and baud rate, connect to hardware, see the status change to "Connected", and disconnect cleanly without locking the COM port.
 
----
-
-### v1.0 — Dashboard, Telemetry, and Distribution
-*Objective: Deliver a complete end-to-end IoT platform ready for classrooms, labs, and hobbyists.*
-
-- [ ] **Phase 12: Real-Time Telemetry and Sensor Dashboards**
-  - [ ] Live visualization widgets: line charts, gauges, state toggles, and sliders.
-  - [ ] Telemetry data logging to CSV and JSON formats.
-- [ ] **Phase 13: Project Storage and Template Library**
-  - [ ] Save and load `.circuitforge` project archives (blocks, board configuration, and metadata).
-  - [ ] Built-in starter project templates with step-by-step tutorials.
-- [ ] **Phase 14: Production Packaging and Release Automation**
-  - [ ] Automated packaging for Windows (NSIS installer), macOS, and Linux.
-  - [ ] GitHub Actions CI/CD release workflow.
+#### Phase 3: Live Serial Monitor and Transmission Console
+- [x] Implement data forwarding from `serialport` `data` events to renderer via `serial:data` IPC.
+- [x] Implement `serial:write` IPC handler for transmitting data back to the microcontroller.
+- [ ] Build terminal/console display component in React renderer:
+  - Real-time auto-scrolling log with manual scroll-lock option.
+  - Line timestamping toggle (`[14:02:11.450] Hello World`).
+  - Clear buffer button.
+  - Transmission input bar with Enter-to-send and line ending options (`No Line Ending`, `Newline \n`, `Carriage Return \r`, `Both \r\n`).
+- **Gate / Definition of Done**: User can receive continuous serial output from an Arduino/ESP32 sketch (e.g. `Serial.println(counter)`) and send commands to toggle pins (e.g. typing `ON` turns an LED on).
 
 ---
 
-## Technology Stack Matrix
+### Milestone v0.2 — Visual Logic and Block Canvas
+*Primary Objective: Provide drag-and-drop visual logic tailored for microcontroller hardware primitives, transpiling live into C++ (Arduino) and MicroPython.*
 
-| Subsystem | Technologies Used |
-| :--- | :--- |
-| **Desktop Shell** | Electron 39+, Node.js (LTS recommended) |
-| **Frontend UI** | React 19, TypeScript, Vite |
-| **Hardware Communication** | Node `serialport` (via Electron Main Process IPC) |
-| **Visual Programming** | Google Blockly |
-| **Code Generation** | Blockly Generators (C++ Arduino, MicroPython) |
-| **Toolchain & Flashing** | `arduino-cli` (v0.4+) |
-| **Styling & Components** | Modern Vanilla CSS / CSS Modules |
+#### Phase 4: Blockly Engine and Workspace Integration
+- [ ] Integrate Google Blockly into React renderer using a clean lifecycle wrapper.
+- [ ] Implement responsive dual-pane layout (Resizable Split-view: Block Workspace on left, Code/Monitor on right).
+- [ ] Create custom dark/neon engineering theme for Blockly canvas and blocks.
+- [ ] Implement workspace state serialization (export/import block XML/JSON).
+- **Gate / Definition of Done**: Blockly canvas renders smoothly, allows dragging standard logic/math blocks, and scales responsively.
+
+#### Phase 5: IoT and Microcontroller Block Taxonomy
+- [ ] **GPIO & Pin Blocks**:
+  - `digitalWrite(pin, HIGH/LOW)`
+  - `digitalRead(pin)`
+  - `analogRead(pin)`
+  - `analogWrite(pin, value)` (PWM)
+- [ ] **Timing & Control Blocks**:
+  - `delay(ms)`
+  - `delayMicroseconds(us)`
+  - Non-blocking interval timers (`millis()` loop tracking).
+- [ ] **Hardware Sensor Blocks**:
+  - Ultrasonic Distance Sensor (HC-SR04).
+  - Temperature & Humidity (DHT11 / DHT22).
+  - Light Sensor (LDR / Analog phototransistor).
+  - PIR Motion Sensor.
+- [ ] **Actuator & Display Blocks**:
+  - Servo motor angle positioning (`0° - 180°`).
+  - Relay switch control.
+  - Addressable RGB LED (WS2812B NeoPixel).
+- **Gate / Definition of Done**: All hardware primitives exist in the Blockly toolbox with accurate pin labels and parameter validation.
+
+#### Phase 6: Real-Time Dual-Pane Code Generator
+- [ ] Build custom Blockly code generators:
+  - **Arduino C++ Generator**: `setup()` and `loop()` structure, include headers, and pin mode definitions.
+  - **MicroPython Generator**: `machine.Pin`, `time.sleep_ms`, and peripheral imports.
+- [ ] Implement syntax-highlighted live code preview panel beside the canvas (updates on every block drag/edit).
+- [ ] Add one-click "Copy Code" and "Export .ino / .py" buttons.
+- [ ] Board profiles selector: Arduino Uno R3/R4, ESP32 DevKit, ESP8266 NodeMCU, Raspberry Pi Pico.
+- **Gate / Definition of Done**: Any valid block arrangement instantly produces compilable, idiomatic Arduino C++ or MicroPython code in the preview pane.
+
+---
+
+### Milestone v0.3 — AI Hardware Copilot
+*Primary Objective: Provide intelligent circuit guidance, automatic block synthesis, and electrical conflict validation.*
+
+#### Phase 7: Context-Aware Circuit Explainer
+- [ ] Implement Main-process AI provider client with streaming response support.
+- [ ] Create Context Extractor: serializes active blocks, pin mappings, and board model into structured prompt context.
+- [ ] Build Copilot sidebar in UI:
+  - Explains the purpose and runtime flow of the active visual program in plain English.
+  - Generates step-by-step breadboard wiring instructions (e.g. "Connect Servo Signal to Pin 9, Red to 5V, Brown to GND").
+- **Gate / Definition of Done**: User clicks "Explain Circuit" and receives an accurate, grounded explanation and wiring table corresponding to their active blocks.
+
+#### Phase 8: Natural Language to Block Synthesis
+- [ ] Define JSON schema for structured block synthesis (Block types, fields, inputs, and connections).
+- [ ] Implement "Prompt-to-Blocks" UI modal:
+  - User prompt: e.g. *"When the ultrasonic sensor detects an object closer than 10cm, sound the buzzer on pin 8 and flash the red LED on pin 13."*
+  - LLM returns structured block tree.
+  - Blockly workspace automatically clears or appends the synthesized blocks.
+- **Gate / Definition of Done**: Prompting a common IoT task generates valid, connected blocks in the workspace that immediately transpile to working C++.
+
+#### Phase 9: Circuit and Pin Conflict Diagnostics
+- [ ] Implement static hardware rules engine:
+  - Detect pin reuse conflicts (e.g. using Pin 0/1 for digital I/O while Serial is active).
+  - Detect PWM conflicts on non-PWM pins.
+  - Detect voltage mismatches (e.g. 5V sensor outputs connected to 3.3V GPIOs on ESP32 without divider warnings).
+- [ ] Inline warning badges in the Blockly workspace highlighting problematic blocks with suggested fixes.
+- **Gate / Definition of Done**: Workspace flags conflicting pin configurations before any code is flashed to hardware.
+
+---
+
+### Milestone v0.4 — Compilation and One-Click Flashing
+*Primary Objective: Eliminate external IDE requirements by embedding local compilation and firmware flashing directly into CircuitForge.*
+
+#### Phase 10: Headless Embedded Toolchain Integration
+- [ ] Integrate bundled `arduino-cli` binary manager in the Electron main process.
+- [ ] Implement background core and library indexer:
+  - Arduino AVR core (`arduino:avr` for Uno/Nano).
+  - ESP32 core (`esp32:esp32` for ESP32 Dev Module).
+  - RP2040 core (`rp2040:rp2040` for Pico).
+- [ ] Download progress tracking for required toolchain dependencies on first run.
+- **Gate / Definition of Done**: `arduino-cli` runs headlessly from the Electron main process and reports installed cores.
+
+#### Phase 11: One-Click Compile and Upload Pipeline
+- [ ] Create temporary sketch builder in system cache.
+- [ ] Implement `compile` IPC: calls `arduino-cli compile --fqbn <board> <sketchPath>`.
+- [ ] Implement `upload` IPC:
+  - Temporarily releases the active Serial Monitor port lock.
+  - Calls `arduino-cli upload -p <port> --fqbn <board> <sketchPath>`.
+  - Automatically re-attaches the Serial Monitor once flashing completes.
+- [ ] Beginner-friendly compilation error translator (translates cryptic gcc compiler errors into human explanations).
+- **Gate / Definition of Done**: User clicks "Upload", CircuitForge compiles the visual program, flashes it to a connected Arduino/ESP32, and immediately resumes the serial monitor to display running output.
+
+---
+
+### Milestone v1.0 — Dashboard, Telemetry, and Distribution
+*Primary Objective: Deliver a polished, classroom-ready desktop IoT platform with visual dashboards, project management, and automated installers.*
+
+#### Phase 12: Real-Time Sensor Telemetry and Visual Dashboard
+- [ ] Telemetry Parser: auto-detects structured serial streams (e.g. `KEY:VALUE` or JSON strings like `{"temp":24.5,"hum":60}`).
+- [ ] Configurable dashboard visual widgets:
+  - Real-time line graph / oscilloscope.
+  - Radial dials and gauges.
+  - Digital readout cards and binary state indicators (LED simulation).
+- [ ] Data logging: Export recorded session telemetry to CSV and JSON files.
+- **Gate / Definition of Done**: Microcontroller sending sensor readings over serial automatically plots live curves on the dashboard.
+
+#### Phase 13: Project Storage and Starter Library
+- [ ] Standardize `.circuitforge` project file format (JSON bundle containing blocks, board profile, baud rate, and notes).
+- [ ] Project File Menu: New, Open, Save, Save As, and Recent Projects list.
+- [ ] Built-in Starter Project Library:
+  - "Blink & Fade" (Digital/PWM basics)
+  - "Smart Obstacle Avoidance" (Ultrasonic + Servo)
+  - "Weather Station" (DHT22 + Serial/OLED)
+  - "RGB Mood Lamp" (NeoPixel WS2812B)
+- **Gate / Definition of Done**: User can save a complete project, close the app, reopen it, and resume work with identical canvas and settings.
+
+#### Phase 14: Production Packaging and Distribution
+- [ ] Configure `electron-builder` for multi-platform distribution:
+  - Windows: Portable `.exe` and NSIS installer with desktop shortcut.
+  - macOS: `.dmg` (Universal / Apple Silicon & Intel).
+  - Linux: `.AppImage` and `.deb`.
+- [ ] Set up GitHub Actions automated CI/CD release workflow triggered on version tags.
+- [ ] Offline-first packaging (bundles core templates and offline Blockly libraries).
+- **Gate / Definition of Done**: Automated release pipeline builds signed/notarized desktop installers ready for student and hobbyist download.
+
+---
+
+## 4. Technical Stack Matrix
+
+| Layer / Subsystem | Primary Technology | Purpose |
+| :--- | :--- | :--- |
+| **Desktop Shell** | Electron 39+ | Host OS integration, native USB serial, process sandboxing |
+| **Frontend Framework** | React 19 + TypeScript | Component-driven, responsive desktop UI |
+| **Build & Bundler** | electron-vite 5+ (Vite 7) | Lightning-fast HMR and optimized three-bundle build |
+| **Hardware Communication** | Node `serialport` v13 | Low-level cross-platform COM port enumeration & I/O |
+| **Visual Block Engine** | Google Blockly | Drag-and-drop programming canvas and AST |
+| **Code Generation** | Custom Blockly Generators | Transpiling visual blocks to Arduino C++ & MicroPython |
+| **Embedded Toolchain** | `arduino-cli` | Headless board compilation and firmware flashing |
+| **UI Design System** | Modern Vanilla CSS | Lightweight, high-performance dark engineering theme |
+
+---
+
+## 5. Development Principles and Engineering Rules
+
+1. **Strict Hardware Sandboxing**:
+   The React renderer must never import Node.js or Electron modules directly. All hardware interactions pass through strongly-typed IPC APIs in `preload/index.ts` and `shared/types.ts`.
+2. **Deterministic Flashing & Serial Locking**:
+   On Windows, a COM port can only be accessed by one process at a time. The serial monitor must always safely pause and release the COM port handle before invoking `arduino-cli upload`, and automatically reacquire the port after flashing terminates.
+3. **Incremental Verification**:
+   No phase begins before the preceding phase satisfies its definition of done. Milestone v0.1 must be completely verified on physical hardware before block canvas development begins.
