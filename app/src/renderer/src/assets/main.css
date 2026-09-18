@@ -359,10 +359,13 @@ body {
 }
 
 @keyframes cf-pulse {
-  0%, 100% {
+
+  0%,
+  100% {
     opacity: 0.4;
     transform: scale(0.85);
   }
+
   50% {
     opacity: 1;
     transform: scale(1.15);
@@ -889,13 +892,13 @@ body {
 }
 
 /* Selected Block Glow */
-:root[data-theme='dark'] .blocklySelected > .blocklyPath {
+:root[data-theme='dark'] .blocklySelected>.blocklyPath {
   stroke: #ffffff !important;
   stroke-width: 2px !important;
   filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.3)) !important;
 }
 
-:root[data-theme='light'] .blocklySelected > .blocklyPath {
+:root[data-theme='light'] .blocklySelected>.blocklyPath {
   stroke: #121212 !important;
   stroke-width: 2px !important;
   filter: drop-shadow(0 0 8px rgba(0, 0, 0, 0.2)) !important;

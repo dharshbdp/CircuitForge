@@ -1,8 +1,5 @@
 import { SerialPort } from 'serialport'
-
-import type { ConnectionState, ConnectionStatus, SerialPortDescriptor } from '../shared/types'
-
-export type { ConnectionState, ConnectionStatus, SerialPortDescriptor }
+import type { ConnectionState } from '@shared/types'
 
 let activePort: SerialPort | null = null
 let currentState: ConnectionState = {
@@ -11,25 +8,8 @@ let currentState: ConnectionState = {
   baudRate: null
 }
 
-/**
- * Enumerate all available serial/COM ports on the system.
- */
-export async function listSerialPorts(): Promise<SerialPortDescriptor[]> {
-  try {
-    const rawPorts = await SerialPort.list()
-
-    return rawPorts.map((port) => ({
-      path: port.path,
-      friendlyName: (port as { friendlyName?: string }).friendlyName || port.path,
-      manufacturer: port.manufacturer,
-      serialNumber: port.serialNumber,
-      vendorId: port.vendorId,
-      productId: port.productId
-    }))
-  } catch (error) {
-    console.error('Error listing serial ports:', error)
-    return []
-  }
+export function getCurrentConnectionState(): ConnectionState {
+  return currentState
 }
 
 /**
@@ -179,8 +159,4 @@ export function writeSerialData(data: string): Promise<boolean> {
       }
     })
   })
-}
-
-export function getCurrentConnectionState(): ConnectionState {
-  return currentState
 }

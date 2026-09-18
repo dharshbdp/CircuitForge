@@ -6,6 +6,10 @@ export default defineConfig({
   main: {
     resolve: {
       alias: {
+        '@core': resolve('src/core'),
+        '@hardware': resolve('src/hardware'),
+        '@simulator': resolve('src/simulator'),
+        '@ai': resolve('src/ai'),
         '@shared': resolve('src/shared')
       }
     },
@@ -23,6 +27,10 @@ export default defineConfig({
     resolve: {
       alias: {
         '@renderer': resolve('src/renderer/src'),
+        '@core': resolve('src/core'),
+        '@hardware': resolve('src/hardware'),
+        '@simulator': resolve('src/simulator'),
+        '@ai': resolve('src/ai'),
         '@shared': resolve('src/shared')
       }
     },

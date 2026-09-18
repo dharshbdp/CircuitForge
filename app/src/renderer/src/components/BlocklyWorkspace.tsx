@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react'
 import * as Blockly from 'blockly'
-import '../blocks/hardwareBlocks'
+import '@core/blocks'
 
 // Fixed preview scale for the toolbox dock flyout
 const FIXED_FLYOUT_SCALE = 0.85
@@ -287,10 +287,20 @@ const toolboxConfig = {
     },
     {
       kind: 'category',
-      name: 'Sensors & Actuators',
+      name: 'Sensors',
       colour: '#a1a1aa',
       contents: [
         { kind: 'block', type: 'sensor_ultrasonic' },
+        { kind: 'block', type: 'sensor_dht' },
+        { kind: 'block', type: 'sensor_light_ldr' },
+        { kind: 'block', type: 'sensor_pir' }
+      ]
+    },
+    {
+      kind: 'category',
+      name: 'Actuators & Display',
+      colour: '#8e8e93',
+      contents: [
         {
           kind: 'block',
           type: 'actuator_servo',
@@ -298,7 +308,25 @@ const toolboxConfig = {
             ANGLE: { shadow: { type: 'math_number', fields: { NUM: 90 } } }
           }
         },
-        { kind: 'block', type: 'actuator_relay' }
+        { kind: 'block', type: 'actuator_relay' },
+        {
+          kind: 'block',
+          type: 'neopixel_init',
+          inputs: {
+            COUNT: { shadow: { type: 'math_number', fields: { NUM: 8 } } }
+          }
+        },
+        {
+          kind: 'block',
+          type: 'neopixel_set_color',
+          inputs: {
+            PIXEL: { shadow: { type: 'math_number', fields: { NUM: 0 } } },
+            RED: { shadow: { type: 'math_number', fields: { NUM: 255 } } },
+            GREEN: { shadow: { type: 'math_number', fields: { NUM: 0 } } },
+            BLUE: { shadow: { type: 'math_number', fields: { NUM: 0 } } }
+          }
+        },
+        { kind: 'block', type: 'neopixel_clear' }
       ]
     },
     {

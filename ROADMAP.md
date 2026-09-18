@@ -71,7 +71,8 @@ graph TD
     style P2 fill:#2e7d32,stroke:#1b5e20,color:#fff
     style P3 fill:#2e7d32,stroke:#1b5e20,color:#fff
     style P4 fill:#2e7d32,stroke:#1b5e20,color:#fff
-    style P5 fill:#f57f17,stroke:#e65100,color:#fff
+    style P5 fill:#2e7d32,stroke:#1b5e20,color:#fff
+    style P6 fill:#f57f17,stroke:#e65100,color:#fff
 ```
 
 ---
@@ -127,25 +128,25 @@ graph TD
 - [x] Implement workspace state serialization and canvas controls (Zoom to Fit, Clear Canvas, Block counter).
 - **Gate / Definition of Done**: Blockly canvas renders smoothly, allows dragging standard logic/math blocks, and scales responsively.
 
-#### Phase 5: IoT and Microcontroller Block Taxonomy
-- [ ] **GPIO & Pin Blocks**:
+#### Phase 5: IoT and Microcontroller Block Taxonomy (Completed)
+- [x] **GPIO & Pin Blocks**:
   - `digitalWrite(pin, HIGH/LOW)`
   - `digitalRead(pin)`
   - `analogRead(pin)`
   - `analogWrite(pin, value)` (PWM)
-- [ ] **Timing & Control Blocks**:
+- [x] **Timing & Control Blocks**:
   - `delay(ms)`
   - `delayMicroseconds(us)`
   - Non-blocking interval timers (`millis()` loop tracking).
-- [ ] **Hardware Sensor Blocks**:
+- [x] **Hardware Sensor Blocks**:
   - Ultrasonic Distance Sensor (HC-SR04).
   - Temperature & Humidity (DHT11 / DHT22).
   - Light Sensor (LDR / Analog phototransistor).
   - PIR Motion Sensor.
-- [ ] **Actuator & Display Blocks**:
+- [x] **Actuator & Display Blocks**:
   - Servo motor angle positioning (`0° - 180°`).
   - Relay switch control.
-  - Addressable RGB LED (WS2812B NeoPixel).
+  - Addressable RGB LED (WS2812B NeoPixel: init, set color, clear).
 - **Gate / Definition of Done**: All hardware primitives exist in the Blockly toolbox with accurate pin labels and parameter validation.
 
 #### Phase 6: Real-Time Dual-Pane Code Generator
