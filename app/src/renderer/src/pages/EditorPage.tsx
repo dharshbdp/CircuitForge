@@ -46,10 +46,11 @@ export function EditorPage(): React.JSX.Element {
     }
   }, [logs, autoScroll, activeTab])
 
-  // Transmit command
+  // Transmit command to device
   const handleSend = async (e: React.FormEvent): Promise<void> => {
     e.preventDefault()
-    if (!sendText) return
+    if (!sendText || connectionState.status !== 'connected') return
+
     const success = await sendData(sendText, lineEnding)
     if (success) {
       setSendText('')
@@ -68,6 +69,7 @@ export function EditorPage(): React.JSX.Element {
     }
   }, [])
 
+  // Clear workspace canvas
   const handleClearCanvas = (): void => {
     if (workspaceRef.current) {
       workspaceRef.current.clear()
@@ -75,6 +77,7 @@ export function EditorPage(): React.JSX.Element {
     }
   }
 
+  // Zoom to fit / Center
   const handleZoomFit = (): void => {
     if (workspaceRef.current) {
       workspaceRef.current.zoomToFit()
@@ -155,391 +158,370 @@ export function EditorPage(): React.JSX.Element {
           <button
             className={`cf-view-btn ${viewMode === 'terminal' ? 'active' : ''}`}
             onClick={() => setViewMode('terminal')}
-            title="Full Terminal & Code"
+            title="Full Console & Telemetry"
           >
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <polyline points="4 17 10 11 4 5" />
               <line x1="12" y1="19" x2="20" y2="19" />
             </svg>
-            <span>Panel</span>
+            <span>Console</span>
           </button>
         </div>
 
-        {/* Right Connection Controls & Theme */}
-        <div className="cf-controls">
-          <div className="cf-port-group">
+        {/* Right Toolbar Controls */}
+        <div className="cf-toolbar">
+          {/* Port Selector */}
+          <div className="cf-control">
+            <label htmlFor="cf-port-select">PORT</label>
             <select
-              className="cf-select cf-port-select"
+              id="cf-port-select"
               value={selectedPort}
               onChange={(e) => setSelectedPort(e.target.value)}
-              disabled={isConnected || isConnecting || ports.length === 0}
-              title={selectedPort ? `Selected Port: ${selectedPort}` : 'No Port Selected'}
+              disabled={isConnected || isConnecting}
             >
               {ports.length === 0 ? (
-                <option value="">No COM Ports Found</option>
+                <option value="">No Ports Detected</option>
               ) : (
                 ports.map((p) => (
                   <option key={p.path} value={p.path}>
-                    {p.path} {p.friendlyName && p.friendlyName !== p.path ? `(${p.friendlyName})` : ''}
+                    {p.friendlyName || p.path}
                   </option>
                 ))
               )}
             </select>
-
-            <button
-              className={`cf-btn cf-btn-icon ${isScanning ? 'scanning' : ''}`}
-              onClick={refreshPorts}
-              disabled={isConnected || isConnecting || isScanning}
-              title="Rescan COM Ports"
-              aria-label="Rescan COM Ports"
-            >
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67" />
-              </svg>
-            </button>
           </div>
 
-          <div className="cf-baud-group">
+          {/* Refresh Ports Button */}
+          <button
+            className="cf-btn-sm"
+            onClick={refreshPorts}
+            disabled={isScanning || isConnected || isConnecting}
+            title="Scan for connected hardware"
+          >
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M21 2v6h-6" />
+              <path d="M3 12a9 9 0 0 1 15-6.7L21 8" />
+              <path d="M3 22v-6h6" />
+              <path d="M21 12a9 9 0 0 1-15 6.7L3 16" />
+            </svg>
+            <span>{isScanning ? 'Scanning' : 'Refresh'}</span>
+          </button>
+
+          {/* Baud Rate Picker */}
+          <div className="cf-control">
+            <label htmlFor="cf-baud-select">BAUD</label>
             <select
-              className="cf-select cf-baud-select"
+              id="cf-baud-select"
               value={selectedBaud}
               onChange={(e) => setSelectedBaud(Number(e.target.value))}
               disabled={isConnected || isConnecting}
-              title="Serial Baud Rate"
             >
-              {BAUD_RATES.map((rate) => (
-                <option key={rate} value={rate}>
-                  {rate} baud
+              {BAUD_RATES.map((b) => (
+                <option key={b} value={b}>
+                  {b}
                 </option>
               ))}
             </select>
           </div>
 
+          {/* Connect / Disconnect Action Button */}
           <button
-            className={`cf-btn cf-btn-connect ${isConnected ? 'connected' : ''} ${isConnecting ? 'connecting' : ''}`}
+            className={`cf-btn ${isConnected ? 'cf-btn-disconnect' : 'cf-btn-primary'}`}
             onClick={toggleConnection}
-            disabled={!selectedPort && !isConnected}
+            disabled={isConnecting || (!selectedPort && !isConnected)}
           >
-            {isConnecting ? 'Connecting...' : isConnected ? 'Disconnect' : 'Connect'}
+            {isConnecting ? 'Connecting' : isConnected ? 'Disconnect' : 'Connect'}
           </button>
 
-          <div className="cf-theme-group">
-            <button
-              className="cf-btn cf-btn-icon"
-              onClick={toggleTheme}
-              title={`Switch to ${theme === 'dark' ? 'Light' : 'Dark'} Mode`}
-              aria-label="Toggle Theme"
-            >
-              {theme === 'dark' ? (
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <circle cx="12" cy="12" r="5" />
-                  <line x1="12" y1="1" x2="12" y2="3" />
-                  <line x1="12" y1="21" x2="12" y2="23" />
-                  <line x1="4.22" y1="4.22" x2="5.64" y2="5.64" />
-                  <line x1="18.36" y1="18.36" x2="19.78" y2="19.78" />
-                  <line x1="1" y1="12" x2="3" y2="12" />
-                  <line x1="21" y1="12" x2="23" y2="12" />
-                  <line x1="4.22" y1="19.78" x2="5.64" y2="18.36" />
-                  <line x1="18.36" y1="5.64" x2="19.78" y2="4.22" />
-                </svg>
-              ) : (
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
-                </svg>
-              )}
-            </button>
+          {/* Status Indicator */}
+          <div className={`cf-status-badge cf-status-${connectionState.status}`}>
+            <span className="cf-status-dot" aria-hidden="true" />
+            <span className="cf-status-text">
+              {connectionState.status.toUpperCase()}
+            </span>
           </div>
+
+          {/* Theme Toggle Button */}
+          <button
+            className="cf-btn-theme"
+            onClick={toggleTheme}
+            title={`Switch to ${theme === 'dark' ? 'Light' : 'Dark'} Mode`}
+            aria-label={`Switch to ${theme === 'dark' ? 'Light' : 'Dark'} Mode`}
+          >
+            {theme === 'dark' ? (
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="12" cy="12" r="5" />
+                <line x1="12" y1="1" x2="12" y2="3" />
+                <line x1="12" y1="21" x2="12" y2="23" />
+                <line x1="4.22" y1="4.22" x2="5.64" y2="5.64" />
+                <line x1="18.36" y1="18.36" x2="19.78" y2="19.78" />
+                <line x1="1" y1="12" x2="3" y2="12" />
+                <line x1="21" y1="12" x2="23" y2="12" />
+                <line x1="4.22" y1="19.78" x2="5.64" y2="18.36" />
+                <line x1="18.36" y1="5.64" x2="19.78" y2="4.22" />
+              </svg>
+            ) : (
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
+              </svg>
+            )}
+          </button>
         </div>
       </header>
 
       {/* Main Dual-Pane Workspace */}
-      <main className={`cf-main view-${viewMode}`}>
-        {/* Left Pane: Visual Blockly Canvas */}
-        {viewMode !== 'terminal' && (
-          <section className="cf-pane-canvas" aria-label="Visual programming workspace">
-            <div className="cf-canvas-toolbar">
-              <div className="cf-canvas-title">
-                <span className="cf-canvas-dot" />
-                <span>Visual Logic Workspace</span>
-              </div>
-              <div className="cf-canvas-stats">
-                <span className="cf-badge cf-badge-counter">{blockCount} {blockCount === 1 ? 'block' : 'blocks'}</span>
-                <button
-                  className="cf-btn-toolbar"
-                  onClick={handleZoomFit}
-                  title="Center and fit all blocks in view"
-                >
-                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <polyline points="15 3 21 3 21 9" />
-                    <polyline points="9 21 3 21 3 15" />
-                    <line x1="21" y1="3" x2="14" y2="10" />
-                    <line x1="3" y1="21" x2="10" y2="14" />
-                  </svg>
-                  <span>Fit View</span>
-                </button>
-                <button
-                  className="cf-btn-toolbar cf-btn-toolbar-danger"
-                  onClick={handleClearCanvas}
-                  disabled={blockCount === 0}
-                  title="Clear all blocks on workspace"
-                >
-                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <polyline points="3 6 5 6 21 6" />
-                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
-                  </svg>
-                  <span>Clear</span>
-                </button>
-              </div>
+      <main className={`cf-main-split view-${viewMode}`}>
+        {/* Left Pane: Visual Block Canvas */}
+        <section className="cf-canvas-pane">
+          <div className="cf-canvas-header">
+            <div className="cf-canvas-title-group">
+              <span className="cf-pane-title">VISUAL LOGIC CANVAS</span>
+              <span className="cf-badge">{blockCount} BLOCKS</span>
             </div>
-
-            <div className="cf-canvas-container">
-              <BlocklyWorkspace
-                theme={theme}
-                onWorkspaceChange={handleWorkspaceChange}
-                workspaceRef={workspaceRef}
-              />
-            </div>
-          </section>
-        )}
-
-        {/* Right Pane: Multi-tab Telemetry, Code Generator & Serial Terminal */}
-        {viewMode !== 'canvas' && (
-          <section className="cf-pane-terminal" aria-label="Code and Serial output panel">
-            {/* Tab Navigation */}
-            <div className="cf-tab-nav" role="tablist">
+            <div className="cf-canvas-actions">
               <button
-                className={`cf-tab-btn ${activeTab === 'terminal' ? 'active' : ''}`}
+                className="cf-btn-sm"
+                onClick={handleZoomFit}
+                title="Zoom canvas to fit all blocks"
+              >
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M15 3h6v6" />
+                  <path d="M9 21H3v-6" />
+                  <path d="M21 3l-7 7" />
+                  <path d="M3 21l7-7" />
+                </svg>
+                <span>Fit</span>
+              </button>
+              <button
+                className="cf-btn-sm"
+                onClick={handleClearCanvas}
+                disabled={blockCount === 0}
+                title="Clear all blocks from canvas"
+              >
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <polyline points="3 6 5 6 21 6" />
+                  <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+                </svg>
+                <span>Clear</span>
+              </button>
+            </div>
+          </div>
+
+          <div className="cf-canvas-body">
+            <BlocklyWorkspace
+              theme={theme}
+              workspaceRef={workspaceRef}
+              onWorkspaceChange={handleWorkspaceChange}
+            />
+          </div>
+        </section>
+
+        {/* Right Pane: Inspector & Engineering Tools */}
+        <section className="cf-inspector-pane">
+          {/* Tab Switcher */}
+          <div className="cf-inspector-header">
+            <div className="cf-tabs" role="tablist">
+              <button
+                className={`cf-tab ${activeTab === 'terminal' ? 'active' : ''}`}
                 onClick={() => setActiveTab('terminal')}
                 role="tab"
                 aria-selected={activeTab === 'terminal'}
               >
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <polyline points="4 17 10 11 4 5" />
-                  <line x1="12" y1="19" x2="20" y2="19" />
-                </svg>
-                <span>Serial Terminal</span>
-                {logs.length > 0 && <span className="cf-tab-count">{logs.length}</span>}
+                <span>MONITOR</span>
+                <span className="cf-tab-badge">{logs.length}</span>
               </button>
-
               <button
-                className={`cf-tab-btn ${activeTab === 'code' ? 'active' : ''}`}
+                className={`cf-tab ${activeTab === 'code' ? 'active' : ''}`}
                 onClick={() => setActiveTab('code')}
                 role="tab"
                 aria-selected={activeTab === 'code'}
               >
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <polyline points="16 18 22 12 16 6" />
-                  <polyline points="8 6 2 12 8 18" />
-                </svg>
-                <span>Generated C++</span>
+                <span>CODE</span>
               </button>
-
               <button
-                className={`cf-tab-btn ${activeTab === 'device' ? 'active' : ''}`}
+                className={`cf-tab ${activeTab === 'device' ? 'active' : ''}`}
                 onClick={() => setActiveTab('device')}
                 role="tab"
                 aria-selected={activeTab === 'device'}
               >
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <rect x="2" y="2" width="20" height="8" rx="2" ry="2" />
-                  <rect x="2" y="14" width="20" height="8" rx="2" ry="2" />
-                  <line x1="6" y1="6" x2="6.01" y2="6" />
-                  <line x1="6" y1="18" x2="6.01" y2="18" />
-                </svg>
-                <span>Device Info</span>
+                <span>DEVICE</span>
               </button>
             </div>
+          </div>
 
-            {/* TAB 1: Serial Terminal */}
-            {activeTab === 'terminal' && (
-              <div className="cf-tab-content cf-tab-terminal">
-                <div className="cf-terminal-toolbar">
-                  <div className="cf-terminal-options">
-                    <label className="cf-checkbox-label">
-                      <input
-                        type="checkbox"
-                        checked={autoScroll}
-                        onChange={(e) => setAutoScroll(e.target.checked)}
-                      />
-                      <span>Auto-scroll</span>
-                    </label>
-                    <label className="cf-checkbox-label">
-                      <input
-                        type="checkbox"
-                        checked={showTimestamps}
-                        onChange={(e) => setShowTimestamps(e.target.checked)}
-                      />
-                      <span>Timestamps</span>
-                    </label>
-                  </div>
+          {/* Tab Content: Live Serial Monitor */}
+          {activeTab === 'terminal' && (
+            <div className="cf-tab-content cf-tab-terminal">
+              <div className="cf-terminal-header">
+                <span>SERIAL STREAM &middot; {connectionState.baudRate || selectedBaud} BPS</span>
+                <div className="cf-terminal-actions">
+                  <label className="cf-checkbox-label">
+                    <input
+                      type="checkbox"
+                      checked={autoScroll}
+                      onChange={(e) => setAutoScroll(e.target.checked)}
+                    />
+                    Scroll
+                  </label>
+                  <label className="cf-checkbox-label">
+                    <input
+                      type="checkbox"
+                      checked={showTimestamps}
+                      onChange={(e) => setShowTimestamps(e.target.checked)}
+                    />
+                    Time
+                  </label>
                   <button
-                    className="cf-btn-toolbar"
+                    className="cf-btn-sm"
                     onClick={clearLogs}
                     disabled={logs.length === 0}
-                    title="Clear terminal logs"
                   >
-                    Clear Log
+                    Clear
                   </button>
                 </div>
+              </div>
 
-                <div className="cf-terminal-screen">
-                  {logs.length === 0 ? (
-                    <div className="cf-terminal-empty">
-                      <p className="cf-terminal-empty-title">
-                        {isConnected ? 'Connected. Waiting for serial data...' : 'Serial port disconnected'}
-                      </p>
-                      <p className="cf-terminal-empty-hint">
-                        {isConnected
-                          ? `Listening on ${connectionState.path} at ${connectionState.baudRate} baud.`
-                          : 'Select a COM port and click Connect to start monitoring hardware output.'}
-                      </p>
+              <div className="cf-terminal-body">
+                {logs.length === 0 ? (
+                  <div className="cf-empty-terminal">
+                    {isConnected
+                      ? 'Connected. Waiting for incoming telemetry from hardware...'
+                      : 'Serial port disconnected. Select a port and click Connect.'}
+                  </div>
+                ) : (
+                  logs.map((log) => (
+                    <div key={log.id} className={log.isSent ? 'cf-terminal-line-sent' : 'cf-terminal-line'}>
+                      {showTimestamps && <span className="cf-timestamp">[{log.timestamp}]</span>}
+                      {log.isSent && <span className="cf-timestamp">[TX] &gt; </span>}
+                      <span>{log.text}</span>
                     </div>
-                  ) : (
-                    <div className="cf-terminal-lines">
-                      {logs.map((log) => (
-                        <div key={log.id} className={`cf-terminal-line ${log.isSent ? 'sent' : ''}`}>
-                          {showTimestamps && (
-                            <span className="cf-timestamp">{log.timestamp}</span>
-                          )}
-                          <span className="cf-line-content">{log.text}</span>
-                        </div>
-                      ))}
-                      <div ref={logEndRef} />
-                    </div>
-                  )}
-                </div>
+                  ))
+                )}
+                <div ref={logEndRef} />
+              </div>
 
-                {/* Transmit Command Input */}
-                <form className="cf-transmit-bar" onSubmit={handleSend}>
-                  <input
-                    type="text"
-                    className="cf-input cf-transmit-input"
-                    placeholder={isConnected ? 'Send message or command to device...' : 'Connect to device to transmit...'}
-                    value={sendText}
-                    onChange={(e) => setSendText(e.target.value)}
-                    disabled={!isConnected}
-                  />
-                  <select
-                    className="cf-select cf-ending-select"
-                    value={lineEnding}
-                    onChange={(e) => setLineEnding(e.target.value)}
-                    disabled={!isConnected}
-                    title="Line Ending sequence"
-                  >
-                    <option value="\r\n">Both (\r\n)</option>
-                    <option value="\n">Newline (\n)</option>
-                    <option value="\r">Carriage Return (\r)</option>
-                    <option value="none">No Ending</option>
-                  </select>
+              {/* Transmit Command Bar */}
+              <form className="cf-terminal-footer" onSubmit={handleSend}>
+                <select
+                  value={lineEnding}
+                  onChange={(e) => setLineEnding(e.target.value)}
+                  disabled={!isConnected}
+                  title="Line Ending"
+                >
+                  <option value="\r\n">NL & CR (\r\n)</option>
+                  <option value="\n">NL (\n)</option>
+                  <option value="\r">CR (\r)</option>
+                  <option value="none">No Ending</option>
+                </select>
+
+                <input
+                  type="text"
+                  placeholder={
+                    isConnected
+                      ? 'Transmit command to microcontroller (Enter)...'
+                      : 'Connect port to transmit data'
+                  }
+                  value={sendText}
+                  onChange={(e) => setSendText(e.target.value)}
+                  disabled={!isConnected}
+                />
+
+                <button
+                  type="submit"
+                  className="cf-btn cf-btn-primary"
+                  disabled={!isConnected || !sendText.trim()}
+                >
+                  Send
+                </button>
+              </form>
+            </div>
+          )}
+
+          {/* Tab Content: Code Preview */}
+          {activeTab === 'code' && (
+            <div className="cf-tab-content cf-tab-code">
+              <div className="cf-code-header">
+                <span className="cf-code-lang">ARDUINO C++ / INO</span>
+                <div style={{ display: 'flex', gap: '6px' }}>
                   <button
-                    type="submit"
-                    className="cf-btn cf-btn-send"
-                    disabled={!isConnected || !sendText.trim()}
+                    className="cf-btn-sm"
+                    onClick={copyGeneratedCode}
+                    title="Copy code to clipboard"
                   >
-                    Send
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
+                      <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
+                    </svg>
+                    <span>{copiedCode ? 'Copied' : 'Copy'}</span>
                   </button>
-                </form>
+                  <button
+                    className="cf-btn-sm"
+                    onClick={handleExportIno}
+                    title="Download .ino sketch file"
+                  >
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                      <polyline points="7 10 12 15 17 10" />
+                      <line x1="12" y1="15" x2="12" y2="3" />
+                    </svg>
+                    <span>Export .ino</span>
+                  </button>
+                </div>
               </div>
-            )}
+              <pre className="cf-code-view">
+                <code>{generatedCode}</code>
+              </pre>
+            </div>
+          )}
 
-            {/* TAB 2: Live Generated C++ Preview */}
-            {activeTab === 'code' && (
-              <div className="cf-tab-content cf-tab-code">
-                <div className="cf-code-header">
-                  <div className="cf-code-title">
-                    <span className="cf-code-lang">ARDUINO C++</span>
-                    <span className="cf-badge cf-badge-target">Uno / ESP32</span>
-                  </div>
-                  <div className="cf-code-actions">
-                    <button
-                      className="cf-btn-toolbar"
-                      onClick={copyGeneratedCode}
-                      title="Copy code to clipboard"
-                    >
-                      {copiedCode ? '✓ Copied' : 'Copy Code'}
-                    </button>
-                    <button
-                      className="cf-btn-toolbar cf-btn-toolbar-accent"
-                      onClick={handleExportIno}
-                      title="Download as .ino Arduino sketch"
-                    >
-                      Export .ino
-                    </button>
-                  </div>
+          {/* Tab Content: Device Info */}
+          {activeTab === 'device' && (
+            <div className="cf-tab-content cf-tab-device">
+              <div className="cf-card">
+                <div className="cf-info-row">
+                  <span className="cf-label">Target Port</span>
+                  <span className="cf-value">{selectedPort || 'None'}</span>
                 </div>
-                <div className="cf-code-viewer">
-                  <pre className="cf-code-pre">
-                    <code>{generatedCode || '// Arrange blocks on the canvas to generate firmware code.\n'}</code>
-                  </pre>
+                <div className="cf-info-row">
+                  <span className="cf-label">Baud Rate</span>
+                  <span className="cf-value">{selectedBaud} bps</span>
+                </div>
+                <div className="cf-info-row">
+                  <span className="cf-label">Connection</span>
+                  <span className="cf-value cf-value-badge">{connectionState.status}</span>
+                </div>
+                <div className="cf-info-row">
+                  <span className="cf-label">Manufacturer</span>
+                  <span className="cf-value">{activePortDetails?.manufacturer || 'Unknown'}</span>
+                </div>
+                <div className="cf-info-row">
+                  <span className="cf-label">USB VID:PID</span>
+                  <span className="cf-value">
+                    {activePortDetails?.vendorId ? `${activePortDetails.vendorId}:${activePortDetails.productId}` : 'N/A'}
+                  </span>
                 </div>
               </div>
-            )}
 
-            {/* TAB 3: Device Metadata Info */}
-            {activeTab === 'device' && (
-              <div className="cf-tab-content cf-tab-device">
-                <div className="cf-device-card">
-                  <h3 className="cf-device-card-title">Port Information</h3>
-                  {activePortDetails ? (
-                    <div className="cf-device-details">
-                      <div className="cf-device-row">
-                        <span className="cf-device-key">Port Path</span>
-                        <span className="cf-device-val">{activePortDetails.path}</span>
-                      </div>
-                      <div className="cf-device-row">
-                        <span className="cf-device-key">Friendly Name</span>
-                        <span className="cf-device-val">{activePortDetails.friendlyName}</span>
-                      </div>
-                      <div className="cf-device-row">
-                        <span className="cf-device-key">Manufacturer</span>
-                        <span className="cf-device-val">{activePortDetails.manufacturer || 'Unknown'}</span>
-                      </div>
-                      <div className="cf-device-row">
-                        <span className="cf-device-key">Vendor ID</span>
-                        <span className="cf-device-val">{activePortDetails.vendorId || 'N/A'}</span>
-                      </div>
-                      <div className="cf-device-row">
-                        <span className="cf-device-key">Product ID</span>
-                        <span className="cf-device-val">{activePortDetails.productId || 'N/A'}</span>
-                      </div>
-                      <div className="cf-device-row">
-                        <span className="cf-device-key">Baud Rate</span>
-                        <span className="cf-device-val">{selectedBaud} bps</span>
-                      </div>
-                    </div>
-                  ) : (
-                    <p className="cf-device-empty">No device currently selected or connected.</p>
-                  )}
+              {connectionState.error && (
+                <div className="cf-error-box">
+                  <strong>Connection Error</strong>
+                  <div>{connectionState.error}</div>
                 </div>
+              )}
+
+              <div className="cf-card cf-tips-card">
+                <h4>Quick Guide</h4>
+                <ol>
+                  <li>Connect your microcontroller (Arduino, ESP32, RP2040) via USB.</li>
+                  <li>Drag visual blocks from the left toolbox onto the canvas.</li>
+                  <li>Click <strong>CODE</strong> tab to preview synthesized sketch.</li>
+                  <li>Click <strong>MONITOR</strong> tab for real-time serial telemetry and debugging.</li>
+                </ol>
               </div>
-            )}
-          </section>
-        )}
+            </div>
+          )}
+        </section>
       </main>
-
-      {/* Bottom Status Bar */}
-      <footer className="cf-footer">
-        <div className="cf-footer-left">
-          <div className={`cf-status-badge cf-status-${connectionState.status}`}>
-            <span className="cf-status-dot" aria-hidden="true" />
-            <span className="cf-status-text">
-              {connectionState.status === 'connected'
-                ? `Connected: ${connectionState.path} @ ${connectionState.baudRate} bps`
-                : connectionState.status === 'connecting'
-                ? `Connecting to ${connectionState.path}...`
-                : connectionState.status === 'error'
-                ? `Error: ${connectionState.error || 'Connection Failed'}`
-                : 'Hardware Disconnected'}
-            </span>
-          </div>
-        </div>
-
-        <div className="cf-footer-right">
-          <span className="cf-footer-stat">Target: Arduino Uno / ESP32</span>
-          <span className="cf-footer-sep">|</span>
-          <span className="cf-footer-stat">Vite + React 19 + Electron 39</span>
-        </div>
-      </footer>
     </div>
   )
 }
