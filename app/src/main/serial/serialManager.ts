@@ -8,6 +8,11 @@ let currentState: ConnectionState = {
   baudRate: null
 }
 
+let savedOnData: ((data: string) => void) | null = null
+let savedOnStateChange: ((state: ConnectionState) => void) | null = null
+let pausedConnection: { path: string; baudRate: number } | null = null
+let isPausedForFlashing = false
+
 export function getCurrentConnectionState(): ConnectionState {
   return currentState
 }
@@ -21,6 +26,9 @@ export function connectSerialPort(
   onData: (data: string) => void,
   onStateChange: (state: ConnectionState) => void
 ): Promise<boolean> {
+  savedOnData = onData
+  savedOnStateChange = onStateChange
+
   return new Promise((resolve) => {
     // If a port is already open, close it first
     if (activePort && activePort.isOpen) {
@@ -75,6 +83,7 @@ export function connectSerialPort(
       })
 
       activePort.on('error', (err: Error) => {
+        if (isPausedForFlashing) return
         console.error('Serial port error:', err.message)
         currentState = {
           status: 'error',
@@ -86,6 +95,7 @@ export function connectSerialPort(
       })
 
       activePort.on('close', () => {
+        if (isPausedForFlashing) return
         currentState = {
           status: 'disconnected',
           path: null,
@@ -138,6 +148,56 @@ export function disconnectSerialPort(): Promise<boolean> {
       resolve(true)
     }
   })
+}
+
+/**
+ * Temporarily pause and release the serial port lock for microcontroller flashing.
+ */
+export async function pauseForFlashing(targetPortPath: string): Promise<boolean> {
+  if (
+    activePort &&
+    activePort.isOpen &&
+    currentState.path === targetPortPath &&
+    currentState.baudRate
+  ) {
+    pausedConnection = {
+      path: currentState.path,
+      baudRate: currentState.baudRate
+    }
+    isPausedForFlashing = true
+
+    return new Promise((resolve) => {
+      activePort?.close((err) => {
+        if (err) {
+          console.warn('Error pausing serial port:', err)
+        }
+        activePort = null
+        resolve(true)
+      })
+    })
+  }
+  return true
+}
+
+/**
+ * Re-open and resume serial telemetry after microcontroller flashing terminates.
+ */
+export async function resumeAfterFlashing(): Promise<void> {
+  if (isPausedForFlashing && pausedConnection && savedOnData && savedOnStateChange) {
+    const toRestore = { ...pausedConnection }
+    const onData = savedOnData
+    const onStateChange = savedOnStateChange
+
+    isPausedForFlashing = false
+    pausedConnection = null
+
+    // Wait 500ms for microcontroller to complete USB-CDC re-enumeration post-flash
+    await new Promise((r) => setTimeout(r, 500))
+    await connectSerialPort(toRestore.path, toRestore.baudRate, onData, onStateChange)
+  } else {
+    isPausedForFlashing = false
+    pausedConnection = null
+  }
 }
 
 /**

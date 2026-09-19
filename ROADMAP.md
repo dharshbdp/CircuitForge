@@ -73,7 +73,9 @@ graph TD
     style P4 fill:#2e7d32,stroke:#1b5e20,color:#fff
     style P5 fill:#2e7d32,stroke:#1b5e20,color:#fff
     style P6 fill:#2e7d32,stroke:#1b5e20,color:#fff
-    style P7 fill:#f57f17,stroke:#e65100,color:#fff
+    style P7 fill:#2e7d32,stroke:#1b5e20,color:#fff
+    style P8 fill:#2e7d32,stroke:#1b5e20,color:#fff
+    style P9 fill:#f57f17,stroke:#e65100,color:#fff
 ```
 
 ---
@@ -161,26 +163,26 @@ graph TD
 
 ---
 
-### Milestone v0.3 — Embedded Compilation and One-Click Flashing
+### Milestone v0.3 — Embedded Compilation and One-Click Flashing (Completed)
 *Primary Objective: Eliminate external IDE requirements by embedding local compilation and firmware flashing directly into CircuitForge.*
 
-#### Phase 7: Headless Embedded Toolchain Integration
-- [ ] Integrate bundled `arduino-cli` binary manager in the Electron main process.
-- [ ] Implement background core and library indexer:
+#### Phase 7: Headless Embedded Toolchain Integration (Completed)
+- [x] Integrate bundled `arduino-cli` binary manager in the Electron main process.
+- [x] Implement background core and library indexer:
   - Arduino AVR core (`arduino:avr` for Uno/Nano).
   - ESP32 core (`esp32:esp32` for ESP32 Dev Module).
   - RP2040 core (`rp2040:rp2040` for Pico).
-- [ ] Download progress tracking for required toolchain dependencies on first run.
+- [x] Download progress tracking and toolchain logging via `compiler:log` IPC channel.
 - **Gate / Definition of Done**: `arduino-cli` runs headlessly from the Electron main process and reports installed cores.
 
-#### Phase 8: One-Click Compile and Upload Pipeline
-- [ ] Create temporary sketch builder in system cache.
-- [ ] Implement `compile` IPC: calls `arduino-cli compile --fqbn <board> <sketchPath>`.
-- [ ] Implement `upload` IPC:
+#### Phase 8: One-Click Compile and Upload Pipeline (Completed)
+- [x] Create temporary sketch builder in system cache (`%TEMP%/circuitforge_builds/`).
+- [x] Implement `compile` IPC: static validation and `arduino-cli compile --fqbn <board> <sketchPath>`.
+- [x] Implement `upload` IPC:
   - Temporarily releases the active Serial Monitor port lock.
   - Calls `arduino-cli upload -p <port> --fqbn <board> <sketchPath>`.
   - Automatically re-attaches the Serial Monitor once flashing completes.
-- [ ] Beginner-friendly compilation error translator (translates cryptic gcc compiler errors into human explanations).
+- [x] Beginner-friendly compilation error translator (translates cryptic gcc and avrdude compiler errors into human explanations).
 - **Gate / Definition of Done**: User clicks "Upload", CircuitForge compiles the visual program, flashes it to a connected Arduino/ESP32, and immediately resumes the serial monitor to display running output.
 
 ---

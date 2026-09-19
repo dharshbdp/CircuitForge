@@ -3,6 +3,7 @@ import type * as Blockly from 'blockly'
 import BlocklyWorkspace from '../components/BlocklyWorkspace'
 import { arduinoGenerator, micropythonGenerator } from '@core/compiler'
 import { SUPPORTED_BOARDS } from '@hardware'
+import type { CompileResult } from '@shared/types'
 import { useSerial, useTheme } from '../hooks'
 
 const BAUD_RATES = [9600, 19200, 38400, 57600, 115200, 230400]
@@ -26,13 +27,21 @@ export function EditorPage(): React.JSX.Element {
 
   // Layout & Workspace states
   const [viewMode, setViewMode] = useState<'split' | 'canvas' | 'terminal'>('split')
-  const [activeTab, setActiveTab] = useState<'terminal' | 'code' | 'device'>('terminal')
+  const [activeTab, setActiveTab] = useState<'terminal' | 'code' | 'device' | 'build'>('terminal')
   const [blockCount, setBlockCount] = useState<number>(0)
   const [copiedCode, setCopiedCode] = useState<boolean>(false)
   const [selectedBoard, setSelectedBoard] = useState<string>('arduino_uno')
   const [selectedLanguage, setSelectedLanguage] = useState<'cpp' | 'python'>('cpp')
   const [cppCode, setCppCode] = useState<string>('')
   const [pythonCode, setPythonCode] = useState<string>('')
+
+  // Build & Toolchain states
+  const [isCompiling, setIsCompiling] = useState<boolean>(false)
+  const [isUploading, setIsUploading] = useState<boolean>(false)
+  const [buildStatus, setBuildStatus] = useState<'success' | 'error' | null>(null)
+  const [buildStats, setBuildStats] = useState<CompileResult | null>(null)
+  const [lastError, setLastError] = useState<string | null>(null)
+  const [compilerLogs, setCompilerLogs] = useState<string[]>([])
 
   // Terminal input & settings
   const [sendText, setSendText] = useState<string>('')
@@ -49,6 +58,15 @@ export function EditorPage(): React.JSX.Element {
       logEndRef.current?.scrollIntoView({ behavior: 'smooth' })
     }
   }, [logs, autoScroll, activeTab])
+
+  // Subscribe to toolchain compiler logs
+  useEffect(() => {
+    if (!window.api?.onToolchainLog) return
+    const unsubscribe = window.api.onToolchainLog((log: string) => {
+      setCompilerLogs((prev) => [...prev, log.trimEnd()])
+    })
+    return () => unsubscribe()
+  }, [])
 
   // Transmit command to device
   const handleSend = async (e: React.FormEvent): Promise<void> => {
@@ -121,6 +139,83 @@ export function EditorPage(): React.JSX.Element {
   const isConnecting = connectionState.status === 'connecting'
   const activePortDetails = ports.find((p) => p.path === (connectionState.path || selectedPort))
   const activeBoard = SUPPORTED_BOARDS.find((b) => b.id === selectedBoard) || SUPPORTED_BOARDS[0]
+
+  // Compile / Verify handler
+  const handleCompile = async (): Promise<void> => {
+    if (isCompiling || isUploading || !window.api) return
+    setIsCompiling(true)
+    setBuildStatus(null)
+    setLastError(null)
+    setActiveTab('build')
+    setCompilerLogs((prev) => [
+      ...prev,
+      `[START] Initiating code verification on ${activeBoard.name}...`
+    ])
+
+    try {
+      const result = await window.api.compileSketch(cppCode, activeBoard.fqbn)
+      if (result.success) {
+        setBuildStatus('success')
+        setBuildStats(result)
+        setCompilerLogs((prev) => [
+          ...prev,
+          `[DONE] Build succeeded! Program size: ${result.binarySize || 'N/A'} bytes.`
+        ])
+      } else {
+        setBuildStatus('error')
+        setLastError(result.humanError || result.stderr)
+        setCompilerLogs((prev) => [...prev, `[FAILED] Compilation terminated with errors.`])
+      }
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : String(err)
+      setBuildStatus('error')
+      setLastError(msg)
+      setCompilerLogs((prev) => [...prev, `[ERROR] ${msg}`])
+    } finally {
+      setIsCompiling(false)
+    }
+  }
+
+  // Upload / Flash handler
+  const handleUpload = async (): Promise<void> => {
+    if (isCompiling || isUploading || !window.api) return
+    if (!selectedPort) {
+      setLastError('No serial port selected. Connect your board and select a COM port first.')
+      setActiveTab('build')
+      return
+    }
+
+    setIsUploading(true)
+    setBuildStatus(null)
+    setLastError(null)
+    setActiveTab('build')
+    setCompilerLogs((prev) => [
+      ...prev,
+      `[START] Initiating compile and upload to ${selectedPort} (${activeBoard.name})...`
+    ])
+
+    try {
+      const result = await window.api.uploadSketch(cppCode, activeBoard.fqbn, selectedPort)
+      if (result.success) {
+        setBuildStatus('success')
+        setCompilerLogs((prev) => [
+          ...prev,
+          `[DONE] Firmware flashed successfully! Resuming serial telemetry...`
+        ])
+      } else {
+        setBuildStatus('error')
+        setLastError(result.humanError || result.stderr)
+        setCompilerLogs((prev) => [...prev, `[FAILED] Upload failed.`])
+      }
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : String(err)
+      setBuildStatus('error')
+      setLastError(msg)
+      setCompilerLogs((prev) => [...prev, `[ERROR] ${msg}`])
+    } finally {
+      setIsUploading(false)
+    }
+  }
 
   return (
     <div className="cf-app">
@@ -222,6 +317,58 @@ export function EditorPage(): React.JSX.Element {
 
         {/* Right Toolbar Controls */}
         <div className="cf-toolbar">
+          {/* Hardware Actions: Verify & Upload */}
+          <div className="cf-action-group">
+            <button
+              className="cf-btn-action cf-btn-verify"
+              onClick={handleCompile}
+              disabled={isCompiling || isUploading || blockCount === 0}
+              title="Verify / Compile visual code (Check syntax & build)"
+            >
+              <svg
+                width="12"
+                height="12"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <polyline points="20 6 9 17 4 12" />
+              </svg>
+              <span>{isCompiling ? 'Verifying...' : 'Verify'}</span>
+            </button>
+
+            <button
+              className="cf-btn-action cf-btn-upload"
+              onClick={handleUpload}
+              disabled={isCompiling || isUploading || blockCount === 0 || !selectedPort}
+              title={
+                !selectedPort
+                  ? 'Connect a microcontroller and select a COM port to upload'
+                  : 'Compile and Upload sketch to microcontroller'
+              }
+            >
+              <svg
+                width="12"
+                height="12"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <line x1="5" y1="12" x2="19" y2="12" />
+                <polyline points="12 5 19 12 12 19" />
+              </svg>
+              <span>{isUploading ? 'Uploading...' : 'Upload'}</span>
+            </button>
+          </div>
+
+          <div className="cf-toolbar-separator" />
+
           {/* Target Board Selector */}
           <div className="cf-control">
             <label htmlFor="cf-board-select">BOARD</label>
@@ -451,6 +598,19 @@ export function EditorPage(): React.JSX.Element {
                 <span>CODE</span>
               </button>
               <button
+                className={`cf-tab ${activeTab === 'build' ? 'active' : ''}`}
+                onClick={() => setActiveTab('build')}
+                role="tab"
+                aria-selected={activeTab === 'build'}
+              >
+                <span>BUILD</span>
+                {buildStatus && (
+                  <span
+                    className={`cf-tab-dot ${buildStatus === 'success' ? 'cf-dot-success' : 'cf-dot-error'}`}
+                  />
+                )}
+              </button>
+              <button
                 className={`cf-tab ${activeTab === 'device' ? 'active' : ''}`}
                 onClick={() => setActiveTab('device')}
                 role="tab"
@@ -575,6 +735,47 @@ export function EditorPage(): React.JSX.Element {
                 <div style={{ display: 'flex', gap: '6px' }}>
                   <button
                     className="cf-btn-sm"
+                    onClick={handleCompile}
+                    disabled={isCompiling || isUploading || blockCount === 0}
+                    title="Verify / Compile code"
+                  >
+                    <svg
+                      width="11"
+                      height="11"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2.5"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    >
+                      <polyline points="20 6 9 17 4 12" />
+                    </svg>
+                    <span>Verify</span>
+                  </button>
+                  <button
+                    className="cf-btn-sm"
+                    onClick={handleUpload}
+                    disabled={isCompiling || isUploading || blockCount === 0 || !selectedPort}
+                    title="Compile and Upload to board"
+                  >
+                    <svg
+                      width="11"
+                      height="11"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2.5"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    >
+                      <line x1="5" y1="12" x2="19" y2="12" />
+                      <polyline points="12 5 19 12 12 19" />
+                    </svg>
+                    <span>Upload</span>
+                  </button>
+                  <button
+                    className="cf-btn-sm"
                     onClick={copyGeneratedCode}
                     title="Copy code to clipboard"
                   >
@@ -623,6 +824,58 @@ export function EditorPage(): React.JSX.Element {
               <pre className="cf-code-view">
                 <code>{activeCode}</code>
               </pre>
+            </div>
+          )}
+
+          {/* Tab Content: Build Console & Diagnostics */}
+          {activeTab === 'build' && (
+            <div className="cf-tab-content cf-tab-build">
+              <div className="cf-build-header">
+                <div className="cf-build-meta">
+                  <span className="cf-build-target">
+                    {activeBoard.name} ({activeBoard.fqbn})
+                  </span>
+                  {buildStats && (
+                    <span className="cf-build-stats">
+                      Flash: {((buildStats.binarySize || 0) / 1024).toFixed(1)} KB &middot; RAM:{' '}
+                      {buildStats.ramUsage || 0} B
+                    </span>
+                  )}
+                </div>
+                <div className="cf-build-actions">
+                  <button
+                    className="cf-btn-sm"
+                    onClick={() => setCompilerLogs([])}
+                    disabled={compilerLogs.length === 0}
+                  >
+                    Clear
+                  </button>
+                </div>
+              </div>
+
+              {lastError && (
+                <div className="cf-error-banner">
+                  <div className="cf-error-content">
+                    <div className="cf-error-title">DIAGNOSTIC ADVICE</div>
+                    <div className="cf-error-text">{lastError}</div>
+                  </div>
+                </div>
+              )}
+
+              <div className="cf-build-logs">
+                {compilerLogs.length === 0 ? (
+                  <div className="cf-empty-terminal">
+                    No compilation runs yet. Click &quot;Verify&quot; or &quot;Upload&quot; to
+                    build.
+                  </div>
+                ) : (
+                  compilerLogs.map((log, index) => (
+                    <div key={index} className="cf-build-line">
+                      <span>{log}</span>
+                    </div>
+                  ))
+                )}
+              </div>
             </div>
           )}
 

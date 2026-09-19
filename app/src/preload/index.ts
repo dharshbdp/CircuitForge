@@ -1,6 +1,13 @@
 import { contextBridge, ipcRenderer, IpcRendererEvent } from 'electron'
 import { electronAPI } from '@electron-toolkit/preload'
-import type { CircuitForgeAPI, ConnectionState, SerialPortDescriptor } from '../shared/types'
+import type {
+  CircuitForgeAPI,
+  ConnectionState,
+  SerialPortDescriptor,
+  ToolchainStatus,
+  CompileResult,
+  UploadResult
+} from '../shared/types'
 
 // Custom APIs for renderer
 const api: CircuitForgeAPI = {
@@ -28,6 +35,24 @@ const api: CircuitForgeAPI = {
     ipcRenderer.on('serial:state-change', handler)
     return () => {
       ipcRenderer.removeListener('serial:state-change', handler)
+    }
+  },
+
+  checkToolchain: (): Promise<ToolchainStatus> => ipcRenderer.invoke('compiler:check-toolchain'),
+
+  installToolchain: (): Promise<boolean> => ipcRenderer.invoke('compiler:install-toolchain'),
+
+  compileSketch: (code: string, fqbn: string): Promise<CompileResult> =>
+    ipcRenderer.invoke('compiler:compile', { code, fqbn }),
+
+  uploadSketch: (code: string, fqbn: string, port: string): Promise<UploadResult> =>
+    ipcRenderer.invoke('compiler:upload', { code, fqbn, port }),
+
+  onToolchainLog: (callback: (log: string) => void): (() => void) => {
+    const handler = (_event: IpcRendererEvent, log: string): void => callback(log)
+    ipcRenderer.on('compiler:log', handler)
+    return () => {
+      ipcRenderer.removeListener('compiler:log', handler)
     }
   }
 }
