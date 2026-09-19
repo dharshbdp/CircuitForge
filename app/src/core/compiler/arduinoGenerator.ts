@@ -232,6 +232,36 @@ export class ArduinoGenerator extends Blockly.CodeGenerator {
       return [`(digitalRead(${pin}) == HIGH)`, Order.EQUALITY]
     }
 
+    // 16. MQ-2 Gas / Smoke Sensor (Analog Read)
+    this.forBlock['sensor_mq2_read'] = (block) => {
+      const pin = block.getFieldValue('PIN')
+      const mode = block.getFieldValue('MODE')
+
+      if (mode === 'PERCENT') {
+        return [`map(analogRead(${pin}), 0, 1023, 0, 100)`, Order.ATOMIC]
+      }
+      return [`analogRead(${pin})`, Order.ATOMIC]
+    }
+
+    // 17. MQ-2 Gas / Smoke Sensor (Digital Alert)
+    this.forBlock['sensor_mq2_digital'] = (block) => {
+      const pin = block.getFieldValue('PIN')
+      this.setups_[`pin_mode_${pin}`] = `pinMode(${pin}, INPUT);`
+      return [`(digitalRead(${pin}) == HIGH)`, Order.EQUALITY]
+    }
+
+    // 18. MQ-2 Sensor Warm-up / Pre-heat
+    this.forBlock['sensor_mq2_warmup'] = (block) => {
+      const sec = this.valueToCode(block, 'SECONDS', Order.NONE) || '20'
+      this.setups_['serial_begin'] = 'Serial.begin(115200);'
+      this.setups_['mq2_warmup'] = [
+        'Serial.println(F("MQ-2 Sensor Starting..."));',
+        `  delay(${sec} * 1000UL);`,
+        '  Serial.println(F("Sensor Ready!"));'
+      ].join('\n')
+      return `  // MQ-2 heater stabilization (${sec}s warm-up configured in setup)\n`
+    }
+
     // 16. NeoPixel Init
     this.forBlock['neopixel_init'] = (block) => {
       const pin = block.getFieldValue('PIN')

@@ -394,6 +394,66 @@ export function registerHardwareBlocks(): void {
       nextStatement: null,
       style: 'actuator_blocks',
       tooltip: 'Turns off all LEDs on the NeoPixel strip.'
+    },
+
+    // 19. MQ-2 Gas / Smoke Sensor (Analog Read)
+    {
+      type: 'sensor_mq2_read',
+      message0: 'read MQ-2 gas/smoke pin %1 as %2',
+      args0: [
+        {
+          type: 'field_dropdown',
+          name: 'PIN',
+          options: ANALOG_PINS
+        },
+        {
+          type: 'field_dropdown',
+          name: 'MODE',
+          options: [
+            ['Raw Value (0-1023)', 'RAW'],
+            ['Percentage (0-100%)', 'PERCENT']
+          ]
+        }
+      ],
+      output: 'Number',
+      style: 'sensor_blocks',
+      tooltip:
+        'Reads combustible gas or smoke concentration (LPG, smoke, methane, alcohol) from the MQ-2 analog pin.'
+    },
+
+    // 20. MQ-2 Gas / Smoke Sensor (Digital Alert)
+    {
+      type: 'sensor_mq2_digital',
+      message0: 'MQ-2 gas alert on pin %1',
+      args0: [
+        {
+          type: 'field_dropdown',
+          name: 'PIN',
+          options: DIGITAL_PINS
+        }
+      ],
+      output: 'Boolean',
+      style: 'sensor_blocks',
+      tooltip:
+        'Returns true if gas or smoke concentration exceeds the onboard potentiometer threshold on the MQ-2 digital pin.'
+    },
+
+    // 21. MQ-2 Sensor Warm-up / Pre-heat
+    {
+      type: 'sensor_mq2_warmup',
+      message0: 'warm up MQ-2 sensor for %1 seconds',
+      args0: [
+        {
+          type: 'input_value',
+          name: 'SECONDS',
+          check: 'Number'
+        }
+      ],
+      previousStatement: null,
+      nextStatement: null,
+      style: 'sensor_blocks',
+      tooltip:
+        'Allows the MQ-2 internal heater coil to stabilize before taking readings (configured in setup).'
     }
   ])
 }

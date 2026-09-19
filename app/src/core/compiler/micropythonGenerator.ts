@@ -206,6 +206,35 @@ export class MicroPythonGenerator extends Blockly.CodeGenerator {
       return [`(pir_${pin}.value() == 1)`, PythonOrder.RELATIONAL]
     }
 
+    // 13. MQ-2 Gas / Smoke Sensor (Analog Read)
+    this.forBlock['sensor_mq2_read'] = (block) => {
+      const pin = this.cleanPin(block.getFieldValue('PIN'))
+      const mode = block.getFieldValue('MODE')
+      this.setups_[`mq2_adc_${pin}`] = `mq2_adc_${pin} = ADC(Pin(${pin}))`
+      if (mode === 'PERCENT') {
+        return [`int((mq2_adc_${pin}.read_u16() / 65535.0) * 100)`, PythonOrder.FUNCTION_CALL]
+      }
+      return [`int(mq2_adc_${pin}.read_u16() >> 6)`, PythonOrder.FUNCTION_CALL]
+    }
+
+    // 14. MQ-2 Gas / Smoke Sensor (Digital Alert)
+    this.forBlock['sensor_mq2_digital'] = (block) => {
+      const pin = this.cleanPin(block.getFieldValue('PIN'))
+      this.setups_[`mq2_d_${pin}`] = `mq2_d_${pin} = Pin(${pin}, Pin.IN)`
+      return [`(mq2_d_${pin}.value() == 1)`, PythonOrder.RELATIONAL]
+    }
+
+    // 15. MQ-2 Sensor Warm-up / Pre-heat
+    this.forBlock['sensor_mq2_warmup'] = (block) => {
+      const sec = this.valueToCode(block, 'SECONDS', PythonOrder.NONE) || '20'
+      this.setups_['mq2_warmup'] = [
+        'print("MQ-2 Sensor Starting...")',
+        `time.sleep(${sec})`,
+        'print("Sensor Ready!")'
+      ].join('\n')
+      return `  # MQ-2 heater stabilization (${sec}s warm-up configured in setup)\n`
+    }
+
     // 13. Servo Motor (0-180 deg)
     this.forBlock['actuator_servo'] = (block) => {
       const pin = this.cleanPin(block.getFieldValue('PIN'))

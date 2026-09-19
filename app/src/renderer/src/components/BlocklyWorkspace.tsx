@@ -312,7 +312,16 @@ const toolboxConfig = {
         { kind: 'block', type: 'sensor_ultrasonic' },
         { kind: 'block', type: 'sensor_dht' },
         { kind: 'block', type: 'sensor_light_ldr' },
-        { kind: 'block', type: 'sensor_pir' }
+        { kind: 'block', type: 'sensor_pir' },
+        { kind: 'block', type: 'sensor_mq2_read' },
+        { kind: 'block', type: 'sensor_mq2_digital' },
+        {
+          kind: 'block',
+          type: 'sensor_mq2_warmup',
+          inputs: {
+            SECONDS: { shadow: { type: 'math_number', fields: { NUM: 20 } } }
+          }
+        }
       ]
     },
     {

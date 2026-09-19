@@ -45,6 +45,14 @@ export const SUPPORTED_SENSORS: Record<string, SensorDefinition> = {
     pinsRequired: 1,
     description: 'Passive infrared sensor detecting human/object motion.'
   },
+  mq2: {
+    id: 'mq2',
+    name: 'Gas & Smoke Sensor (MQ-2)',
+    category: 'sensor',
+    pinsRequired: 1,
+    description:
+      'Measures concentrations of combustible gases (LPG, smoke, methane, butane, alcohol) via analog and digital outputs.'
+  },
   servo: {
     id: 'servo',
     name: 'Micro Servo Motor (SG90)',
