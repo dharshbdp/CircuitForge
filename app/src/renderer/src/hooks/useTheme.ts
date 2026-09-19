@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 
 export type Theme = 'dark' | 'light'
 
@@ -8,6 +8,7 @@ export function useTheme(): [Theme, () => void] {
     if (saved === 'light' || saved === 'dark') return saved
     return window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark'
   })
+  const transitionTimeoutRef = useRef<number | null>(null)
 
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', theme)
@@ -16,21 +17,23 @@ export function useTheme(): [Theme, () => void] {
 
   const toggleTheme = (): void => {
     const nextTheme: Theme = theme === 'dark' ? 'light' : 'dark'
+    const root = document.documentElement
 
-    const doc = document as Document & {
-      startViewTransition?: (cb: () => void) => { ready: Promise<void> }
+    // Add theme-transitioning class to trigger synchronized CSS transitions
+    root.classList.add('theme-transitioning')
+
+    if (transitionTimeoutRef.current !== null) {
+      window.clearTimeout(transitionTimeoutRef.current)
     }
 
-    if (!doc.startViewTransition || window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-      document.documentElement.setAttribute('data-theme', nextTheme)
-      setTheme(nextTheme)
-      return
-    }
+    root.setAttribute('data-theme', nextTheme)
+    setTheme(nextTheme)
 
-    doc.startViewTransition(() => {
-      document.documentElement.setAttribute('data-theme', nextTheme)
-      setTheme(nextTheme)
-    })
+    // Remove transition class after animation completes so hover/drag aren't sluggish
+    transitionTimeoutRef.current = window.setTimeout(() => {
+      root.classList.remove('theme-transitioning')
+      transitionTimeoutRef.current = null
+    }, 380)
   }
 
   return [theme, toggleTheme]
