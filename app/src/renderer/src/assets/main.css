@@ -135,18 +135,50 @@ body {
   background-color: var(--bg-app);
 }
 
-/* Header & Controls */
+/* Header & Controls - 2-Line Ribbon Architecture */
 .cf-header {
   display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 10px 18px;
+  flex-direction: column;
+  padding: 0;
   background-color: var(--bg-header);
   border-bottom: 1px solid var(--border-default);
   z-index: 10;
   transition:
     background-color 0.2s ease,
     border-color 0.2s ease;
+}
+
+.cf-header-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.cf-header-row-top {
+  padding: 7px 18px;
+  min-height: 40px;
+  border-bottom: 1px solid var(--border-subtle);
+  background-color: var(--bg-header);
+}
+
+.cf-header-row-bottom {
+  padding: 6px 18px;
+  min-height: 42px;
+  background-color: var(--bg-surface);
+}
+
+.cf-top-meta {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.cf-hardware-bar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
 }
 
 .cf-brand {
@@ -181,23 +213,10 @@ body {
   letter-spacing: 0.02em;
 }
 
-.cf-toolbar {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
 .cf-action-group {
   display: flex;
   align-items: center;
-  gap: 6px;
-}
-
-.cf-toolbar-separator {
-  width: 1px;
-  height: 20px;
-  background: var(--border-default);
-  margin: 0 4px;
+  gap: 8px;
 }
 
 .cf-btn-action {
@@ -278,6 +297,15 @@ body {
 .cf-control select:disabled {
   opacity: 0.45;
   cursor: not-allowed;
+}
+
+#cf-board-select {
+  max-width: 170px;
+}
+
+#cf-port-select {
+  max-width: 230px;
+  text-overflow: ellipsis;
 }
 
 /* Buttons */

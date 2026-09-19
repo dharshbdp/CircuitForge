@@ -219,105 +219,159 @@ export function EditorPage(): React.JSX.Element {
 
   return (
     <div className="cf-app">
-      {/* Top Header & Hardware Controls */}
+      {/* Top Header Panel: 2-Line Architecture */}
       <header className="cf-header">
-        <div className="cf-brand">
-          <span className="cf-brand-icon" aria-hidden="true">
-            <svg
-              width="18"
-              height="18"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
+        {/* Line 1: Basic Functions, View Modes, Status & Theme */}
+        <div className="cf-header-row cf-header-row-top">
+          <div className="cf-brand">
+            <span className="cf-brand-icon" aria-hidden="true">
+              <svg
+                width="18"
+                height="18"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <rect x="4" y="4" width="16" height="16" rx="2" />
+                <rect x="9" y="9" width="6" height="6" />
+                <line x1="9" y1="1" x2="9" y2="4" />
+                <line x1="15" y1="1" x2="15" y2="4" />
+                <line x1="9" y1="20" x2="9" y2="23" />
+                <line x1="15" y1="20" x2="15" y2="23" />
+                <line x1="20" y1="9" x2="23" y2="9" />
+                <line x1="20" y1="14" x2="23" y2="14" />
+                <line x1="1" y1="9" x2="4" y2="9" />
+                <line x1="1" y1="14" x2="4" y2="14" />
+              </svg>
+            </span>
+            <span className="cf-brand-title">CircuitForge</span>
+            <span className="cf-brand-version">v0.3</span>
+          </div>
+
+          {/* Center Layout View Mode Controls */}
+          <div className="cf-view-modes" role="group" aria-label="Layout view mode">
+            <button
+              className={`cf-view-btn ${viewMode === 'split' ? 'active' : ''}`}
+              onClick={() => setViewMode('split')}
+              title="Split View (Canvas + Terminal)"
             >
-              <rect x="4" y="4" width="16" height="16" rx="2" />
-              <rect x="9" y="9" width="6" height="6" />
-              <line x1="9" y1="1" x2="9" y2="4" />
-              <line x1="15" y1="1" x2="15" y2="4" />
-              <line x1="9" y1="20" x2="9" y2="23" />
-              <line x1="15" y1="20" x2="15" y2="23" />
-              <line x1="20" y1="9" x2="23" y2="9" />
-              <line x1="20" y1="14" x2="23" y2="14" />
-              <line x1="1" y1="9" x2="4" y2="9" />
-              <line x1="1" y1="14" x2="4" y2="14" />
-            </svg>
-          </span>
-          <span className="cf-brand-title">CircuitForge</span>
-          <span className="cf-brand-version">v0.2</span>
+              <svg
+                width="13"
+                height="13"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <rect x="3" y="3" width="18" height="18" rx="2" />
+                <line x1="12" y1="3" x2="12" y2="21" />
+              </svg>
+              <span>Split</span>
+            </button>
+            <button
+              className={`cf-view-btn ${viewMode === 'canvas' ? 'active' : ''}`}
+              onClick={() => setViewMode('canvas')}
+              title="Full Visual Canvas"
+            >
+              <svg
+                width="13"
+                height="13"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <rect x="3" y="3" width="7" height="7" />
+                <rect x="14" y="3" width="7" height="7" />
+                <rect x="14" y="14" width="7" height="7" />
+                <rect x="3" y="14" width="7" height="7" />
+              </svg>
+              <span>Canvas</span>
+            </button>
+            <button
+              className={`cf-view-btn ${viewMode === 'terminal' ? 'active' : ''}`}
+              onClick={() => setViewMode('terminal')}
+              title="Full Console & Telemetry"
+            >
+              <svg
+                width="13"
+                height="13"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <polyline points="4 17 10 11 4 5" />
+                <line x1="12" y1="19" x2="20" y2="19" />
+              </svg>
+              <span>Console</span>
+            </button>
+          </div>
+
+          {/* Right Controls: Connection Status Badge & Theme Switcher */}
+          <div className="cf-top-meta">
+            <div className={`cf-status-badge cf-status-${connectionState.status}`}>
+              <span className="cf-status-dot" aria-hidden="true" />
+              <span className="cf-status-text">{connectionState.status.toUpperCase()}</span>
+            </div>
+
+            <button
+              className="cf-btn-theme"
+              onClick={toggleTheme}
+              title={`Switch to ${theme === 'dark' ? 'Light' : 'Dark'} Mode`}
+              aria-label={`Switch to ${theme === 'dark' ? 'Light' : 'Dark'} Mode`}
+            >
+              {theme === 'dark' ? (
+                <svg
+                  width="14"
+                  height="14"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <circle cx="12" cy="12" r="5" />
+                  <line x1="12" y1="1" x2="12" y2="3" />
+                  <line x1="12" y1="21" x2="12" y2="23" />
+                  <line x1="4.22" y1="4.22" x2="5.64" y2="5.64" />
+                  <line x1="18.36" y1="18.36" x2="19.78" y2="19.78" />
+                  <line x1="1" y1="12" x2="3" y2="12" />
+                  <line x1="21" y1="12" x2="23" y2="12" />
+                  <line x1="4.22" y1="19.78" x2="5.64" y2="18.36" />
+                  <line x1="18.36" y1="5.64" x2="19.78" y2="4.22" />
+                </svg>
+              ) : (
+                <svg
+                  width="14"
+                  height="14"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
+                </svg>
+              )}
+            </button>
+          </div>
         </div>
 
-        {/* Center Layout View Mode Controls */}
-        <div className="cf-view-modes" role="group" aria-label="Layout view mode">
-          <button
-            className={`cf-view-btn ${viewMode === 'split' ? 'active' : ''}`}
-            onClick={() => setViewMode('split')}
-            title="Split View (Canvas + Terminal)"
-          >
-            <svg
-              width="13"
-              height="13"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <rect x="3" y="3" width="18" height="18" rx="2" />
-              <line x1="12" y1="3" x2="12" y2="21" />
-            </svg>
-            <span>Split</span>
-          </button>
-          <button
-            className={`cf-view-btn ${viewMode === 'canvas' ? 'active' : ''}`}
-            onClick={() => setViewMode('canvas')}
-            title="Full Visual Canvas"
-          >
-            <svg
-              width="13"
-              height="13"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <rect x="3" y="3" width="7" height="7" />
-              <rect x="14" y="3" width="7" height="7" />
-              <rect x="14" y="14" width="7" height="7" />
-              <rect x="3" y="14" width="7" height="7" />
-            </svg>
-            <span>Canvas</span>
-          </button>
-          <button
-            className={`cf-view-btn ${viewMode === 'terminal' ? 'active' : ''}`}
-            onClick={() => setViewMode('terminal')}
-            title="Full Console & Telemetry"
-          >
-            <svg
-              width="13"
-              height="13"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <polyline points="4 17 10 11 4 5" />
-              <line x1="12" y1="19" x2="20" y2="19" />
-            </svg>
-            <span>Console</span>
-          </button>
-        </div>
-
-        {/* Right Toolbar Controls */}
-        <div className="cf-toolbar">
-          {/* Hardware Actions: Verify & Upload */}
+        {/* Line 2: Action Ribbon - Code Verification, Upload & Board Functions */}
+        <div className="cf-header-row cf-header-row-bottom">
+          {/* Left: Code Verification & Upload Actions */}
           <div className="cf-action-group">
             <button
               className="cf-btn-action cf-btn-verify"
@@ -367,146 +421,97 @@ export function EditorPage(): React.JSX.Element {
             </button>
           </div>
 
-          <div className="cf-toolbar-separator" />
-
-          {/* Target Board Selector */}
-          <div className="cf-control">
-            <label htmlFor="cf-board-select">BOARD</label>
-            <select
-              id="cf-board-select"
-              value={selectedBoard}
-              onChange={(e) => setSelectedBoard(e.target.value)}
-              title="Select Target Microcontroller Board"
-            >
-              {SUPPORTED_BOARDS.map((b) => (
-                <option key={b.id} value={b.id}>
-                  {b.name}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          {/* Port Selector */}
-          <div className="cf-control">
-            <label htmlFor="cf-port-select">PORT</label>
-            <select
-              id="cf-port-select"
-              value={selectedPort}
-              onChange={(e) => setSelectedPort(e.target.value)}
-              disabled={isConnected || isConnecting}
-            >
-              {ports.length === 0 ? (
-                <option value="">No Ports Detected</option>
-              ) : (
-                ports.map((p) => (
-                  <option key={p.path} value={p.path}>
-                    {p.friendlyName || p.path}
+          {/* Right: Board & Hardware Serial Functions */}
+          <div className="cf-hardware-bar">
+            {/* Target Board Selector */}
+            <div className="cf-control">
+              <label htmlFor="cf-board-select">BOARD</label>
+              <select
+                id="cf-board-select"
+                value={selectedBoard}
+                onChange={(e) => setSelectedBoard(e.target.value)}
+                title="Select Target Microcontroller Board"
+              >
+                {SUPPORTED_BOARDS.map((b) => (
+                  <option key={b.id} value={b.id}>
+                    {b.name}
                   </option>
-                ))
-              )}
-            </select>
-          </div>
+                ))}
+              </select>
+            </div>
 
-          {/* Refresh Ports Button */}
-          <button
-            className="cf-btn-sm"
-            onClick={refreshPorts}
-            disabled={isScanning || isConnected || isConnecting}
-            title="Scan for connected hardware"
-          >
-            <svg
-              width="12"
-              height="12"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2.5"
-              strokeLinecap="round"
-              strokeLinejoin="round"
+            {/* Port Selector */}
+            <div className="cf-control">
+              <label htmlFor="cf-port-select">PORT</label>
+              <select
+                id="cf-port-select"
+                value={selectedPort}
+                onChange={(e) => setSelectedPort(e.target.value)}
+                disabled={isConnected || isConnecting}
+              >
+                {ports.length === 0 ? (
+                  <option value="">No Ports Detected</option>
+                ) : (
+                  ports.map((p) => (
+                    <option key={p.path} value={p.path}>
+                      {p.friendlyName || p.path}
+                    </option>
+                  ))
+                )}
+              </select>
+            </div>
+
+            {/* Refresh Ports Button */}
+            <button
+              className="cf-btn-sm"
+              onClick={refreshPorts}
+              disabled={isScanning || isConnected || isConnecting}
+              title="Scan for connected hardware"
             >
-              <path d="M21 2v6h-6" />
-              <path d="M3 12a9 9 0 0 1 15-6.7L21 8" />
-              <path d="M3 22v-6h6" />
-              <path d="M21 12a9 9 0 0 1-15 6.7L3 16" />
-            </svg>
-            <span>{isScanning ? 'Scanning' : 'Refresh'}</span>
-          </button>
-
-          {/* Baud Rate Picker */}
-          <div className="cf-control">
-            <label htmlFor="cf-baud-select">BAUD</label>
-            <select
-              id="cf-baud-select"
-              value={selectedBaud}
-              onChange={(e) => setSelectedBaud(Number(e.target.value))}
-              disabled={isConnected || isConnecting}
-            >
-              {BAUD_RATES.map((b) => (
-                <option key={b} value={b}>
-                  {b}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          {/* Connect / Disconnect Action Button */}
-          <button
-            className={`cf-btn ${isConnected ? 'cf-btn-disconnect' : 'cf-btn-primary'}`}
-            onClick={toggleConnection}
-            disabled={isConnecting || (!selectedPort && !isConnected)}
-          >
-            {isConnecting ? 'Connecting' : isConnected ? 'Disconnect' : 'Connect'}
-          </button>
-
-          {/* Status Indicator */}
-          <div className={`cf-status-badge cf-status-${connectionState.status}`}>
-            <span className="cf-status-dot" aria-hidden="true" />
-            <span className="cf-status-text">{connectionState.status.toUpperCase()}</span>
-          </div>
-
-          {/* Theme Toggle Button */}
-          <button
-            className="cf-btn-theme"
-            onClick={toggleTheme}
-            title={`Switch to ${theme === 'dark' ? 'Light' : 'Dark'} Mode`}
-            aria-label={`Switch to ${theme === 'dark' ? 'Light' : 'Dark'} Mode`}
-          >
-            {theme === 'dark' ? (
               <svg
-                width="14"
-                height="14"
+                width="12"
+                height="12"
                 viewBox="0 0 24 24"
                 fill="none"
                 stroke="currentColor"
-                strokeWidth="2"
+                strokeWidth="2.5"
                 strokeLinecap="round"
                 strokeLinejoin="round"
               >
-                <circle cx="12" cy="12" r="5" />
-                <line x1="12" y1="1" x2="12" y2="3" />
-                <line x1="12" y1="21" x2="12" y2="23" />
-                <line x1="4.22" y1="4.22" x2="5.64" y2="5.64" />
-                <line x1="18.36" y1="18.36" x2="19.78" y2="19.78" />
-                <line x1="1" y1="12" x2="3" y2="12" />
-                <line x1="21" y1="12" x2="23" y2="12" />
-                <line x1="4.22" y1="19.78" x2="5.64" y2="18.36" />
-                <line x1="18.36" y1="5.64" x2="19.78" y2="4.22" />
+                <path d="M21 2v6h-6" />
+                <path d="M3 12a9 9 0 0 1 15-6.7L21 8" />
+                <path d="M3 22v-6h6" />
+                <path d="M21 12a9 9 0 0 1-15 6.7L3 16" />
               </svg>
-            ) : (
-              <svg
-                width="14"
-                height="14"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
+              <span>{isScanning ? 'Scanning' : 'Refresh'}</span>
+            </button>
+
+            {/* Baud Rate Picker */}
+            <div className="cf-control">
+              <label htmlFor="cf-baud-select">BAUD</label>
+              <select
+                id="cf-baud-select"
+                value={selectedBaud}
+                onChange={(e) => setSelectedBaud(Number(e.target.value))}
+                disabled={isConnected || isConnecting}
               >
-                <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
-              </svg>
-            )}
-          </button>
+                {BAUD_RATES.map((b) => (
+                  <option key={b} value={b}>
+                    {b}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* Connect / Disconnect Action Button */}
+            <button
+              className={`cf-btn ${isConnected ? 'cf-btn-disconnect' : 'cf-btn-primary'}`}
+              onClick={toggleConnection}
+              disabled={isConnecting || (!selectedPort && !isConnected)}
+            >
+              {isConnecting ? 'Connecting' : isConnected ? 'Disconnect' : 'Connect'}
+            </button>
+          </div>
         </div>
       </header>
 
