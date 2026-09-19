@@ -72,7 +72,8 @@ graph TD
     style P3 fill:#2e7d32,stroke:#1b5e20,color:#fff
     style P4 fill:#2e7d32,stroke:#1b5e20,color:#fff
     style P5 fill:#2e7d32,stroke:#1b5e20,color:#fff
-    style P6 fill:#f57f17,stroke:#e65100,color:#fff
+    style P6 fill:#2e7d32,stroke:#1b5e20,color:#fff
+    style P7 fill:#f57f17,stroke:#e65100,color:#fff
 ```
 
 ---
@@ -118,7 +119,7 @@ graph TD
 
 ---
 
-### Milestone v0.2 — Visual Logic and Block Canvas
+### Milestone v0.2 — Visual Logic and Block Canvas (Completed)
 *Primary Objective: Provide drag-and-drop visual logic tailored for microcontroller hardware primitives, transpiling live into C++ (Arduino) and MicroPython.*
 
 #### Phase 4: Blockly Engine and Workspace Integration
@@ -149,13 +150,13 @@ graph TD
   - Addressable RGB LED (WS2812B NeoPixel: init, set color, clear).
 - **Gate / Definition of Done**: All hardware primitives exist in the Blockly toolbox with accurate pin labels and parameter validation.
 
-#### Phase 6: Real-Time Dual-Pane Code Generator
-- [ ] Build custom Blockly code generators:
+#### Phase 6: Real-Time Dual-Pane Code Generator (Completed)
+- [x] Build custom Blockly code generators:
   - **Arduino C++ Generator**: `setup()` and `loop()` structure, include headers, and pin mode definitions.
   - **MicroPython Generator**: `machine.Pin`, `time.sleep_ms`, and peripheral imports.
-- [ ] Implement syntax-highlighted live code preview panel beside the canvas (updates on every block drag/edit).
-- [ ] Add one-click "Copy Code" and "Export .ino / .py" buttons.
-- [ ] Board profiles selector: Arduino Uno R3/R4, ESP32 DevKit, ESP8266 NodeMCU, Raspberry Pi Pico.
+- [x] Implement syntax-highlighted live code preview panel beside the canvas (updates on every block drag/edit).
+- [x] Add one-click "Copy Code" and "Export .ino / .py" buttons.
+- [x] Board profiles selector: Arduino Uno R3, ESP32 Dev Module, Raspberry Pi Pico.
 - **Gate / Definition of Done**: Any valid block arrangement instantly produces compilable, idiomatic Arduino C++ or MicroPython code in the preview pane.
 
 ---

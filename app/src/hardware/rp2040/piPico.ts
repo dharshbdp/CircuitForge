@@ -1,0 +1,41 @@
+export const RASPBERRY_PI_PICO_GPIO_PINS: [string, string][] = [
+  ['GP0 (UART0 TX)', '0'],
+  ['GP1 (UART0 RX)', '1'],
+  ['GP2 (I2C1 SDA)', '2'],
+  ['GP3 (I2C1 SCL)', '3'],
+  ['GP4 (I2C0 SDA)', '4'],
+  ['GP5 (I2C0 SCL)', '5'],
+  ['GP6', '6'],
+  ['GP7', '7'],
+  ['GP8', '8'],
+  ['GP9', '9'],
+  ['GP10', '10'],
+  ['GP11', '11'],
+  ['GP12', '12'],
+  ['GP13', '13'],
+  ['GP14', '14'],
+  ['GP15', '15'],
+  ['GP16 (SPI0 RX)', '16'],
+  ['GP17 (SPI0 CS)', '17'],
+  ['GP18 (SPI0 SCK)', '18'],
+  ['GP19 (SPI0 TX)', '19'],
+  ['GP20', '20'],
+  ['GP21', '21'],
+  ['GP22', '22'],
+  ['GP25 (Onboard LED)', '25'],
+  ['GP26 (ADC0)', '26'],
+  ['GP27 (ADC1)', '27'],
+  ['GP28 (ADC2)', '28']
+]
+
+export const RASPBERRY_PI_PICO_PROFILE = {
+  id: 'rpi_pico',
+  name: 'Raspberry Pi Pico',
+  architecture: 'rp2040',
+  fqbn: 'rp2040:rp2040:rpipico',
+  voltage: 3.3,
+  defaultBaudRate: 115200,
+  pins: RASPBERRY_PI_PICO_GPIO_PINS,
+  hasWifi: false,
+  hasBluetooth: false
+} as const

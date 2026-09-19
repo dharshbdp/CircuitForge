@@ -1,7 +1,8 @@
 import { useState, useRef, useEffect, useCallback } from 'react'
 import type * as Blockly from 'blockly'
 import BlocklyWorkspace from '../components/BlocklyWorkspace'
-import { arduinoGenerator } from '@core/compiler'
+import { arduinoGenerator, micropythonGenerator } from '@core/compiler'
+import { SUPPORTED_BOARDS } from '@hardware'
 import { useSerial, useTheme } from '../hooks'
 
 const BAUD_RATES = [9600, 19200, 38400, 57600, 115200, 230400]
@@ -28,7 +29,10 @@ export function EditorPage(): React.JSX.Element {
   const [activeTab, setActiveTab] = useState<'terminal' | 'code' | 'device'>('terminal')
   const [blockCount, setBlockCount] = useState<number>(0)
   const [copiedCode, setCopiedCode] = useState<boolean>(false)
-  const [generatedCode, setGeneratedCode] = useState<string>('')
+  const [selectedBoard, setSelectedBoard] = useState<string>('arduino_uno')
+  const [selectedLanguage, setSelectedLanguage] = useState<'cpp' | 'python'>('cpp')
+  const [cppCode, setCppCode] = useState<string>('')
+  const [pythonCode, setPythonCode] = useState<string>('')
 
   // Terminal input & settings
   const [sendText, setSendText] = useState<string>('')
@@ -57,15 +61,21 @@ export function EditorPage(): React.JSX.Element {
     }
   }
 
-  // Blockly workspace change handler & live code generator
+  // Blockly workspace change handler & live dual code generator
   const handleWorkspaceChange = useCallback((workspace: Blockly.WorkspaceSvg): void => {
     const count = workspace.getAllBlocks(false).length
     setBlockCount(count)
     try {
-      const code = arduinoGenerator.workspaceToCode(workspace)
-      setGeneratedCode(code)
+      const cpp = arduinoGenerator.workspaceToCode(workspace)
+      setCppCode(cpp)
     } catch (err) {
-      console.error('Failed to generate Arduino code:', err)
+      console.error('Failed to generate Arduino C++ code:', err)
+    }
+    try {
+      const py = micropythonGenerator.workspaceToCode(workspace)
+      setPythonCode(py)
+    } catch (err) {
+      console.error('Failed to generate MicroPython code:', err)
     }
   }, [])
 
@@ -84,12 +94,17 @@ export function EditorPage(): React.JSX.Element {
     }
   }
 
-  const handleExportIno = (): void => {
-    const blob = new Blob([generatedCode], { type: 'text/plain;charset=utf-8' })
+  const activeCode = selectedLanguage === 'cpp' ? cppCode : pythonCode
+
+  const handleExportCode = (): void => {
+    const isPy = selectedLanguage === 'python'
+    const filename = isPy ? 'main.py' : 'circuitforge_sketch.ino'
+    const mimeType = isPy ? 'text/x-python;charset=utf-8' : 'text/plain;charset=utf-8'
+    const blob = new Blob([activeCode], { type: mimeType })
     const url = URL.createObjectURL(blob)
     const link = document.createElement('a')
     link.href = url
-    link.download = 'circuitforge_sketch.ino'
+    link.download = filename
     document.body.appendChild(link)
     link.click()
     document.body.removeChild(link)
@@ -97,7 +112,7 @@ export function EditorPage(): React.JSX.Element {
   }
 
   const copyGeneratedCode = (): void => {
-    navigator.clipboard.writeText(generatedCode)
+    navigator.clipboard.writeText(activeCode)
     setCopiedCode(true)
     setTimeout(() => setCopiedCode(false), 2000)
   }
@@ -105,6 +120,7 @@ export function EditorPage(): React.JSX.Element {
   const isConnected = connectionState.status === 'connected'
   const isConnecting = connectionState.status === 'connecting'
   const activePortDetails = ports.find((p) => p.path === (connectionState.path || selectedPort))
+  const activeBoard = SUPPORTED_BOARDS.find((b) => b.id === selectedBoard) || SUPPORTED_BOARDS[0]
 
   return (
     <div className="cf-app">
@@ -206,6 +222,23 @@ export function EditorPage(): React.JSX.Element {
 
         {/* Right Toolbar Controls */}
         <div className="cf-toolbar">
+          {/* Target Board Selector */}
+          <div className="cf-control">
+            <label htmlFor="cf-board-select">BOARD</label>
+            <select
+              id="cf-board-select"
+              value={selectedBoard}
+              onChange={(e) => setSelectedBoard(e.target.value)}
+              title="Select Target Microcontroller Board"
+            >
+              {SUPPORTED_BOARDS.map((b) => (
+                <option key={b.id} value={b.id}>
+                  {b.name}
+                </option>
+              ))}
+            </select>
+          </div>
+
           {/* Port Selector */}
           <div className="cf-control">
             <label htmlFor="cf-port-select">PORT</label>
@@ -519,7 +552,26 @@ export function EditorPage(): React.JSX.Element {
           {activeTab === 'code' && (
             <div className="cf-tab-content cf-tab-code">
               <div className="cf-code-header">
-                <span className="cf-code-lang">ARDUINO C++ / INO</span>
+                <div
+                  className="cf-lang-switcher"
+                  role="group"
+                  aria-label="Target programming language"
+                >
+                  <button
+                    type="button"
+                    className={`cf-lang-btn ${selectedLanguage === 'cpp' ? 'active' : ''}`}
+                    onClick={() => setSelectedLanguage('cpp')}
+                  >
+                    <span>C++ (.ino)</span>
+                  </button>
+                  <button
+                    type="button"
+                    className={`cf-lang-btn ${selectedLanguage === 'python' ? 'active' : ''}`}
+                    onClick={() => setSelectedLanguage('python')}
+                  >
+                    <span>MicroPython (.py)</span>
+                  </button>
+                </div>
                 <div style={{ display: 'flex', gap: '6px' }}>
                   <button
                     className="cf-btn-sm"
@@ -543,8 +595,12 @@ export function EditorPage(): React.JSX.Element {
                   </button>
                   <button
                     className="cf-btn-sm"
-                    onClick={handleExportIno}
-                    title="Download .ino sketch file"
+                    onClick={handleExportCode}
+                    title={
+                      selectedLanguage === 'python'
+                        ? 'Download main.py script'
+                        : 'Download .ino sketch file'
+                    }
                   >
                     <svg
                       width="12"
@@ -560,12 +616,12 @@ export function EditorPage(): React.JSX.Element {
                       <polyline points="7 10 12 15 17 10" />
                       <line x1="12" y1="15" x2="12" y2="3" />
                     </svg>
-                    <span>Export .ino</span>
+                    <span>{selectedLanguage === 'python' ? 'Export main.py' : 'Export .ino'}</span>
                   </button>
                 </div>
               </div>
               <pre className="cf-code-view">
-                <code>{generatedCode}</code>
+                <code>{activeCode}</code>
               </pre>
             </div>
           )}
@@ -574,6 +630,22 @@ export function EditorPage(): React.JSX.Element {
           {activeTab === 'device' && (
             <div className="cf-tab-content cf-tab-device">
               <div className="cf-card">
+                <div className="cf-info-row">
+                  <span className="cf-label">Target Board</span>
+                  <span className="cf-value">{activeBoard.name}</span>
+                </div>
+                <div className="cf-info-row">
+                  <span className="cf-label">Architecture</span>
+                  <span className="cf-value">{activeBoard.architecture}</span>
+                </div>
+                <div className="cf-info-row">
+                  <span className="cf-label">FQBN</span>
+                  <span className="cf-value">{activeBoard.fqbn}</span>
+                </div>
+                <div className="cf-info-row">
+                  <span className="cf-label">Logic Voltage</span>
+                  <span className="cf-value">{activeBoard.voltage}V</span>
+                </div>
                 <div className="cf-info-row">
                   <span className="cf-label">Target Port</span>
                   <span className="cf-value">{selectedPort || 'None'}</span>

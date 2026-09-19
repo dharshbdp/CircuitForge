@@ -368,6 +368,7 @@ body {
 }
 
 @keyframes cf-pulse {
+
   0%,
   100% {
     opacity: 0.4;
@@ -853,6 +854,79 @@ body {
   cursor: not-allowed;
 }
 
+/* Code Inspector & Language Switcher */
+.cf-tab-code {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow: hidden;
+  background: var(--bg-terminal);
+}
+
+.cf-code-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 14px;
+  background: var(--bg-surface);
+  border-bottom: 1px solid var(--border-default);
+  gap: 8px;
+}
+
+.cf-lang-switcher {
+  display: inline-flex;
+  background: var(--bg-app);
+  border: 1px solid var(--border-default);
+  border-radius: 4px;
+  padding: 2px;
+  gap: 2px;
+}
+
+.cf-lang-btn {
+  display: inline-flex;
+  align-items: center;
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  font-size: 11px;
+  font-weight: 600;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  letter-spacing: 0.02em;
+  padding: 4px 10px;
+  border-radius: 3px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.cf-lang-btn:hover:not(.active) {
+  color: var(--text-primary);
+  background: var(--bg-surface-hover);
+}
+
+.cf-lang-btn.active {
+  background: var(--bg-surface);
+  color: var(--text-primary);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+
+.cf-code-view {
+  flex: 1;
+  margin: 0;
+  padding: 16px;
+  overflow: auto;
+  font-family: 'Consolas', 'Courier New', monospace;
+  font-size: 12px;
+  line-height: 1.6;
+  color: var(--text-primary);
+  background: var(--bg-terminal);
+}
+
+.cf-code-view code {
+  font-family: inherit;
+  font-size: inherit;
+  white-space: pre;
+}
+
 /* Custom Scrollbars */
 ::-webkit-scrollbar {
   width: 7px;
@@ -909,13 +983,13 @@ body {
 }
 
 /* Selected Block Glow */
-:root[data-theme='dark'] .blocklySelected > .blocklyPath {
+:root[data-theme='dark'] .blocklySelected>.blocklyPath {
   stroke: #ffffff !important;
   stroke-width: 2px !important;
   filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.3)) !important;
 }
 
-:root[data-theme='light'] .blocklySelected > .blocklyPath {
+:root[data-theme='light'] .blocklySelected>.blocklyPath {
   stroke: #121212 !important;
   stroke-width: 2px !important;
   filter: drop-shadow(0 0 8px rgba(0, 0, 0, 0.2)) !important;
@@ -935,8 +1009,8 @@ body {
     stroke 0.15s ease;
 }
 
-:root[data-theme='dark'] .blocklyEditableField > rect,
-:root[data-theme='dark'] .blocklyNonEditableField > rect,
+:root[data-theme='dark'] .blocklyEditableField>rect,
+:root[data-theme='dark'] .blocklyNonEditableField>rect,
 :root[data-theme='dark'] .blocklyFieldRect,
 :root[data-theme='dark'] .blocklyEditableText rect,
 :root[data-theme='dark'] .blocklyNonEditableText rect {
@@ -944,8 +1018,8 @@ body {
   stroke: #3b3b44 !important;
 }
 
-:root[data-theme='light'] .blocklyEditableField > rect,
-:root[data-theme='light'] .blocklyNonEditableField > rect,
+:root[data-theme='light'] .blocklyEditableField>rect,
+:root[data-theme='light'] .blocklyNonEditableField>rect,
 :root[data-theme='light'] .blocklyFieldRect,
 :root[data-theme='light'] .blocklyEditableText rect,
 :root[data-theme='light'] .blocklyNonEditableText rect {
@@ -980,8 +1054,8 @@ body {
 /* Field Text (Inside inputs, numbers, text boxes) */
 :root[data-theme='dark'] .blocklyFieldText,
 :root[data-theme='dark'] .blocklyEditableField text,
-:root[data-theme='dark'] .blocklyEditableField > text,
-:root[data-theme='dark'] .blocklyEditableField > g > text,
+:root[data-theme='dark'] .blocklyEditableField>text,
+:root[data-theme='dark'] .blocklyEditableField>g>text,
 :root[data-theme='dark'] .blocklyNonEditableField text,
 :root[data-theme='dark'] .blocklyEditableText text {
   fill: #ffffff !important;
@@ -990,8 +1064,8 @@ body {
 
 :root[data-theme='light'] .blocklyFieldText,
 :root[data-theme='light'] .blocklyEditableField text,
-:root[data-theme='light'] .blocklyEditableField > text,
-:root[data-theme='light'] .blocklyEditableField > g > text,
+:root[data-theme='light'] .blocklyEditableField>text,
+:root[data-theme='light'] .blocklyEditableField>g>text,
 :root[data-theme='light'] .blocklyNonEditableField text,
 :root[data-theme='light'] .blocklyEditableText text {
   fill: #09090b !important;
