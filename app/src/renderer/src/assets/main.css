@@ -122,19 +122,6 @@ body {
     color 0.2s ease;
 }
 
-/* Option 3: Synchronized Live CSS Easing */
-.theme-transitioning,
-.theme-transitioning *,
-.theme-transitioning *::before,
-.theme-transitioning *::after {
-  transition:
-    background-color 0.35s cubic-bezier(0.4, 0, 0.2, 1),
-    border-color 0.35s cubic-bezier(0.4, 0, 0.2, 1),
-    color 0.35s cubic-bezier(0.4, 0, 0.2, 1),
-    fill 0.35s cubic-bezier(0.4, 0, 0.2, 1),
-    stroke 0.35s cubic-bezier(0.4, 0, 0.2, 1),
-    box-shadow 0.35s cubic-bezier(0.4, 0, 0.2, 1) !important;
-}
 
 #root {
   height: 100vh;
@@ -399,6 +386,7 @@ body {
   cursor: not-allowed;
 }
 
+/* Option 4: Icon Spin & Morph Micro-Animation */
 .cf-btn-theme {
   display: inline-flex;
   align-items: center;
@@ -411,7 +399,12 @@ body {
   border: 1px solid var(--border-default);
   border-radius: 4px;
   cursor: pointer;
-  transition: all 0.15s ease;
+  overflow: hidden;
+  transition:
+    background-color 0.15s ease,
+    border-color 0.15s ease,
+    color 0.15s ease,
+    transform 0.15s ease;
 }
 
 .cf-btn-theme:hover {
@@ -420,12 +413,28 @@ body {
   border-color: var(--border-strong);
 }
 
+.cf-btn-theme:active {
+  transform: scale(0.92);
+}
+
 .cf-btn-theme svg {
   transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+  animation: cf-icon-morph 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
 .cf-btn-theme:active svg {
-  transform: rotate(90deg) scale(0.88);
+  transform: rotate(180deg) scale(0.85);
+}
+
+@keyframes cf-icon-morph {
+  0% {
+    transform: rotate(-90deg) scale(0.6);
+    opacity: 0.2;
+  }
+  100% {
+    transform: rotate(0deg) scale(1);
+    opacity: 1;
+  }
 }
 
 /* Status Badge */
