@@ -4,7 +4,8 @@ import BlocklyWorkspace from '../components/BlocklyWorkspace'
 import { arduinoGenerator, micropythonGenerator } from '@core/compiler'
 import { SUPPORTED_BOARDS } from '@hardware'
 import type { CompileResult } from '@shared/types'
-import { useSerial, useTheme } from '../hooks'
+import { useSerial, useTheme, useTelemetry } from '../hooks'
+import { TelemetryDashboard } from '../components/TelemetryDashboard'
 
 const BAUD_RATES = [9600, 19200, 38400, 57600, 115200, 230400]
 
@@ -27,9 +28,14 @@ export function EditorPage(): React.JSX.Element {
 
   // Layout & Workspace states
   const [viewMode, setViewMode] = useState<'split' | 'canvas' | 'terminal'>('split')
-  const [activeTab, setActiveTab] = useState<'terminal' | 'code' | 'device' | 'build'>('terminal')
+  const [activeTab, setActiveTab] = useState<
+    'terminal' | 'code' | 'device' | 'build' | 'telemetry'
+  >('terminal')
   const [blockCount, setBlockCount] = useState<number>(0)
   const [copiedCode, setCopiedCode] = useState<boolean>(false)
+
+  // Real-Time Sensor Telemetry Hook
+  const telemetry = useTelemetry()
   const [selectedBoard, setSelectedBoard] = useState<string>('arduino_uno')
   const [selectedLanguage, setSelectedLanguage] = useState<'cpp' | 'python'>('cpp')
   const [cppCode, setCppCode] = useState<string>('')
@@ -589,6 +595,19 @@ export function EditorPage(): React.JSX.Element {
                   />
                 )}
               </button>
+
+              <button
+                className={`cf-tab ${activeTab === 'telemetry' ? 'active' : ''}`}
+                onClick={() => setActiveTab('telemetry')}
+                role="tab"
+                aria-selected={activeTab === 'telemetry'}
+              >
+                <span>TELEMETRY</span>
+                {telemetry.channels.length > 0 && (
+                  <span className="cf-tab-badge">{telemetry.channels.length}</span>
+                )}
+              </button>
+
               <button
                 className={`cf-tab ${activeTab === 'device' ? 'active' : ''}`}
                 onClick={() => setActiveTab('device')}
@@ -685,6 +704,20 @@ export function EditorPage(): React.JSX.Element {
                 </button>
               </form>
             </div>
+          )}
+
+          {/* Tab Content: Real-Time Telemetry & Oscilloscope */}
+          {activeTab === 'telemetry' && (
+            <TelemetryDashboard
+              history={telemetry.history}
+              channels={telemetry.channels}
+              isRecording={telemetry.isRecording}
+              setIsRecording={telemetry.setIsRecording}
+              clearTelemetry={telemetry.clearTelemetry}
+              exportCSV={telemetry.exportCSV}
+              exportJSON={telemetry.exportJSON}
+              isConnected={isConnected}
+            />
           )}
 
           {/* Tab Content: Code Preview */}

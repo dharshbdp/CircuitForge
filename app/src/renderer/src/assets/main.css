@@ -1440,3 +1440,300 @@ body {
 .blocklyTrash {
   display: none !important;
 }
+
+/* ==========================================================================
+   Telemetry Dashboard & Oscilloscope (Milestone v0.4)
+   ========================================================================== */
+
+.cf-telemetry-dashboard {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background-color: var(--bg-surface);
+  overflow-y: auto;
+}
+
+.cf-telemetry-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 14px;
+  background-color: var(--bg-card);
+  border-bottom: 1px solid var(--border-default);
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.cf-telemetry-toolbar-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.cf-telemetry-title {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: var(--text-primary);
+  text-transform: uppercase;
+}
+
+.cf-telemetry-badge {
+  font-size: 10px;
+  font-family: 'Consolas', 'Courier New', monospace;
+  background: var(--bg-surface);
+  color: var(--text-muted);
+  border: 1px solid var(--border-subtle);
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+.cf-recording-indicator {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  color: var(--text-primary);
+  background: var(--bg-surface);
+  border: 1px solid var(--border-default);
+  padding: 2px 7px;
+  border-radius: 4px;
+}
+
+.cf-recording-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #ef4444;
+  box-shadow: 0 0 6px #ef4444;
+  animation: cf-pulse 1.2s infinite ease-in-out;
+}
+
+.cf-telemetry-toolbar-right {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.cf-btn-pause {
+  border-color: var(--border-strong);
+}
+
+.cf-btn-record {
+  background: var(--text-primary);
+  color: var(--bg-app);
+  border-color: var(--text-primary);
+}
+
+.cf-oscilloscope-container {
+  position: relative;
+  height: 240px;
+  min-height: 200px;
+  background: #070708;
+  border-bottom: 1px solid var(--border-default);
+  overflow: hidden;
+}
+
+.cf-oscilloscope-canvas {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.cf-telemetry-legend {
+  position: absolute;
+  bottom: 8px;
+  right: 10px;
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  max-width: 80%;
+  justify-content: flex-end;
+}
+
+.cf-legend-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 8px;
+  background: rgba(14, 14, 16, 0.88);
+  border: 1px solid var(--border-default);
+  border-radius: 4px;
+  font-size: 10px;
+  font-family: 'Consolas', 'Courier New', monospace;
+  color: var(--text-primary);
+  cursor: pointer;
+  backdrop-filter: blur(4px);
+  transition: all 0.15s ease;
+}
+
+.cf-legend-chip.inactive {
+  opacity: 0.4;
+  text-decoration: line-through;
+}
+
+.cf-legend-chip:hover {
+  border-color: var(--border-strong);
+}
+
+.cf-legend-color {
+  width: 7px;
+  height: 7px;
+  border-radius: 2px;
+}
+
+.cf-legend-label {
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.cf-legend-val {
+  color: var(--text-secondary);
+}
+
+.cf-telemetry-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+  gap: 10px;
+  padding: 12px 14px;
+}
+
+.cf-metric-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-default);
+  border-top-width: 3px;
+  border-radius: 4px;
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  transition: border-color 0.15s ease;
+}
+
+.cf-metric-card:hover {
+  border-color: var(--border-strong);
+}
+
+.cf-metric-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.cf-metric-name {
+  font-size: 11px;
+  font-weight: 600;
+  font-family: 'Consolas', 'Courier New', monospace;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.cf-metric-color-bar {
+  width: 14px;
+  height: 3px;
+  border-radius: 2px;
+}
+
+.cf-metric-current {
+  font-size: 24px;
+  font-weight: 700;
+  font-family: 'Consolas', 'Courier New', monospace;
+  color: var(--text-primary);
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+}
+
+.cf-metric-substats {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-top: 1px solid var(--border-subtle);
+  padding-top: 6px;
+  margin-top: 4px;
+}
+
+.cf-substat {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.cf-substat-label {
+  font-size: 8px;
+  font-weight: 700;
+  color: var(--text-muted);
+  letter-spacing: 0.05em;
+}
+
+.cf-substat-value {
+  font-size: 11px;
+  font-family: 'Consolas', 'Courier New', monospace;
+  color: var(--text-secondary);
+}
+
+.cf-telemetry-empty-hint {
+  grid-column: 1 / -1;
+  background: var(--bg-card);
+  border: 1px dashed var(--border-default);
+  border-radius: 6px;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.cf-hint-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-primary);
+  letter-spacing: 0.04em;
+}
+
+.cf-hint-desc {
+  font-size: 12px;
+  color: var(--text-secondary);
+  line-height: 1.5;
+}
+
+.cf-hint-code-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: 8px 0;
+}
+
+.cf-hint-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: var(--bg-app);
+  border: 1px solid var(--border-subtle);
+  padding: 6px 12px;
+  border-radius: 4px;
+  font-family: 'Consolas', 'Courier New', monospace;
+  font-size: 11px;
+}
+
+.cf-hint-tag {
+  font-size: 9px;
+  font-weight: 700;
+  color: var(--text-muted);
+  border: 1px solid var(--border-default);
+  padding: 1px 5px;
+  border-radius: 3px;
+  min-width: 65px;
+  text-align: center;
+}
+
+.cf-hint-item code {
+  color: var(--text-primary);
+}
+
+.cf-hint-status {
+  font-size: 11px;
+  color: var(--text-muted);
+  font-style: italic;
+}
