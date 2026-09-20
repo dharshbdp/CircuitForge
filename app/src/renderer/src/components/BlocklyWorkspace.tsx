@@ -385,7 +385,8 @@ const toolboxConfig = {
         { kind: 'block', type: 'logic_compare' },
         { kind: 'block', type: 'logic_operation' },
         { kind: 'block', type: 'logic_negate' },
-        { kind: 'block', type: 'logic_boolean' }
+        { kind: 'block', type: 'logic_boolean' },
+        { kind: 'block', type: 'raw_cpp_code' }
       ]
     },
     {

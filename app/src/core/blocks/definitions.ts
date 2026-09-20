@@ -454,6 +454,23 @@ export function registerHardwareBlocks(): void {
       style: 'sensor_blocks',
       tooltip:
         'Allows the MQ-2 internal heater coil to stabilize before taking readings (configured in setup).'
+    },
+
+    // 22. Raw C++ Code Snippet (Fallback & Custom Code)
+    {
+      type: 'raw_cpp_code',
+      message0: 'raw C++ %1',
+      args0: [
+        {
+          type: 'field_input',
+          name: 'CODE',
+          text: '// custom code'
+        }
+      ],
+      previousStatement: null,
+      nextStatement: null,
+      style: 'logic_blocks',
+      tooltip: 'Custom or unmapped C++ code statement preserved during code-to-blocks conversion.'
     }
   ])
 }

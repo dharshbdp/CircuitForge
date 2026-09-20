@@ -138,7 +138,6 @@ body {
   z-index: 9999;
 }
 
-
 #root {
   height: 100vh;
   display: flex;
@@ -499,7 +498,6 @@ body {
 }
 
 @keyframes cf-pulse {
-
   0%,
   100% {
     opacity: 0.4;
@@ -1076,6 +1074,145 @@ body {
   white-space: pre;
 }
 
+/* ==========================================================================
+   Milestone v0.5: Interactive Code Editor & Sync Controls
+   ========================================================================== */
+
+.cf-code-editor-container {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow: hidden;
+  background: var(--bg-terminal);
+}
+
+.cf-code-editor-body {
+  flex: 1;
+  display: flex;
+  overflow: hidden;
+  position: relative;
+}
+
+.cf-code-gutter {
+  width: 44px;
+  min-width: 44px;
+  background: var(--bg-surface);
+  border-right: 1px solid var(--border-subtle);
+  overflow: hidden;
+  user-select: none;
+  padding: 12px 0;
+  text-align: right;
+  box-sizing: border-box;
+}
+
+.cf-gutter-line {
+  font-family: 'Consolas', 'Courier New', monospace;
+  font-size: 12px;
+  line-height: 20px;
+  height: 20px;
+  color: var(--text-muted);
+  padding-right: 10px;
+  box-sizing: border-box;
+}
+
+.cf-gutter-line.active {
+  color: var(--text-primary);
+  font-weight: 600;
+}
+
+.cf-code-textarea {
+  flex: 1;
+  height: 100%;
+  background: transparent;
+  border: none;
+  outline: none;
+  color: var(--text-primary);
+  font-family: 'Consolas', 'Courier New', monospace;
+  font-size: 12px;
+  line-height: 20px;
+  padding: 12px;
+  resize: none;
+  white-space: pre;
+  tab-size: 2;
+  box-sizing: border-box;
+  overflow: auto;
+}
+
+.cf-code-editor-status {
+  height: 24px;
+  min-height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 12px;
+  background: var(--bg-surface);
+  border-top: 1px solid var(--border-subtle);
+  font-size: 11px;
+  color: var(--text-secondary);
+  font-family: 'Consolas', 'Courier New', monospace;
+}
+
+.cf-code-status-lang {
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.cf-code-status-pos {
+  color: var(--text-muted);
+}
+
+/* Sync Controls & Badges */
+.cf-btn-update-blocks {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  height: 24px;
+  padding: 0 9px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 600;
+  background: var(--btn-primary-bg);
+  color: var(--btn-primary-text);
+  border: 1px solid var(--btn-primary-border);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.cf-btn-update-blocks:hover:not(:disabled) {
+  background: var(--btn-primary-hover);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
+}
+
+.cf-btn-update-blocks:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.cf-sync-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 10px;
+  font-weight: 600;
+  padding: 2px 7px;
+  border-radius: 3px;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+}
+
+.cf-sync-badge.synced {
+  background: rgba(46, 125, 50, 0.15);
+  color: #4caf50;
+  border: 1px solid rgba(46, 125, 50, 0.3);
+}
+
+.cf-sync-badge.modified {
+  background: rgba(245, 127, 23, 0.15);
+  color: #fbc02d;
+  border: 1px solid rgba(245, 127, 23, 0.3);
+}
+
 /* Build Console Tab */
 .cf-tab-build {
   display: flex;
@@ -1214,13 +1351,13 @@ body {
 }
 
 /* Selected Block Glow */
-:root[data-theme='dark'] .blocklySelected>.blocklyPath {
+:root[data-theme='dark'] .blocklySelected > .blocklyPath {
   stroke: #ffffff !important;
   stroke-width: 2px !important;
   filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.3)) !important;
 }
 
-:root[data-theme='light'] .blocklySelected>.blocklyPath {
+:root[data-theme='light'] .blocklySelected > .blocklyPath {
   stroke: #121212 !important;
   stroke-width: 2px !important;
   filter: drop-shadow(0 0 8px rgba(0, 0, 0, 0.2)) !important;
@@ -1240,8 +1377,8 @@ body {
     stroke 0.15s ease;
 }
 
-:root[data-theme='dark'] .blocklyEditableField>rect,
-:root[data-theme='dark'] .blocklyNonEditableField>rect,
+:root[data-theme='dark'] .blocklyEditableField > rect,
+:root[data-theme='dark'] .blocklyNonEditableField > rect,
 :root[data-theme='dark'] .blocklyFieldRect,
 :root[data-theme='dark'] .blocklyEditableText rect,
 :root[data-theme='dark'] .blocklyNonEditableText rect {
@@ -1249,8 +1386,8 @@ body {
   stroke: #3b3b44 !important;
 }
 
-:root[data-theme='light'] .blocklyEditableField>rect,
-:root[data-theme='light'] .blocklyNonEditableField>rect,
+:root[data-theme='light'] .blocklyEditableField > rect,
+:root[data-theme='light'] .blocklyNonEditableField > rect,
 :root[data-theme='light'] .blocklyFieldRect,
 :root[data-theme='light'] .blocklyEditableText rect,
 :root[data-theme='light'] .blocklyNonEditableText rect {
@@ -1314,8 +1451,8 @@ body {
 /* Field Text (Inside inputs, numbers, text boxes) */
 :root[data-theme='dark'] .blocklyFieldText,
 :root[data-theme='dark'] .blocklyEditableField text,
-:root[data-theme='dark'] .blocklyEditableField>text,
-:root[data-theme='dark'] .blocklyEditableField>g>text,
+:root[data-theme='dark'] .blocklyEditableField > text,
+:root[data-theme='dark'] .blocklyEditableField > g > text,
 :root[data-theme='dark'] .blocklyNonEditableField text,
 :root[data-theme='dark'] .blocklyEditableText text {
   fill: #ffffff !important;
@@ -1324,8 +1461,8 @@ body {
 
 :root[data-theme='light'] .blocklyFieldText,
 :root[data-theme='light'] .blocklyEditableField text,
-:root[data-theme='light'] .blocklyEditableField>text,
-:root[data-theme='light'] .blocklyEditableField>g>text,
+:root[data-theme='light'] .blocklyEditableField > text,
+:root[data-theme='light'] .blocklyEditableField > g > text,
 :root[data-theme='light'] .blocklyNonEditableField text,
 :root[data-theme='light'] .blocklyEditableText text {
   fill: #09090b !important;
@@ -1486,7 +1623,9 @@ body {
   font-size: 12px !important;
   font-weight: 500 !important;
   padding: 6px 14px !important;
-  transition: background-color 0.12s ease, color 0.12s ease !important;
+  transition:
+    background-color 0.12s ease,
+    color 0.12s ease !important;
   background-color: transparent !important;
   cursor: pointer !important;
 }
@@ -2162,7 +2301,9 @@ body {
   flex-direction: column;
   justify-content: space-between;
   gap: 12px;
-  transition: border-color 0.15s, transform 0.15s;
+  transition:
+    border-color 0.15s,
+    transform 0.15s;
 }
 
 .cf-starter-card:hover {

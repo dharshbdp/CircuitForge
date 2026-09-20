@@ -475,6 +475,12 @@ export class MicroPythonGenerator extends Blockly.CodeGenerator {
       const value = this.valueToCode(block, 'VALUE', PythonOrder.NONE) || '0'
       return `  ${varName} = ${value}\n`
     }
+
+    // Raw C++ Code Snippet (Fallback & Custom Code)
+    this.forBlock['raw_cpp_code'] = (block) => {
+      const code = block.getFieldValue('CODE') || ''
+      return `  # [Raw C++]: ${code}\n`
+    }
   }
 }
 

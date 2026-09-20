@@ -7,6 +7,8 @@ import { SUPPORTED_BOARDS } from '@hardware'
 import type { CompileResult, CircuitForgeProject } from '@shared/types'
 import { useSerial, useTheme, useTelemetry } from '../hooks'
 import { TelemetryDashboard } from '../components/TelemetryDashboard'
+import { CodeEditor } from '../components/CodeEditor'
+import { codeToBlocks } from '@core/parser'
 import StarterLibraryModal from '../components/StarterLibraryModal'
 import type { StarterProject } from '../data/starterProjects'
 
@@ -101,6 +103,34 @@ export function EditorPage(): React.JSX.Element {
     }
   }
 
+  // Code-to-Blocks Two-Way Sync (Milestone v0.5)
+  const [isCodeEdited, setIsCodeEdited] = useState<boolean>(false)
+
+  const handleCodeChange = (newCode: string): void => {
+    if (selectedLanguage === 'cpp') {
+      setCppCode(newCode)
+    } else {
+      setPythonCode(newCode)
+    }
+    setIsCodeEdited(true)
+  }
+
+  const handleUpdateBlocks = (): void => {
+    if (!workspaceRef.current) return
+    const code = selectedLanguage === 'cpp' ? cppCode : pythonCode
+    isProgrammaticLoadRef.current = true
+    const result = codeToBlocks(code, selectedLanguage, workspaceRef.current)
+
+    if (result.success) {
+      setIsCodeEdited(false)
+      setIsDirty(true)
+      showNotification(`Updated ${result.blockCount} visual blocks from code`)
+    } else {
+      const errMsg = result.errors?.join('; ') || 'Failed to parse code into visual blocks'
+      showNotification(`Parse Error: ${errMsg}`)
+    }
+  }
+
   // Blockly workspace change handler & live dual code generator
   const handleWorkspaceChange = useCallback((workspace: Blockly.WorkspaceSvg): void => {
     const count = workspace.getAllBlocks(false).length
@@ -122,6 +152,7 @@ export function EditorPage(): React.JSX.Element {
     } catch (err) {
       console.error('Failed to generate MicroPython code:', err)
     }
+    setIsCodeEdited(false)
   }, [])
 
   // Project Operations: New, Save, Save As, Open, Load Template
@@ -221,18 +252,20 @@ export function EditorPage(): React.JSX.Element {
     showNotification(`Loaded template: ${starter.name}`)
   }
 
-  // Keyboard Shortcuts: Ctrl+S (Save), Ctrl+Shift+S (Save As), Ctrl+O (Open), Ctrl+N (New)
+  // Keyboard Shortcuts: Ctrl+S (Save), Ctrl+Shift+S (Save As), Ctrl+O (Open), Ctrl+N (New), Ctrl+Shift+B (Update Blocks)
   const projectHandlersRef = useRef({
     handleSaveProject,
     handleOpenProject,
-    handleNewProject
+    handleNewProject,
+    handleUpdateBlocks
   })
 
   useEffect(() => {
     projectHandlersRef.current = {
       handleSaveProject,
       handleOpenProject,
-      handleNewProject
+      handleNewProject,
+      handleUpdateBlocks
     }
   })
 
@@ -251,6 +284,9 @@ export function EditorPage(): React.JSX.Element {
       } else if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'n') {
         e.preventDefault()
         projectHandlersRef.current.handleNewProject()
+      } else if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key.toLowerCase() === 'b') {
+        e.preventDefault()
+        projectHandlersRef.current.handleUpdateBlocks()
       }
     }
     window.addEventListener('keydown', handleKeyDown)
@@ -953,25 +989,63 @@ export function EditorPage(): React.JSX.Element {
             <div className="cf-tab-content cf-tab-code">
               <div className="cf-code-header">
                 <div
-                  className="cf-lang-switcher"
-                  role="group"
-                  aria-label="Target programming language"
+                  className="cf-code-sync-group"
+                  style={{ display: 'flex', alignItems: 'center', gap: '8px' }}
                 >
-                  <button
-                    type="button"
-                    className={`cf-lang-btn ${selectedLanguage === 'cpp' ? 'active' : ''}`}
-                    onClick={() => setSelectedLanguage('cpp')}
+                  <div
+                    className="cf-lang-switcher"
+                    role="group"
+                    aria-label="Target programming language"
                   >
-                    <span>C++ (.ino)</span>
-                  </button>
-                  <button
-                    type="button"
-                    className={`cf-lang-btn ${selectedLanguage === 'python' ? 'active' : ''}`}
-                    onClick={() => setSelectedLanguage('python')}
+                    <button
+                      type="button"
+                      className={`cf-lang-btn ${selectedLanguage === 'cpp' ? 'active' : ''}`}
+                      onClick={() => setSelectedLanguage('cpp')}
+                    >
+                      <span>C++ (.ino)</span>
+                    </button>
+                    <button
+                      type="button"
+                      className={`cf-lang-btn ${selectedLanguage === 'python' ? 'active' : ''}`}
+                      onClick={() => setSelectedLanguage('python')}
+                    >
+                      <span>MicroPython (.py)</span>
+                    </button>
+                  </div>
+
+                  <span
+                    className={`cf-sync-badge ${isCodeEdited ? 'modified' : 'synced'}`}
+                    title={
+                      isCodeEdited
+                        ? 'Code has been edited manually. Click "Update Blocks" (Ctrl+Shift+B) to sync to canvas.'
+                        : 'Code is in sync with visual blocks on canvas.'
+                    }
                   >
-                    <span>MicroPython (.py)</span>
+                    {isCodeEdited ? 'Modified' : 'In Sync'}
+                  </span>
+
+                  <button
+                    className="cf-btn-update-blocks"
+                    onClick={handleUpdateBlocks}
+                    disabled={!isCodeEdited}
+                    title="Update visual blocks on canvas from code (Ctrl+Shift+B)"
+                  >
+                    <svg
+                      width="12"
+                      height="12"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2.5"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    >
+                      <path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67" />
+                    </svg>
+                    <span>Update Blocks</span>
                   </button>
                 </div>
+
                 <div style={{ display: 'flex', gap: '6px' }}>
                   <button
                     className="cf-btn-sm"
@@ -1061,9 +1135,11 @@ export function EditorPage(): React.JSX.Element {
                   </button>
                 </div>
               </div>
-              <pre className="cf-code-view">
-                <code>{activeCode}</code>
-              </pre>
+              <CodeEditor
+                value={activeCode}
+                onChange={handleCodeChange}
+                language={selectedLanguage}
+              />
             </div>
           )}
 
