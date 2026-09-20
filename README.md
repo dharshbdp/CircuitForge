@@ -116,4 +116,13 @@ CircuitForge/
 
 ## License
 
-This project is licensed under the [MIT License](./LICENSE).
+CircuitForge is licensed under the
+**CircuitForge Non-Commercial Source-Available License, Version 1.0**.
+
+The source code is available for personal, educational, academic,
+research, experimentation, and other permitted non-commercial use.
+
+Commercial use requires prior written permission from the copyright
+holder.
+
+See the [LICENSE](LICENSE) file for the complete license terms.
