@@ -33,7 +33,14 @@ Milestones **v0.1**, **v0.2**, **v0.3**, and **v0.4** have all been completed:
   - Native `.circuitforge` project file format with save, open, dirty state tracking, and keyboard shortcuts (`Ctrl+S`, `Ctrl+O`, `Ctrl+N`).
   - Built-in Starter Project Library with 5 one-click loadable templates (Blink & Fade, Obstacle Avoidance, Weather Station, RGB Mood Lamp, Gas & Smoke Detector).
 
-The current active milestone is **v0.5 (Code-to-Blocks Bidirectional Sync)**. For the full multi-phase plan, refer to [ROADMAP.md](./ROADMAP.md).
+- [x] **v0.5: Code-to-Blocks Bidirectional Sync**:
+  - Interactive & editable code editor with line numbers gutter, scroll sync, and tab indentation.
+  - Deterministic AST reverse transpiler converting Arduino C++ back into visual Blockly blocks.
+  - Zero-loss `raw_cpp_code` fallback block preserving custom or unmapped C++ statements.
+  - Setup boilerplate filtering for automatic actuator and serial initialization.
+  - "Update Blocks from Code" action button, sync status badge (`In Sync` / `Modified`), and `Ctrl+Shift+B` shortcut.
+
+The current active milestone is **v0.6 (AI Hardware Copilot and Assistant)**. For the full multi-phase plan, refer to [ROADMAP.md](./ROADMAP.md).
 
 ---
 
@@ -43,8 +50,8 @@ The current active milestone is **v0.5 (Code-to-Blocks Bidirectional Sync)**. Fo
 - **v0.2**: Visual Logic and Block Canvas (Completed)
 - **v0.3**: Embedded Compilation and One-Click Flashing (Completed)
 - **v0.4**: Live Telemetry Dashboard and Project Storage (Completed)
-- **v0.5**: Code-to-Blocks Bidirectional Sync (Current — Editable code editor, AST transpiler & "Update blocks from code")
-- **v0.6**: AI Hardware Copilot and Assistant (Circuit reasoning, prompt-to-blocks, pin conflict diagnostics)
+- **v0.5**: Code-to-Blocks Bidirectional Sync (Completed)
+- **v0.6**: AI Hardware Copilot and Assistant (Current — Circuit reasoning, prompt-to-blocks, pin conflict diagnostics)
 - **v0.7**: AI-Powered Code-to-Blocks Transpiler (LLM-assisted conversion of complex/arbitrary Arduino sketches)
 - **v1.0**: Production Packaging and Polished Release (Cross-platform installers, auto-updater & final polish)
 

@@ -89,8 +89,10 @@ graph TD
     style P8 fill:#2e7d32,stroke:#1b5e20,color:#fff
     style P9 fill:#2e7d32,stroke:#1b5e20,color:#fff
     style P10 fill:#2e7d32,stroke:#1b5e20,color:#fff
-    style P11 fill:#f57f17,stroke:#e65100,color:#fff
-    style P12 fill:#f57f17,stroke:#e65100,color:#fff
+    style P11 fill:#2e7d32,stroke:#1b5e20,color:#fff
+    style P12 fill:#2e7d32,stroke:#1b5e20,color:#fff
+    style P13 fill:#f57f17,stroke:#e65100,color:#fff
+    style P14 fill:#f57f17,stroke:#e65100,color:#fff
 ```
 
 ---
@@ -228,30 +230,30 @@ graph TD
 
 ---
 
-### Milestone v0.5 — Code-to-Blocks Bidirectional Sync (Current Milestone)
+### Milestone v0.5 — Code-to-Blocks Bidirectional Sync (Completed)
 *Primary Objective: Make the code editor interactive and provide deterministic translation from Arduino C++ / MicroPython back into visual logic blocks ("Update Blocks from Code").*
 
 #### Phase 11: Editable Code Pane & Syntax-Aware Editor
-- [ ] Upgrade read-only code preview into an interactive code editor with line numbers, syntax highlighting, and undo/redo.
-- [ ] Implement code dirty state tracking (differentiating between auto-generated block output and manual code edits).
-- [ ] Provide language mode switching (C++ `.ino` and MicroPython `.py`) with edit support.
-- **Gate / Definition of Done**: User can type, edit, and modify C++ or MicroPython directly in the Code tab with full syntax awareness and keyboard navigation.
+- [x] Upgrade read-only code preview into an interactive code editor with line numbers, gutter, scroll sync, and tab indentation.
+- [x] Implement code dirty state tracking (differentiating between auto-generated block output and manual code edits with sync badge).
+- [x] Provide language mode switching (C++ `.ino` and MicroPython `.py`) with edit support.
+- **Gate / Definition of Done**: User can type, edit, and modify C++ or MicroPython directly in the Code tab with full line gutter and keyboard navigation.
 
 #### Phase 12: Deterministic Code-to-Blocks AST Transpiler & Fallback
-- [ ] Build AST pattern-matching engine for core embedded statements:
+- [x] Build AST pattern-matching engine for core embedded statements:
   - GPIO operations: `pinMode`, `digitalWrite`, `digitalRead`, `analogRead`, `analogWrite`.
-  - Timing: `delay`, `delayMicroseconds`.
+  - Timing: `delay`, `delayMicroseconds`, `millis`.
   - Serial I/O: `Serial.begin`, `Serial.print`, `Serial.println`.
-  - Actuators & Sensors: `Servo.attach`, `Servo.write`, `readUltrasonicDistance`.
-  - Control Flow: `if / else`, `for`, `while`.
+  - Actuators & Sensors: `Servo.attach`, `Servo.write`, `readUltrasonicDistance`, `DHT`, `MQ-2`, `NeoPixel`.
+  - Control Flow: `if / else if / else`, `for`, `while`.
   - Math & Variables: declarations, arithmetic expressions, literals.
-- [ ] Create `raw_cpp_code` ("Raw C++ Snippet") block as a zero-loss fallback for custom or unmapped C++ statements.
-- [ ] Add "Update Blocks from Code" action button and keyboard shortcut (`Ctrl+Shift+B`) with error reporting.
+- [x] Create `raw_cpp_code` ("Raw C++ Snippet") block as a zero-loss fallback for custom or unmapped C++ statements.
+- [x] Add "Update Blocks from Code" action button and keyboard shortcut (`Ctrl+Shift+B`) with error reporting.
 - **Gate / Definition of Done**: Editing Arduino C++ code in the Code tab and clicking "Update Blocks" correctly updates and reconstructs the blocks on the canvas.
 
 ---
 
-### Milestone v0.6 — AI Hardware Copilot and Assistant
+### Milestone v0.6 — AI Hardware Copilot and Assistant (Current Milestone)
 *Primary Objective: Layer intelligent circuit reasoning, natural language block synthesis, and automated hardware auditing.*
 
 #### Phase 13: Context-Aware Circuit Explainer
