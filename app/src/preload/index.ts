@@ -6,7 +6,10 @@ import type {
   SerialPortDescriptor,
   ToolchainStatus,
   CompileResult,
-  UploadResult
+  UploadResult,
+  CircuitForgeProject,
+  SaveProjectResult,
+  OpenProjectResult
 } from '../shared/types'
 
 // Custom APIs for renderer
@@ -54,7 +57,12 @@ const api: CircuitForgeAPI = {
     return () => {
       ipcRenderer.removeListener('compiler:log', handler)
     }
-  }
+  },
+
+  saveProject: (project: CircuitForgeProject, filePath?: string): Promise<SaveProjectResult> =>
+    ipcRenderer.invoke('project:save', { project, filePath }),
+
+  openProject: (): Promise<OpenProjectResult> => ipcRenderer.invoke('project:open')
 }
 
 // Use `contextBridge` APIs to expose Electron APIs to

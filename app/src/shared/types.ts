@@ -45,6 +45,33 @@ export interface UploadResult {
   humanError?: string
 }
 
+// Project File & Storage (Milestone v0.4 Phase 10)
+export interface CircuitForgeProject {
+  formatVersion: '1.0'
+  name: string
+  description?: string
+  boardId: string
+  baudRate: number
+  workspace: Record<string, unknown>
+  createdAt: string
+  updatedAt: string
+}
+
+export interface SaveProjectResult {
+  success: boolean
+  filePath?: string
+  canceled?: boolean
+  error?: string
+}
+
+export interface OpenProjectResult {
+  success: boolean
+  project?: CircuitForgeProject
+  filePath?: string
+  canceled?: boolean
+  error?: string
+}
+
 export interface CircuitForgeAPI {
   listSerialPorts: () => Promise<SerialPortDescriptor[]>
   connectSerial: (path: string, baudRate: number) => Promise<boolean>
@@ -60,4 +87,8 @@ export interface CircuitForgeAPI {
   compileSketch: (code: string, fqbn: string) => Promise<CompileResult>
   uploadSketch: (code: string, fqbn: string, port: string) => Promise<UploadResult>
   onToolchainLog: (callback: (log: string) => void) => () => void
+
+  // Project Storage & File Operations (Milestone v0.4 Phase 10)
+  saveProject: (project: CircuitForgeProject, filePath?: string) => Promise<SaveProjectResult>
+  openProject: () => Promise<OpenProjectResult>
 }

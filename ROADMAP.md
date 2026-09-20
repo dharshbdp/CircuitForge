@@ -187,26 +187,27 @@ graph TD
 
 ---
 
-### Milestone v0.4 — Sensor Telemetry and Project Management
+### Milestone v0.4 — Sensor Telemetry and Project Management (Completed)
 *Primary Objective: Provide visual instrumentation for sensor data, data logging, and complete project archive persistence.*
 
-#### Phase 9: Real-Time Sensor Telemetry and Visual Dashboard
-- [ ] Telemetry Parser: auto-detects structured serial streams (e.g. `KEY:VALUE` or JSON strings like `{"temp":24.5,"hum":60}`).
-- [ ] Configurable dashboard visual widgets:
-  - Real-time line graph / oscilloscope.
-  - Radial dials and gauges.
-  - Digital readout cards and binary state indicators (LED simulation).
-- [ ] Data logging: Export recorded session telemetry to CSV and JSON files.
+#### Phase 9: Real-Time Sensor Telemetry and Visual Dashboard (Completed)
+- [x] Telemetry Parser: auto-detects structured serial streams (e.g. `KEY:VALUE`, JSON strings `{"temp":24.5,"hum":60}`, and CSV `1023,512`).
+- [x] Configurable dashboard visual widgets:
+  - Real-time line graph / HTML5 oscilloscope with auto-scaling Y-axis.
+  - Per-channel filter chips and legend toggles.
+  - Digital readout metric cards (Latest, Min, Avg, Max).
+- [x] Data logging: Export recorded session telemetry to CSV and JSON files.
 - **Gate / Definition of Done**: Microcontroller sending sensor readings over serial automatically plots live curves on the dashboard.
 
-#### Phase 10: Project Storage and Starter Library
-- [ ] Standardize `.circuitforge` project file format (JSON bundle containing blocks, board profile, baud rate, and notes).
-- [ ] Project File Menu: New, Open, Save, Save As, and Recent Projects list.
-- [ ] Built-in Starter Project Library:
+#### Phase 10: Project Storage and Starter Library (Completed)
+- [x] Standardize `.circuitforge` project file format (JSON bundle containing blocks, board profile, baud rate, and metadata).
+- [x] Project File Menu: New, Open, Save, Save As with native Electron file dialogs and keyboard shortcuts (`Ctrl+S`, `Ctrl+O`, `Ctrl+N`).
+- [x] Built-in Starter Project Library Modal with one-click loading:
   - "Blink & Fade" (Digital/PWM basics)
   - "Smart Obstacle Avoidance" (Ultrasonic + Servo)
-  - "Weather Station" (DHT22 + Serial/OLED)
+  - "Weather Station" (DHT11/DHT22 + Serial Telemetry)
   - "RGB Mood Lamp" (NeoPixel WS2812B)
+  - "Gas & Smoke Detector" (MQ-2 Sensor + Alarm)
 - **Gate / Definition of Done**: User can save a complete project, close the app, reopen it, and resume work with identical canvas and settings.
 
 ---

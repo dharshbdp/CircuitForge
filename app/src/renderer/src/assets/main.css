@@ -1737,3 +1737,396 @@ body {
   color: var(--text-muted);
   font-style: italic;
 }
+
+/* ==========================================================================
+   Milestone v0.4 Phase 10: Project Storage & Starter Library Styles
+   ========================================================================== */
+
+/* Project Management Header Bar */
+.cf-brand-group {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.cf-project-divider {
+  width: 1px;
+  height: 18px;
+  background: var(--border-default);
+}
+
+.cf-project-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.cf-project-title-box {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.cf-project-name-input {
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 3px;
+  padding: 3px 6px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-primary);
+  max-width: 160px;
+  text-overflow: ellipsis;
+  transition: all 0.15s ease;
+}
+
+.cf-project-name-input:hover {
+  border-color: var(--border-subtle);
+  background: var(--bg-surface);
+}
+
+.cf-project-name-input:focus {
+  border-color: var(--border-strong);
+  background: var(--bg-surface);
+  outline: none;
+}
+
+.cf-dirty-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--text-primary);
+  display: inline-block;
+  opacity: 0.85;
+}
+
+.cf-project-btn-group {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.cf-btn-project {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 8px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  background: transparent;
+  border: 1px solid var(--border-subtle);
+  border-radius: 3px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.cf-btn-project:hover {
+  color: var(--text-primary);
+  background: var(--bg-surface-hover);
+  border-color: var(--border-default);
+}
+
+.cf-btn-project-save {
+  font-weight: 700;
+}
+
+.cf-btn-project-templates {
+  border-style: dashed;
+}
+
+/* Floating Notification Toast */
+.cf-toast {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  background: var(--bg-card);
+  color: var(--text-primary);
+  border: 1px solid var(--border-strong);
+  border-radius: 4px;
+  padding: 8px 16px;
+  font-size: 12px;
+  font-weight: 600;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.25);
+  z-index: 1000;
+  animation: cfToastFadeIn 0.2s ease-out;
+}
+
+@keyframes cfToastFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Starter Project Library Modal */
+.cf-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.65);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 999;
+  padding: 20px;
+  animation: cfFadeIn 0.15s ease-out;
+}
+
+@keyframes cfFadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.cf-modal-container.cf-modal-starter {
+  background: var(--bg-app);
+  border: 1px solid var(--border-strong);
+  border-radius: 8px;
+  width: 100%;
+  max-width: 840px;
+  max-height: 85vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.45);
+}
+
+.cf-modal-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  padding: 18px 20px 14px;
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.cf-modal-title {
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.cf-modal-subtitle {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin: 4px 0 0 0;
+  line-height: 1.4;
+}
+
+.cf-modal-close-btn {
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s;
+}
+
+.cf-modal-close-btn:hover {
+  color: var(--text-primary);
+  background: var(--bg-surface-hover);
+}
+
+.cf-modal-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 20px;
+  border-bottom: 1px solid var(--border-subtle);
+  background: var(--bg-surface);
+}
+
+.cf-search-box {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--bg-app);
+  border: 1px solid var(--border-default);
+  border-radius: 4px;
+  padding: 5px 10px;
+  flex: 1;
+  max-width: 380px;
+  color: var(--text-muted);
+  transition: border-color 0.15s;
+}
+
+.cf-search-box:focus-within {
+  border-color: var(--text-primary);
+  color: var(--text-primary);
+}
+
+.cf-search-box input {
+  background: transparent;
+  border: none;
+  outline: none;
+  font-size: 12px;
+  color: var(--text-primary);
+  width: 100%;
+}
+
+.cf-search-clear {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  font-size: 16px;
+  line-height: 1;
+  padding: 0 2px;
+}
+
+.cf-search-clear:hover {
+  color: var(--text-primary);
+}
+
+.cf-filter-chips {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.cf-chip {
+  padding: 4px 10px;
+  font-size: 11px;
+  font-weight: 600;
+  border-radius: 12px;
+  border: 1px solid var(--border-subtle);
+  background: transparent;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.cf-chip:hover {
+  color: var(--text-primary);
+  background: var(--bg-surface-hover);
+}
+
+.cf-chip.active {
+  background: var(--text-primary);
+  color: var(--bg-app);
+  border-color: var(--text-primary);
+}
+
+.cf-starter-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
+  gap: 14px;
+  padding: 18px 20px;
+  overflow-y: auto;
+  max-height: calc(85vh - 140px);
+}
+
+.cf-starter-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: 6px;
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 12px;
+  transition: border-color 0.15s, transform 0.15s;
+}
+
+.cf-starter-card:hover {
+  border-color: var(--border-strong);
+  transform: translateY(-1px);
+}
+
+.cf-starter-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+
+.cf-starter-card-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.cf-starter-diff-badge {
+  font-size: 9px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 2px 6px;
+  border-radius: 3px;
+  border: 1px solid var(--border-default);
+}
+
+.cf-starter-diff-badge.badge-beginner {
+  color: var(--text-primary);
+  background: var(--bg-surface-hover);
+}
+
+.cf-starter-diff-badge.badge-intermediate {
+  color: var(--text-primary);
+  background: var(--bg-app);
+  border-style: dashed;
+}
+
+.cf-starter-card-desc {
+  font-size: 11px;
+  color: var(--text-secondary);
+  line-height: 1.5;
+  margin: 0;
+}
+
+.cf-starter-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-bottom: 10px;
+}
+
+.cf-starter-tag {
+  font-size: 9px;
+  font-weight: 600;
+  padding: 2px 5px;
+  border-radius: 3px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  color: var(--text-muted);
+  font-family: 'Consolas', 'Courier New', monospace;
+}
+
+.cf-starter-load-btn {
+  width: 100%;
+  justify-content: center;
+  padding: 6px 12px;
+  font-size: 11px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.cf-starter-empty {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 48px 20px;
+  color: var(--text-muted);
+  text-align: center;
+}

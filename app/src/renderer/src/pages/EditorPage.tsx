@@ -2,10 +2,13 @@ import { useState, useRef, useEffect, useCallback } from 'react'
 import type * as Blockly from 'blockly'
 import BlocklyWorkspace from '../components/BlocklyWorkspace'
 import { arduinoGenerator, micropythonGenerator } from '@core/compiler'
+import { loadWorkspace, serializeWorkspace } from '@core/graph/graphSerializer'
 import { SUPPORTED_BOARDS } from '@hardware'
-import type { CompileResult } from '@shared/types'
+import type { CompileResult, CircuitForgeProject } from '@shared/types'
 import { useSerial, useTheme, useTelemetry } from '../hooks'
 import { TelemetryDashboard } from '../components/TelemetryDashboard'
+import StarterLibraryModal from '../components/StarterLibraryModal'
+import type { StarterProject } from '../data/starterProjects'
 
 const BAUD_RATES = [9600, 19200, 38400, 57600, 115200, 230400]
 
@@ -49,6 +52,14 @@ export function EditorPage(): React.JSX.Element {
   const [lastError, setLastError] = useState<string | null>(null)
   const [compilerLogs, setCompilerLogs] = useState<string[]>([])
 
+  // Project Management States (Milestone v0.4 Phase 10)
+  const [projectName, setProjectName] = useState<string>('Untitled Project')
+  const [currentFilePath, setCurrentFilePath] = useState<string | null>(null)
+  const [isDirty, setIsDirty] = useState<boolean>(false)
+  const [isStarterModalOpen, setIsStarterModalOpen] = useState<boolean>(false)
+  const [projectNotification, setProjectNotification] = useState<string | null>(null)
+  const isProgrammaticLoadRef = useRef<boolean>(false)
+
   // Terminal input & settings
   const [sendText, setSendText] = useState<string>('')
   const [lineEnding, setLineEnding] = useState<string>('\r\n')
@@ -57,6 +68,11 @@ export function EditorPage(): React.JSX.Element {
 
   const logEndRef = useRef<HTMLDivElement>(null)
   const workspaceRef = useRef<Blockly.WorkspaceSvg | null>(null)
+
+  const showNotification = (msg: string): void => {
+    setProjectNotification(msg)
+    setTimeout(() => setProjectNotification(null), 3000)
+  }
 
   // Auto-scroll terminal log
   useEffect(() => {
@@ -89,6 +105,11 @@ export function EditorPage(): React.JSX.Element {
   const handleWorkspaceChange = useCallback((workspace: Blockly.WorkspaceSvg): void => {
     const count = workspace.getAllBlocks(false).length
     setBlockCount(count)
+    if (isProgrammaticLoadRef.current) {
+      isProgrammaticLoadRef.current = false
+    } else {
+      setIsDirty(true)
+    }
     try {
       const cpp = arduinoGenerator.workspaceToCode(workspace)
       setCppCode(cpp)
@@ -103,11 +124,145 @@ export function EditorPage(): React.JSX.Element {
     }
   }, [])
 
+  // Project Operations: New, Save, Save As, Open, Load Template
+  const handleNewProject = (): void => {
+    if (isDirty && !window.confirm('You have unsaved changes. Create a new project anyway?')) {
+      return
+    }
+    isProgrammaticLoadRef.current = true
+    workspaceRef.current?.clear()
+    setBlockCount(0)
+    setProjectName('Untitled Project')
+    setCurrentFilePath(null)
+    setIsDirty(false)
+    showNotification('New project created')
+  }
+
+  const handleSaveProject = async (saveAs = false): Promise<void> => {
+    if (!workspaceRef.current) return
+    const serialized = serializeWorkspace(workspaceRef.current)
+    const projectData: CircuitForgeProject = {
+      formatVersion: '1.0',
+      name: projectName,
+      boardId: selectedBoard,
+      baudRate: selectedBaud,
+      workspace: serialized.state,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    }
+
+    const targetPath = saveAs ? undefined : currentFilePath || undefined
+    const result = await window.api.saveProject(projectData, targetPath)
+
+    if (result.success && result.filePath) {
+      setCurrentFilePath(result.filePath)
+      const baseName =
+        result.filePath
+          .split(/[\\/]/)
+          .pop()
+          ?.replace(/\.circuitforge$/i, '') || projectName
+      setProjectName(baseName)
+      setIsDirty(false)
+      showNotification(`Saved: ${baseName}.circuitforge`)
+    } else if (result.error) {
+      showNotification(`Save Error: ${result.error}`)
+    }
+  }
+
+  const handleOpenProject = async (): Promise<void> => {
+    if (isDirty && !window.confirm('You have unsaved changes. Open another project anyway?')) {
+      return
+    }
+    const result = await window.api.openProject()
+    if (result.success && result.project && result.filePath) {
+      isProgrammaticLoadRef.current = true
+      if (workspaceRef.current) {
+        loadWorkspace(workspaceRef.current, {
+          version: '1.0',
+          timestamp: result.project.updatedAt,
+          blockCount: 0,
+          state: result.project.workspace
+        })
+      }
+      setProjectName(result.project.name || 'Untitled Project')
+      setCurrentFilePath(result.filePath)
+      if (result.project.boardId) {
+        setSelectedBoard(result.project.boardId)
+      }
+      if (result.project.baudRate) {
+        setSelectedBaud(result.project.baudRate)
+      }
+      setIsDirty(false)
+      showNotification(`Opened: ${result.project.name}`)
+    } else if (result.error) {
+      showNotification(`Open Error: ${result.error}`)
+    }
+  }
+
+  const handleSelectStarterProject = (starter: StarterProject): void => {
+    if (isDirty && !window.confirm('You have unsaved changes. Load this template anyway?')) {
+      return
+    }
+    isProgrammaticLoadRef.current = true
+    if (workspaceRef.current) {
+      loadWorkspace(workspaceRef.current, {
+        version: '1.0',
+        timestamp: starter.project.updatedAt,
+        blockCount: 0,
+        state: starter.project.workspace
+      })
+    }
+    setProjectName(starter.name)
+    setCurrentFilePath(null)
+    setSelectedBoard(starter.boardId)
+    setSelectedBaud(starter.baudRate)
+    setIsDirty(false)
+    setIsStarterModalOpen(false)
+    showNotification(`Loaded template: ${starter.name}`)
+  }
+
+  // Keyboard Shortcuts: Ctrl+S (Save), Ctrl+Shift+S (Save As), Ctrl+O (Open), Ctrl+N (New)
+  const projectHandlersRef = useRef({
+    handleSaveProject,
+    handleOpenProject,
+    handleNewProject
+  })
+
+  useEffect(() => {
+    projectHandlersRef.current = {
+      handleSaveProject,
+      handleOpenProject,
+      handleNewProject
+    }
+  })
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent): void => {
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 's') {
+        e.preventDefault()
+        if (e.shiftKey) {
+          projectHandlersRef.current.handleSaveProject(true)
+        } else {
+          projectHandlersRef.current.handleSaveProject(false)
+        }
+      } else if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'o') {
+        e.preventDefault()
+        projectHandlersRef.current.handleOpenProject()
+      } else if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'n') {
+        e.preventDefault()
+        projectHandlersRef.current.handleNewProject()
+      }
+    }
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [])
+
   // Clear workspace canvas
   const handleClearCanvas = (): void => {
     if (workspaceRef.current) {
       workspaceRef.current.clear()
       setBlockCount(0)
+      setIsDirty(true)
     }
   }
 
@@ -229,32 +384,105 @@ export function EditorPage(): React.JSX.Element {
       <header className="cf-header">
         {/* Line 1: Basic Functions, View Modes, Status & Theme */}
         <div className="cf-header-row cf-header-row-top">
-          <div className="cf-brand">
-            <span className="cf-brand-icon" aria-hidden="true">
-              <svg
-                width="18"
-                height="18"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <rect x="4" y="4" width="16" height="16" rx="2" />
-                <rect x="9" y="9" width="6" height="6" />
-                <line x1="9" y1="1" x2="9" y2="4" />
-                <line x1="15" y1="1" x2="15" y2="4" />
-                <line x1="9" y1="20" x2="9" y2="23" />
-                <line x1="15" y1="20" x2="15" y2="23" />
-                <line x1="20" y1="9" x2="23" y2="9" />
-                <line x1="20" y1="14" x2="23" y2="14" />
-                <line x1="1" y1="9" x2="4" y2="9" />
-                <line x1="1" y1="14" x2="4" y2="14" />
-              </svg>
-            </span>
-            <span className="cf-brand-title">CircuitForge</span>
-            <span className="cf-brand-version">v0.3</span>
+          {/* Brand & Project Controls */}
+          <div className="cf-brand-group">
+            <div className="cf-brand">
+              <span className="cf-brand-icon" aria-hidden="true">
+                <svg
+                  width="18"
+                  height="18"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <rect x="4" y="4" width="16" height="16" rx="2" />
+                  <rect x="9" y="9" width="6" height="6" />
+                  <line x1="9" y1="1" x2="9" y2="4" />
+                  <line x1="15" y1="1" x2="15" y2="4" />
+                  <line x1="9" y1="20" x2="9" y2="23" />
+                  <line x1="15" y1="20" x2="15" y2="23" />
+                  <line x1="20" y1="9" x2="23" y2="9" />
+                  <line x1="20" y1="14" x2="23" y2="14" />
+                  <line x1="1" y1="9" x2="4" y2="9" />
+                  <line x1="1" y1="14" x2="4" y2="14" />
+                </svg>
+              </span>
+              <span className="cf-brand-title">CircuitForge</span>
+              <span className="cf-brand-version">v0.4</span>
+            </div>
+
+            <div className="cf-project-divider" />
+
+            {/* Project File Management */}
+            <div className="cf-project-bar">
+              <div className="cf-project-title-box">
+                <input
+                  type="text"
+                  className="cf-project-name-input"
+                  value={projectName}
+                  onChange={(e) => {
+                    setProjectName(e.target.value)
+                    setIsDirty(true)
+                  }}
+                  title="Click to rename project"
+                />
+                {isDirty && <span className="cf-dirty-dot" title="Unsaved changes" />}
+              </div>
+
+              <div className="cf-project-btn-group">
+                <button
+                  className="cf-btn-project"
+                  onClick={handleNewProject}
+                  title="New Project (Ctrl+N)"
+                >
+                  New
+                </button>
+                <button
+                  className="cf-btn-project"
+                  onClick={handleOpenProject}
+                  title="Open Project (Ctrl+O)"
+                >
+                  Open
+                </button>
+                <button
+                  className="cf-btn-project cf-btn-project-save"
+                  onClick={() => handleSaveProject(false)}
+                  title="Save Project (Ctrl+S)"
+                >
+                  Save
+                </button>
+                <button
+                  className="cf-btn-project"
+                  onClick={() => handleSaveProject(true)}
+                  title="Save As... (Ctrl+Shift+S)"
+                >
+                  Save As
+                </button>
+                <button
+                  className="cf-btn-project cf-btn-project-templates"
+                  onClick={() => setIsStarterModalOpen(true)}
+                  title="Browse Starter Project Templates"
+                >
+                  <svg
+                    width="11"
+                    height="11"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" />
+                    <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" />
+                  </svg>
+                  <span>Templates</span>
+                </button>
+              </div>
+            </div>
           </div>
 
           {/* Center Layout View Mode Controls */}
@@ -961,6 +1189,16 @@ export function EditorPage(): React.JSX.Element {
           )}
         </section>
       </main>
+
+      {/* Starter Project Library Modal */}
+      <StarterLibraryModal
+        isOpen={isStarterModalOpen}
+        onClose={() => setIsStarterModalOpen(false)}
+        onSelectProject={handleSelectStarterProject}
+      />
+
+      {/* Project Status Notification Toast */}
+      {projectNotification && <div className="cf-toast">{projectNotification}</div>}
     </div>
   )
 }

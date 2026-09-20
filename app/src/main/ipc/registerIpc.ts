@@ -1,4 +1,5 @@
-import { ipcMain, BrowserWindow } from 'electron'
+import { ipcMain, BrowserWindow, dialog } from 'electron'
+import * as fs from 'fs/promises'
 import { listSerialDevices } from '../device/deviceManager'
 import {
   connectSerialPort,
@@ -7,6 +8,7 @@ import {
   getCurrentConnectionState
 } from '../serial/serialManager'
 import { getToolchainStatus, installCore, compile, upload } from '../compiler'
+import type { CircuitForgeProject, SaveProjectResult, OpenProjectResult } from '../../shared/types'
 
 /**
  * Register all IPC command and query channels for the main process.
@@ -85,4 +87,94 @@ export function registerIpcHandlers(getMainWindow: () => BrowserWindow | null): 
       })
     }
   )
+
+  // Project Storage: Save project (.circuitforge JSON)
+  ipcMain.handle(
+    'project:save',
+    async (
+      _,
+      { project, filePath }: { project: CircuitForgeProject; filePath?: string }
+    ): Promise<SaveProjectResult> => {
+      try {
+        let targetPath = filePath
+        if (!targetPath) {
+          const win = getMainWindow()
+          const sanitizedName = (project.name || 'project').replace(/[/\\?%*:|"<>]/g, '_')
+          const saveDialogResult = await (win
+            ? dialog.showSaveDialog(win, {
+                title: 'Save CircuitForge Project',
+                defaultPath: `${sanitizedName}.circuitforge`,
+                filters: [
+                  { name: 'CircuitForge Project (*.circuitforge)', extensions: ['circuitforge'] }
+                ]
+              })
+            : dialog.showSaveDialog({
+                title: 'Save CircuitForge Project',
+                defaultPath: `${sanitizedName}.circuitforge`,
+                filters: [
+                  { name: 'CircuitForge Project (*.circuitforge)', extensions: ['circuitforge'] }
+                ]
+              }))
+
+          if (saveDialogResult.canceled || !saveDialogResult.filePath) {
+            return { success: false, canceled: true }
+          }
+          targetPath = saveDialogResult.filePath
+        }
+
+        const serialized = JSON.stringify(project, null, 2)
+        await fs.writeFile(targetPath, serialized, 'utf-8')
+        return { success: true, filePath: targetPath }
+      } catch (err: unknown) {
+        const message = err instanceof Error ? err.message : String(err)
+        return { success: false, error: message }
+      }
+    }
+  )
+
+  // Project Storage: Open project (.circuitforge JSON)
+  ipcMain.handle('project:open', async (): Promise<OpenProjectResult> => {
+    try {
+      const win = getMainWindow()
+      const openDialogResult = await (win
+        ? dialog.showOpenDialog(win, {
+            title: 'Open CircuitForge Project',
+            filters: [
+              { name: 'CircuitForge Project (*.circuitforge)', extensions: ['circuitforge'] }
+            ],
+            properties: ['openFile']
+          })
+        : dialog.showOpenDialog({
+            title: 'Open CircuitForge Project',
+            filters: [
+              { name: 'CircuitForge Project (*.circuitforge)', extensions: ['circuitforge'] }
+            ],
+            properties: ['openFile']
+          }))
+
+      if (
+        openDialogResult.canceled ||
+        !openDialogResult.filePaths ||
+        openDialogResult.filePaths.length === 0
+      ) {
+        return { success: false, canceled: true }
+      }
+
+      const selectedPath = openDialogResult.filePaths[0]
+      const raw = await fs.readFile(selectedPath, 'utf-8')
+      const parsed = JSON.parse(raw) as CircuitForgeProject
+
+      if (!parsed || parsed.formatVersion !== '1.0' || !parsed.workspace) {
+        return {
+          success: false,
+          error: 'Invalid or unsupported CircuitForge project file format.'
+        }
+      }
+
+      return { success: true, project: parsed, filePath: selectedPath }
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : String(err)
+      return { success: false, error: message }
+    }
+  })
 }
