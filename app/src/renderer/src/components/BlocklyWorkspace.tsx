@@ -70,6 +70,7 @@ Blockly.registry.register(
 // 3. Hook Zelos ConstantProvider for dynamic dark/light fieldBorderRectColour
 interface ZelosConstantProviderInternal {
   FIELD_BORDER_RECT_COLOUR: string
+  currentTheme_?: Blockly.Theme
   init(): void
   setDynamicProperties_(theme: Blockly.Theme): void
 }
@@ -79,12 +80,15 @@ if (Blockly.zelos?.ConstantProvider?.prototype) {
   const origInit = proto.init
   proto.init = function (): void {
     origInit.call(this)
-    this.FIELD_BORDER_RECT_COLOUR = '#141418'
+    const currentTheme = this.currentTheme_
+    const customFieldBorder = currentTheme?.getComponentStyle?.('fieldBorderRectColour')
+    this.FIELD_BORDER_RECT_COLOUR = customFieldBorder || '#141418'
   }
 
   const origSetDynamic = proto.setDynamicProperties_
   proto.setDynamicProperties_ = function (theme: Blockly.Theme): void {
     origSetDynamic.call(this, theme)
+    this.currentTheme_ = theme
     const customFieldBorder = theme.getComponentStyle?.('fieldBorderRectColour')
     if (customFieldBorder) {
       this.FIELD_BORDER_RECT_COLOUR = customFieldBorder
@@ -526,6 +530,9 @@ export default function BlocklyWorkspace({
     if (innerWorkspaceRef.current) {
       const selectedTheme = theme === 'dark' ? DarkMonochromeTheme : LightMonochromeTheme
       innerWorkspaceRef.current.setTheme(selectedTheme)
+      innerWorkspaceRef.current.getAllBlocks(false).forEach((block) => {
+        block.render()
+      })
       Blockly.svgResize(innerWorkspaceRef.current)
     }
   }, [theme])

@@ -1258,12 +1258,41 @@ body {
   stroke: #d0d5dd !important;
 }
 
-/* Failsafe for Zelos full-block number/string reporter paths in dark mode */
+/* Zelos full-block number/string reporter paths & shadow inputs */
 :root[data-theme='dark'] .blocklyWorkspace path[fill='#fff'],
 :root[data-theme='dark'] .blocklyWorkspace path[fill='#ffffff'],
-:root[data-theme='dark'] .blocklyWorkspace path[fill='white'] {
+:root[data-theme='dark'] .blocklyWorkspace path[fill='white'],
+:root[data-theme='dark'] .blocklyFlyout path[fill='#fff'],
+:root[data-theme='dark'] .blocklyFlyout path[fill='#ffffff'],
+:root[data-theme='dark'] .blocklyFlyout path[fill='white'],
+:root[data-theme='dark'] .blocklyWorkspace .blocklyShadow .blocklyPath,
+:root[data-theme='dark'] .blocklyWorkspace .blocklyShadow path {
   fill: #141418 !important;
   stroke: #3b3b44 !important;
+}
+
+:root[data-theme='dark'] .blocklyWorkspace .blocklyShadow text,
+:root[data-theme='dark'] .blocklyWorkspace .blocklyShadow .blocklyText {
+  fill: #ffffff !important;
+}
+
+:root[data-theme='light'] .blocklyWorkspace path[fill='#141418'],
+:root[data-theme='light'] .blocklyWorkspace path[fill='#18181c'],
+:root[data-theme='light'] .blocklyWorkspace path[fill='#1d1d23'],
+:root[data-theme='light'] .blocklyWorkspace path[fill='#0e0e10'],
+:root[data-theme='light'] .blocklyFlyout path[fill='#141418'],
+:root[data-theme='light'] .blocklyFlyout path[fill='#18181c'],
+:root[data-theme='light'] .blocklyFlyout path[fill='#1d1d23'],
+:root[data-theme='light'] .blocklyFlyout path[fill='#0e0e10'],
+:root[data-theme='light'] .blocklyWorkspace .blocklyShadow .blocklyPath,
+:root[data-theme='light'] .blocklyWorkspace .blocklyShadow path {
+  fill: #ffffff !important;
+  stroke: #d0d5dd !important;
+}
+
+:root[data-theme='light'] .blocklyWorkspace .blocklyShadow text,
+:root[data-theme='light'] .blocklyWorkspace .blocklyShadow .blocklyText {
+  fill: #09090b !important;
 }
 
 /* Block Typography */
