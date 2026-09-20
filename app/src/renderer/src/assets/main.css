@@ -1393,34 +1393,128 @@ body {
   fill: var(--scrollbar-thumb-hover) !important;
 }
 
-/* Modern Dropdown Menu Popover */
-.blocklyDropDownDiv {
-  background-color: var(--bg-surface) !important;
-  border: 1px solid var(--border-strong) !important;
+/* ==========================================================================
+   Blockly Context Menu, Dropdown Menu & Tooltips
+   ========================================================================== */
+
+:root,
+:root[data-theme='dark'] {
+  --blockly-menu-bg: #141418;
+  --blockly-menu-border: #2b2b32;
+  --blockly-menu-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
+  --blockly-item-text: #f4f4f6;
+  --blockly-item-hover-bg: #27272e;
+  --blockly-item-hover-text: #ffffff;
+  --blockly-item-disabled-text: #52525b;
+  --blockly-shortcut-text: #71717a;
+  --blockly-separator: #27272a;
+  --blockly-tooltip-bg: #141418;
+  --blockly-tooltip-border: #2b2b32;
+  --blockly-tooltip-text: #f4f4f6;
+}
+
+:root[data-theme='light'] {
+  --blockly-menu-bg: #ffffff;
+  --blockly-menu-border: #e4e4e7;
+  --blockly-menu-shadow: 0 6px 20px rgba(0, 0, 0, 0.12);
+  --blockly-item-text: #18181b;
+  --blockly-item-hover-bg: #f4f4f5;
+  --blockly-item-hover-text: #09090b;
+  --blockly-item-disabled-text: #a1a1aa;
+  --blockly-shortcut-text: #71717a;
+  --blockly-separator: #e4e4e7;
+  --blockly-tooltip-bg: #ffffff;
+  --blockly-tooltip-border: #e4e4e7;
+  --blockly-tooltip-text: #18181b;
+}
+
+/* Context Menu & Dropdown Menu Containers */
+.blocklyWidgetDiv .blocklyMenu,
+.blocklyContextMenu,
+.blocklyDropDownDiv .blocklyMenu,
+.blocklyDropdownMenu {
+  background: var(--blockly-menu-bg) !important;
+  border: 1px solid var(--blockly-menu-border) !important;
   border-radius: 6px !important;
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.35) !important;
-  color: var(--text-primary) !important;
+  box-shadow: var(--blockly-menu-shadow) !important;
+  padding: 4px 0 !important;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
+}
+
+.blocklyDropDownDiv {
+  background-color: var(--blockly-menu-bg) !important;
+  border: 1px solid var(--blockly-menu-border) !important;
+  border-radius: 6px !important;
+  box-shadow: var(--blockly-menu-shadow) !important;
+  color: var(--blockly-item-text) !important;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
   padding: 4px !important;
 }
 
+/* Menu Items */
 .blocklyMenuItem {
-  padding: 6px 12px !important;
-  border-radius: 4px !important;
-  font-size: 11px !important;
+  color: var(--blockly-item-text) !important;
+  font-size: 12px !important;
   font-weight: 500 !important;
-  color: var(--text-primary) !important;
+  padding: 6px 14px !important;
+  transition: background-color 0.12s ease, color 0.12s ease !important;
+  background-color: transparent !important;
   cursor: pointer !important;
-  transition: background-color 0.12s ease !important;
-}
-
-.blocklyMenuItemHighlight {
-  background-color: var(--bg-surface-active) !important;
-  color: var(--text-primary) !important;
 }
 
 .blocklyMenuItemContent {
-  color: var(--text-primary) !important;
+  color: var(--blockly-item-text) !important;
+}
+
+.blocklyMenuItemHighlight,
+.blocklyMenuItem:hover:not(.blocklyMenuItemDisabled) {
+  background-color: var(--blockly-item-hover-bg) !important;
+  color: var(--blockly-item-hover-text) !important;
+}
+
+.blocklyMenuItemHighlight .blocklyMenuItemContent {
+  color: var(--blockly-item-hover-text) !important;
+}
+
+.blocklyMenuItemDisabled {
+  color: var(--blockly-item-disabled-text) !important;
+  background-color: transparent !important;
+  cursor: default !important;
+}
+
+.blocklyMenuItemDisabled .blocklyMenuItemContent {
+  color: var(--blockly-item-disabled-text) !important;
+}
+
+/* Shortcuts & Separators */
+.blocklyMenuItemContent .blocklyShortcutContainer .blocklyShortcut,
+.blocklyShortcut {
+  color: var(--blockly-shortcut-text) !important;
+  font-size: 11px !important;
+  font-family: 'Consolas', 'Courier New', monospace !important;
+}
+
+.blocklyMenuItemDisabled .blocklyShortcut {
+  color: var(--blockly-item-disabled-text) !important;
+}
+
+.blocklyMenuSeparator {
+  background-color: var(--blockly-separator) !important;
+  border: none !important;
+  height: 1px !important;
+  margin: 4px 0 !important;
+}
+
+/* Tooltips */
+.blocklyTooltipDiv {
+  background-color: var(--blockly-tooltip-bg) !important;
+  color: var(--blockly-tooltip-text) !important;
+  border: 1px solid var(--blockly-tooltip-border) !important;
+  border-radius: 4px !important;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.5) !important;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
+  font-size: 11px !important;
+  padding: 6px 10px !important;
 }
 
 /* Inline Text/Number Field Editor */
