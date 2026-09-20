@@ -567,7 +567,11 @@ export function parseCppToBlocks(cppCode: string): ParseResult {
       const setupBlocks = parseStatementList(setupBody).filter((b) => {
         if (b.type === 'raw_cpp_code') {
           const code = (b.fields?.CODE as string) || ''
-          if (/\w+\.attach\(\s*\w+\s*\);?/.test(code) || /\w+\.begin\(\s*\);?/.test(code)) {
+          if (
+            /\w+\.attach\([^)]*\);?/.test(code) ||
+            /\w+\.begin\([^)]*\);?/.test(code) ||
+            /Serial\.begin\([^)]*\);?/.test(code)
+          ) {
             return false
           }
         }
