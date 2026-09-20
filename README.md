@@ -10,9 +10,9 @@ CircuitForge is a desktop application designed to make microcontroller and IoT d
 
 ---
 
-## Current Milestone: v0.4 (Live Telemetry Dashboard & Project Storage) — Completed!
+## Active Milestone: v0.6 (AI Hardware Copilot & Assistant)
 
-Milestones **v0.1**, **v0.2**, **v0.3**, and **v0.4** have all been completed:
+Milestones **v0.1**, **v0.2**, **v0.3**, **v0.4**, and **v0.5** are complete:
 
 - [x] **v0.1: Hardware Link & Serial Core**:
   - Electron 39 + React 19 + TypeScript + Vite desktop app running on Windows.
