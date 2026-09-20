@@ -262,6 +262,16 @@ function parseStatement(stmt: string): ParsedBlock | null {
   const trimmed = stmt.trim()
   if (!trimmed || trimmed === ';') return null
 
+  // Ignore hardware setup & initialization boilerplate that is automatically managed
+  // by CircuitForge generators (e.g. Serial.begin, servo.attach, dht.begin, strip.begin)
+  if (
+    /^Serial\.begin\s*\([^)]*\);?$/i.test(trimmed) ||
+    /^\w+\.attach\s*\([^)]*\);?$/i.test(trimmed) ||
+    /^\w+\.begin\s*\([^)]*\);?$/i.test(trimmed)
+  ) {
+    return null
+  }
+
   // 1. Digital Write: digitalWrite(pin, HIGH/LOW/1/0)
   const dwMatch = trimmed.match(/^digitalWrite\s*\(\s*([^,]+)\s*,\s*(HIGH|LOW|1|0)\s*\);?$/i)
   if (dwMatch) {
