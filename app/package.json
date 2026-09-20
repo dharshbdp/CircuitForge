@@ -1,7 +1,7 @@
 {
-  "name": "app",
-  "version": "1.0.0",
-  "description": "An Electron application with React and TypeScript",
+  "name": "circuitforge",
+  "version": "0.4.0",
+  "description": "A visual IoT development environment translating visual logic blocks into compiled embedded hardware firmware",
   "main": "./out/main/index.js",
   "author": "example.com",
   "homepage": "https://electron-vite.org",

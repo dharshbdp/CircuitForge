@@ -10,15 +10,42 @@ CircuitForge is a desktop application designed to make microcontroller and IoT d
 
 ---
 
-## Current Milestone: v0.2 (Visual Logic and Block Canvas)
+## Current Milestone: v0.4 (Live Telemetry Dashboard & Project Storage) — Completed!
 
-Milestone **v0.1 (Hardware Link and Serial Core)** has been completed:
-- [x] **Desktop Shell**: Electron + React + TypeScript + Vite running locally on Windows.
-- [x] **Serial Port Discovery**: Auto-detection and listing of connected COM ports (Arduino, ESP32, etc.).
-- [x] **Connection Manager**: Connect/disconnect lifecycle, baud rate selection, and monochromatic status indicators.
-- [x] **Live Serial Monitor**: Real-time incoming data display, autoscroll, and transmit console.
+Milestones **v0.1**, **v0.2**, **v0.3**, and **v0.4** have all been completed:
 
-The active milestone is now **v0.2 (Visual Logic and Block Canvas)**. For the full multi-phase project plan, refer to [ROADMAP.md](./ROADMAP.md).
+- [x] **v0.1: Hardware Link & Serial Core**:
+  - Electron 39 + React 19 + TypeScript + Vite desktop app running on Windows.
+  - Auto-detection and listing of connected COM ports (Arduino Uno/Nano, ESP32, Raspberry Pi Pico).
+  - Robust serial connection manager (`9600` to `230400` baud) with connection lifecycle states.
+  - Live auto-scrolling Serial Monitor console with line ending selectors and timestamping.
+- [x] **v0.2: Visual Logic & Block Canvas**:
+  - Google Blockly integration using the modern Zelos renderer with a monochromatic engineering theme.
+  - Microcontroller block taxonomy: GPIO (Digital, Analog, PWM), Timing (`delay`, `millis`), Actuators (Servo, Relay), Displays (WS2812B NeoPixel), and Sensors (HC-SR04, DHT11/22, LDR, PIR, MQ-2).
+  - Dual-pane real-time code generators producing compilable **Arduino C++** and **MicroPython**.
+- [x] **v0.3: Embedded Compilation & One-Click Flashing**:
+  - Headless `arduino-cli` embedded toolchain integration with core indexer (`arduino:avr`, `esp32:esp32`, `rp2040:rp2040`).
+  - One-click compile and flash pipeline with temporary sketch cache and automatic port unlocking.
+  - Human-friendly compiler error translator for cryptic `gcc` and `avrdude` messages.
+- [x] **v0.4: Live Telemetry Dashboard & Project Storage**:
+  - Multi-format serial telemetry parser (JSON, Key-Value, and CSV).
+  - Real-time HTML5 Canvas oscilloscope with auto-scaling Y-axis, channel filter chips, and metric cards (Latest, Min, Avg, Max).
+  - Native `.circuitforge` project file format with save, open, dirty state tracking, and keyboard shortcuts (`Ctrl+S`, `Ctrl+O`, `Ctrl+N`).
+  - Built-in Starter Project Library with 5 one-click loadable templates (Blink & Fade, Obstacle Avoidance, Weather Station, RGB Mood Lamp, Gas & Smoke Detector).
+
+The next upcoming milestone is **v1.0 (AI Hardware Copilot and Production Release)**. For the full multi-phase plan, refer to [ROADMAP.md](./ROADMAP.md).
+
+---
+
+## Roadmap Overview
+
+- **v0.1**: Hardware Link and Serial Core (Completed)
+- **v0.2**: Visual Logic and Block Canvas (Completed)
+- **v0.3**: Embedded Compilation and One-Click Flashing (Completed)
+- **v0.4**: Live Telemetry Dashboard and Project Storage (Completed)
+- **v1.0**: AI Hardware Copilot and Production Release (Current — Circuit reasoning, prompt-to-blocks, pin diagnostics & multi-platform packaging)
+
+See [ROADMAP.md](./ROADMAP.md) for detailed tasks and architecture breakdown.
 
 ---
 
@@ -28,9 +55,12 @@ The active milestone is now **v0.2 (Visual Logic and Block Canvas)**. For the fu
 CircuitForge/
 ├── app/                        # Electron desktop application
 │   ├── src/
-│   │   ├── main/               # Electron Main Process (OS and hardware I/O)
+│   │   ├── main/               # Electron Main Process (OS, serial & hardware I/O)
 │   │   ├── preload/            # Context isolation bridge (IPC safe APIs)
-│   │   └── renderer/           # React + TypeScript frontend UI
+│   │   ├── renderer/           # React + TypeScript frontend UI
+│   │   ├── core/               # Blockly definitions, generators & validators
+│   │   ├── hardware/           # Board definitions & pin mappings
+│   │   └── shared/             # Shared IPC types and contracts
 │   ├── electron.vite.config.ts # Vite configuration for main/preload/renderer
 │   ├── package.json            # Desktop app dependencies and scripts
 │   └── tsconfig.json           # TypeScript configuration
@@ -71,18 +101,6 @@ CircuitForge/
    ```powershell
    npm.cmd run build
    ```
-
----
-
-## Roadmap Overview
-
-- **v0.1**: Hardware Link and Serial Core (Completed)
-- **v0.2**: Visual Logic and Block Canvas (Current — Blockly integration & live code generation)
-- **v0.3**: Embedded Compilation and One-Click Flashing (Headless CLI toolchain & firmware upload)
-- **v0.4**: Live Telemetry Dashboard and Project Management (Sensors, graphs & .circuitforge files)
-- **v1.0**: AI Hardware Copilot and Production Release (Circuit reasoning, prompt-to-blocks & cross-platform distribution)
-
-See [ROADMAP.md](./ROADMAP.md) for detailed tasks and architecture breakdown.
 
 ---
 
