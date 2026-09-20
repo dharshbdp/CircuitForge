@@ -562,9 +562,17 @@ export function parseCppToBlocks(cppCode: string): ParseResult {
   const allBlocks: ParsedBlock[] = []
 
   if (setupBody !== null || loopBody !== null) {
-    // 1. Process setup() statements (excluding helper declarations)
+    // 1. Process setup() statements (excluding auto-generated hardware attach/begin boilerplate)
     if (setupBody !== null) {
-      const setupBlocks = parseStatementList(setupBody)
+      const setupBlocks = parseStatementList(setupBody).filter((b) => {
+        if (b.type === 'raw_cpp_code') {
+          const code = (b.fields?.CODE as string) || ''
+          if (/\w+\.attach\(\s*\w+\s*\);?/.test(code) || /\w+\.begin\(\s*\);?/.test(code)) {
+            return false
+          }
+        }
+        return true
+      })
       allBlocks.push(...setupBlocks)
     }
 

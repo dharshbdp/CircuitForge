@@ -6,9 +6,6 @@ const ANALOG_PINS = ARDUINO_UNO_ANALOG_PINS
 
 // Register custom hardware blocks using Blockly JSON schema
 export function registerHardwareBlocks(): void {
-  // Prevent duplicate registration on hot-reload
-  if (Blockly.Blocks['pin_digital_write']) return
-
   Blockly.common.defineBlocksWithJsonArray([
     // 1. Digital Write
     {

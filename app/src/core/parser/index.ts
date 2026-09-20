@@ -1,4 +1,5 @@
 import * as Blockly from 'blockly'
+import { registerHardwareBlocks } from '@core/blocks'
 import { parseCppToBlocks, ParseResult } from './cppParser'
 
 export interface CodeToBlocksOptions {
@@ -21,6 +22,8 @@ export function codeToBlocks(
   workspace: Blockly.WorkspaceSvg,
   options: CodeToBlocksOptions = { clearWorkspace: true }
 ): CodeToBlocksResult {
+  // Ensure all custom hardware blocks and raw_cpp_code are registered
+  registerHardwareBlocks()
   if (!code.trim()) {
     if (options.clearWorkspace) {
       workspace.clear()
