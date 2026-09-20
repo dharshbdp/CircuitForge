@@ -1,21 +1,176 @@
-MIT License
+CIRCUITFORGE NON-COMMERCIAL SOURCE-AVAILABLE LICENSE
+Version 1.0
 
 Copyright (c) 2026 Dharshan Boopalan
 
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
+This license applies to the CircuitForge software and source code
+("Software") unless a separate license or notice applies to a
+particular component.
 
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
+1. GRANT OF RIGHTS
 
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
+Subject to the terms of this license, permission is granted, free of
+charge, to any person obtaining a copy of the Software to:
+
+    a. Use the Software for personal, educational, academic,
+       research, experimentation, and hobby purposes, provided that
+       such use is non-commercial;
+
+    b. Copy and redistribute the Software for non-commercial
+       purposes;
+
+    c. Modify the Software and create derivative works for
+       non-commercial purposes;
+
+    d. Create and maintain forks of the Software for
+       non-commercial purposes;
+
+    e. Share modified versions of the Software for
+       non-commercial purposes;
+
+    f. Submit modifications, improvements, bug fixes, or other
+       contributions to the Software.
+
+2. NON-COMMERCIAL USE
+
+The Software may not be used for Commercial Purposes without prior
+written permission from the copyright holder.
+
+"Commercial Purposes" means use of the Software primarily intended
+to obtain commercial advantage, monetary compensation, revenue, or
+other financial benefit from the Software or a derivative work.
+
+Commercial Purposes include, without limitation:
+
+    a. Selling the Software or a derivative work;
+
+    b. Selling access to the Software or a derivative work;
+
+    c. Including the Software or a derivative work in a paid
+       commercial product or service;
+
+    d. Using the Software as a component of a commercial product
+       or service offered for sale, licensing, or paid distribution;
+
+    e. Charging users for functionality substantially provided by
+       the Software;
+
+    f. Offering the Software or a derivative work as a paid hosted,
+       cloud, or software-as-a-service product;
+
+    g. Using the Software primarily on behalf of a business or
+       organization for the purpose of generating commercial
+       revenue or providing paid services.
+
+Non-commercial use includes personal projects, educational projects,
+academic research, experimentation, learning, and hobby projects,
+provided that such use is not primarily intended to generate
+commercial revenue or financial compensation.
+
+3. REDISTRIBUTION
+
+Copies and modified versions of the Software may be redistributed
+for non-commercial purposes provided that:
+
+    a. A copy of this license is included with the redistributed
+       Software;
+
+    b. The original copyright notice is retained;
+
+    c. The original project name and attribution are not removed
+       where reasonably practicable;
+
+    d. Modified versions clearly indicate that modifications have
+       been made;
+
+    e. The Software is not represented as an official release of
+       CircuitForge unless authorized by the copyright holder.
+
+4. DERIVATIVE WORKS AND FORKS
+
+You may modify, fork, and build upon the Software for permitted
+non-commercial purposes.
+
+A derivative work or fork distributed under this license may use a
+different name, provided that it does not falsely imply that the
+modified work is an official release of CircuitForge.
+
+This license does not grant permission to use the CircuitForge name,
+logos, trademarks, or other branding for commercial purposes.
+
+5. COMMERCIAL LICENSE
+
+Commercial use of CircuitForge may be permitted by obtaining a
+separate written commercial license from the copyright holder.
+
+The copyright holder retains the unrestricted right to use,
+reproduce, modify, distribute, sell, license, commercialize, or
+otherwise exploit the Software, including under different license
+terms.
+
+The copyright holder may determine the terms and conditions of any
+commercial license.
+
+Nothing in this license requires the copyright holder to grant a
+commercial license.
+
+6. CONTRIBUTIONS
+
+Unless otherwise agreed in writing, any contribution intentionally
+submitted for inclusion in the Software is provided under the same
+terms as this license.
+
+By submitting a contribution, the contributor represents that they
+have the necessary rights to submit the contribution and that the
+contribution does not knowingly violate the rights of another party.
+
+7. THIRD-PARTY SOFTWARE
+
+This license applies only to the portions of the Software owned by
+the copyright holder.
+
+Third-party libraries, dependencies, assets, and other components
+included with or used by the Software may be subject to their own
+licenses. Those licenses remain applicable to the respective
+third-party components.
+
+Nothing in this license grants permission to redistribute, relicense,
+or otherwise use third-party software beyond the rights granted by
+their respective licenses.
+
+8. NO WARRANTY
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, AND
+NONINFRINGEMENT.
+
+IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR
+ANY CLAIM, DAMAGES, OR OTHER LIABILITY, WHETHER IN AN ACTION OF
+CONTRACT, TORT, OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
+WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+9. TERMINATION
+
+Any rights granted under this license terminate automatically if you
+violate its terms.
+
+Upon termination, you must cease the activity that violates this
+license and, where legally required, cease further redistribution or
+use of the Software under this license.
+
+10. RESERVATION OF RIGHTS
+
+All rights not expressly granted by this license are reserved by the
+copyright holder.
+
+This license does not transfer ownership or copyright in the
+Software to any other person.
+
+---
+
+CircuitForge
+Copyright (c) 2026 Dharshan Boopalan
+
+Licensed under the CircuitForge Non-Commercial Source-Available
+License, Version 1.0.
