@@ -411,7 +411,7 @@ export function EditorPage(): React.JSX.Element {
                 </svg>
               </span>
               <span className="cf-brand-title">CircuitForge</span>
-              <span className="cf-brand-version">v0.4</span>
+              <span className="cf-brand-version">v0.5</span>
             </div>
 
             <div className="cf-project-divider" />

@@ -59,11 +59,23 @@ graph TD
         P9 --> P10[Phase 10: Project File Format & Starter Library]
     end
 
-    subgraph Milestone_1_0 [v1.0: AI Copilot & Production Release]
-        P10 --> P11[Phase 11: Context-Aware Circuit Explainer]
-        P11 --> P12[Phase 12: Natural Language to Block Synthesis]
-        P12 --> P13[Phase 13: Circuit & Pin Conflict Diagnostics]
-        P13 --> P14[Phase 14: Cross-Platform Packaging & Distribution]
+    subgraph Milestone_0_5 [v0.5: Code-to-Blocks Bidirectional Sync]
+        P10 --> P11[Phase 11: Editable Code Pane & Syntax-Aware Editor]
+        P11 --> P12[Phase 12: Deterministic Code-to-Blocks AST Transpiler]
+    end
+
+    subgraph Milestone_0_6 [v0.6: AI Hardware Copilot & Assistant]
+        P12 --> P13[Phase 13: Context-Aware Circuit Explainer]
+        P13 --> P14[Phase 14: Natural Language to Block Synthesis]
+        P14 --> P15[Phase 15: Circuit & Pin Conflict Diagnostics]
+    end
+
+    subgraph Milestone_0_7 [v0.7: AI Code-to-Blocks Transpiler]
+        P15 --> P16[Phase 16: LLM-Assisted Full C++ to Block Transpilation]
+    end
+
+    subgraph Milestone_1_0 [v1.0: Production Packaging & Polished Release]
+        P16 --> P17[Phase 17: Production Packaging & Distribution]
     end
 
     style P0 fill:#2e7d32,stroke:#1b5e20,color:#fff
@@ -75,7 +87,10 @@ graph TD
     style P6 fill:#2e7d32,stroke:#1b5e20,color:#fff
     style P7 fill:#2e7d32,stroke:#1b5e20,color:#fff
     style P8 fill:#2e7d32,stroke:#1b5e20,color:#fff
-    style P9 fill:#f57f17,stroke:#e65100,color:#fff
+    style P9 fill:#2e7d32,stroke:#1b5e20,color:#fff
+    style P10 fill:#2e7d32,stroke:#1b5e20,color:#fff
+    style P11 fill:#f57f17,stroke:#e65100,color:#fff
+    style P12 fill:#f57f17,stroke:#e65100,color:#fff
 ```
 
 ---
@@ -146,6 +161,7 @@ graph TD
   - Temperature & Humidity (DHT11 / DHT22).
   - Light Sensor (LDR / Analog phototransistor).
   - PIR Motion Sensor.
+  - Gas & Smoke Sensor (MQ-2).
 - [x] **Actuator & Display Blocks**:
   - Servo motor angle positioning (`0° - 180°`).
   - Relay switch control.
@@ -212,10 +228,33 @@ graph TD
 
 ---
 
-### Milestone v1.0 — AI Hardware Copilot and Production Release
-*Primary Objective: Layer intelligent circuit reasoning, automated block synthesis, and automated cross-platform distribution as the final capstone.*
+### Milestone v0.5 — Code-to-Blocks Bidirectional Sync (Current Milestone)
+*Primary Objective: Make the code editor interactive and provide deterministic translation from Arduino C++ / MicroPython back into visual logic blocks ("Update Blocks from Code").*
 
-#### Phase 11: Context-Aware Circuit Explainer
+#### Phase 11: Editable Code Pane & Syntax-Aware Editor
+- [ ] Upgrade read-only code preview into an interactive code editor with line numbers, syntax highlighting, and undo/redo.
+- [ ] Implement code dirty state tracking (differentiating between auto-generated block output and manual code edits).
+- [ ] Provide language mode switching (C++ `.ino` and MicroPython `.py`) with edit support.
+- **Gate / Definition of Done**: User can type, edit, and modify C++ or MicroPython directly in the Code tab with full syntax awareness and keyboard navigation.
+
+#### Phase 12: Deterministic Code-to-Blocks AST Transpiler & Fallback
+- [ ] Build AST pattern-matching engine for core embedded statements:
+  - GPIO operations: `pinMode`, `digitalWrite`, `digitalRead`, `analogRead`, `analogWrite`.
+  - Timing: `delay`, `delayMicroseconds`.
+  - Serial I/O: `Serial.begin`, `Serial.print`, `Serial.println`.
+  - Actuators & Sensors: `Servo.attach`, `Servo.write`, `readUltrasonicDistance`.
+  - Control Flow: `if / else`, `for`, `while`.
+  - Math & Variables: declarations, arithmetic expressions, literals.
+- [ ] Create `raw_cpp_code` ("Raw C++ Snippet") block as a zero-loss fallback for custom or unmapped C++ statements.
+- [ ] Add "Update Blocks from Code" action button and keyboard shortcut (`Ctrl+Shift+B`) with error reporting.
+- **Gate / Definition of Done**: Editing Arduino C++ code in the Code tab and clicking "Update Blocks" correctly updates and reconstructs the blocks on the canvas.
+
+---
+
+### Milestone v0.6 — AI Hardware Copilot and Assistant
+*Primary Objective: Layer intelligent circuit reasoning, natural language block synthesis, and automated hardware auditing.*
+
+#### Phase 13: Context-Aware Circuit Explainer
 - [ ] Implement Main-process AI provider client with streaming response support.
 - [ ] Create Context Extractor: serializes active blocks, pin mappings, and board model into structured prompt context.
 - [ ] Build Copilot sidebar in UI:
@@ -223,7 +262,7 @@ graph TD
   - Generates step-by-step breadboard wiring instructions (e.g. "Connect Servo Signal to Pin 9, Red to 5V, Brown to GND").
 - **Gate / Definition of Done**: User clicks "Explain Circuit" and receives an accurate, grounded explanation and wiring table corresponding to their active blocks.
 
-#### Phase 12: Natural Language to Block Synthesis
+#### Phase 14: Natural Language to Block Synthesis
 - [ ] Define JSON schema for structured block synthesis (Block types, fields, inputs, and connections).
 - [ ] Implement "Prompt-to-Blocks" UI modal:
   - User prompt: e.g. *"When the ultrasonic sensor detects an object closer than 10cm, sound the buzzer on pin 8 and flash the red LED on pin 13."*
@@ -231,7 +270,7 @@ graph TD
   - Blockly workspace automatically clears or appends the synthesized blocks.
 - **Gate / Definition of Done**: Prompting a common IoT task generates valid, connected blocks in the workspace that immediately transpile to working C++.
 
-#### Phase 13: Circuit and Pin Conflict Diagnostics
+#### Phase 15: Circuit and Pin Conflict Diagnostics
 - [ ] Implement static hardware rules engine:
   - Detect pin reuse conflicts (e.g. using Pin 0/1 for digital I/O while Serial is active).
   - Detect PWM conflicts on non-PWM pins.
@@ -239,7 +278,23 @@ graph TD
 - [ ] Inline warning badges in the Blockly workspace highlighting problematic blocks with suggested fixes.
 - **Gate / Definition of Done**: Workspace flags conflicting pin configurations before any code is flashed to hardware.
 
-#### Phase 14: Production Packaging and Distribution
+---
+
+### Milestone v0.7 — AI-Powered Code-to-Blocks Transpiler
+*Primary Objective: Utilize LLM reasoning to translate complex, arbitrary Arduino C++ / MicroPython sketches into visual blocks.*
+
+#### Phase 16: LLM-Assisted Full C++ to Block Transpilation
+- [ ] Build AI Transpiler service that accepts arbitrary, multi-function, or multi-library Arduino sketches.
+- [ ] Synthesize higher-level block structures and custom block configurations from idiomatic C++ code.
+- [ ] Provide side-by-side diff preview allowing the user to review the generated block layout before applying changes to the canvas.
+- **Gate / Definition of Done**: Pasting a complex external Arduino sketch converts cleanly into organized, functional visual blocks on the canvas.
+
+---
+
+### Milestone v1.0 — Production Packaging and Polished Release
+*Primary Objective: Final polish, automated cross-platform distribution, and signed standalone desktop releases.*
+
+#### Phase 17: Production Packaging and Distribution
 - [ ] Configure `electron-builder` for multi-platform distribution:
   - Windows: Portable `.exe` and NSIS installer with desktop shortcut.
   - macOS: `.dmg` (Universal / Apple Silicon & Intel).

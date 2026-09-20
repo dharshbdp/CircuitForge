@@ -33,7 +33,7 @@ Milestones **v0.1**, **v0.2**, **v0.3**, and **v0.4** have all been completed:
   - Native `.circuitforge` project file format with save, open, dirty state tracking, and keyboard shortcuts (`Ctrl+S`, `Ctrl+O`, `Ctrl+N`).
   - Built-in Starter Project Library with 5 one-click loadable templates (Blink & Fade, Obstacle Avoidance, Weather Station, RGB Mood Lamp, Gas & Smoke Detector).
 
-The next upcoming milestone is **v1.0 (AI Hardware Copilot and Production Release)**. For the full multi-phase plan, refer to [ROADMAP.md](./ROADMAP.md).
+The current active milestone is **v0.5 (Code-to-Blocks Bidirectional Sync)**. For the full multi-phase plan, refer to [ROADMAP.md](./ROADMAP.md).
 
 ---
 
@@ -43,7 +43,10 @@ The next upcoming milestone is **v1.0 (AI Hardware Copilot and Production Releas
 - **v0.2**: Visual Logic and Block Canvas (Completed)
 - **v0.3**: Embedded Compilation and One-Click Flashing (Completed)
 - **v0.4**: Live Telemetry Dashboard and Project Storage (Completed)
-- **v1.0**: AI Hardware Copilot and Production Release (Current — Circuit reasoning, prompt-to-blocks, pin diagnostics & multi-platform packaging)
+- **v0.5**: Code-to-Blocks Bidirectional Sync (Current — Editable code editor, AST transpiler & "Update blocks from code")
+- **v0.6**: AI Hardware Copilot and Assistant (Circuit reasoning, prompt-to-blocks, pin conflict diagnostics)
+- **v0.7**: AI-Powered Code-to-Blocks Transpiler (LLM-assisted conversion of complex/arbitrary Arduino sketches)
+- **v1.0**: Production Packaging and Polished Release (Cross-platform installers, auto-updater & final polish)
 
 See [ROADMAP.md](./ROADMAP.md) for detailed tasks and architecture breakdown.
 
