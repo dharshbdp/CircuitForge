@@ -8,3 +8,5 @@ build
 .env
 .env*.local
 *.local
+resources/bin/
+*.zip
