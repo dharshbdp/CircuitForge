@@ -191,36 +191,71 @@ export function EditorPage(): React.JSX.Element {
     if (result.success) {
       setIsCodeEdited(false)
       setIsDirty(true)
-      showNotification(`Updated ${result.blockCount} visual blocks from code`)
+      if (result.baudRate && BAUD_RATES.includes(result.baudRate)) {
+        setSelectedBaud(result.baudRate)
+        arduinoGenerator.setBaudRate(result.baudRate)
+        showNotification(
+          `Updated ${result.blockCount} visual blocks & synced baud to ${result.baudRate} bps`
+        )
+      } else {
+        showNotification(`Updated ${result.blockCount} visual blocks from code`)
+      }
     } else {
       const errMsg = result.errors?.join('; ') || 'Failed to parse code into visual blocks'
       showNotification(`Parse Error: ${errMsg}`)
     }
   }
 
+  // Baud rate change handler
+  const handleBaudChange = (newBaud: number): void => {
+    setSelectedBaud(newBaud)
+    arduinoGenerator.setBaudRate(newBaud)
+    showNotification(`Baud rate set to ${newBaud} bps`)
+  }
+
+  // Auto-sync baud rate changes to Arduino generator & C++ sketch
+  useEffect(() => {
+    arduinoGenerator.setBaudRate(selectedBaud)
+    if (workspaceRef.current && !isCodeEdited) {
+      try {
+        const cpp = arduinoGenerator.workspaceToCode(workspaceRef.current, selectedBaud)
+        setCppCode(cpp)
+      } catch (err) {
+        console.error('Failed to regenerate code on baud rate change:', err)
+      }
+    } else if (isCodeEdited) {
+      setCppCode((prev) =>
+        prev.replace(/Serial\.begin\s*\(\s*\d+\s*\)/g, `Serial.begin(${selectedBaud})`)
+      )
+    }
+  }, [selectedBaud, isCodeEdited])
+
   // Blockly workspace change handler & live dual code generator
-  const handleWorkspaceChange = useCallback((workspace: Blockly.WorkspaceSvg): void => {
-    const count = workspace.getAllBlocks(false).length
-    setBlockCount(count)
-    if (isProgrammaticLoadRef.current) {
-      isProgrammaticLoadRef.current = false
-    } else {
-      setIsDirty(true)
-    }
-    try {
-      const cpp = arduinoGenerator.workspaceToCode(workspace)
-      setCppCode(cpp)
-    } catch (err) {
-      console.error('Failed to generate Arduino C++ code:', err)
-    }
-    try {
-      const py = micropythonGenerator.workspaceToCode(workspace)
-      setPythonCode(py)
-    } catch (err) {
-      console.error('Failed to generate MicroPython code:', err)
-    }
-    setIsCodeEdited(false)
-  }, [])
+  const handleWorkspaceChange = useCallback(
+    (workspace: Blockly.WorkspaceSvg): void => {
+      const count = workspace.getAllBlocks(false).length
+      setBlockCount(count)
+      if (isProgrammaticLoadRef.current) {
+        isProgrammaticLoadRef.current = false
+      } else {
+        setIsDirty(true)
+      }
+      try {
+        const cpp = arduinoGenerator.workspaceToCode(workspace, selectedBaud)
+        setCppCode(cpp)
+      } catch (err) {
+        console.error('Failed to generate Arduino C++ code:', err)
+      }
+      try {
+        const py = micropythonGenerator.workspaceToCode(workspace)
+        setPythonCode(py)
+      } catch (err) {
+        console.error('Failed to generate MicroPython code:', err)
+      }
+      setIsCodeEdited(false)
+    },
+    [selectedBaud]
+  )
 
   // Project Operations: New, Save, Save As, Open, Load Template
   const handleNewProject = (): void => {
@@ -803,7 +838,7 @@ export function EditorPage(): React.JSX.Element {
               <select
                 id="cf-baud-select"
                 value={selectedBaud}
-                onChange={(e) => setSelectedBaud(Number(e.target.value))}
+                onChange={(e) => handleBaudChange(Number(e.target.value))}
                 disabled={isConnected || isConnecting}
               >
                 {BAUD_RATES.map((b) => (

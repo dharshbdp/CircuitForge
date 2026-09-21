@@ -9,6 +9,7 @@ export interface CodeToBlocksOptions {
 export interface CodeToBlocksResult {
   success: boolean
   blockCount: number
+  baudRate?: number
   errors?: string[]
   warnings?: string[]
 }
@@ -37,6 +38,7 @@ export function codeToBlocks(
     return {
       success: result.success,
       blockCount: 0,
+      baudRate: result.baudRate,
       errors: result.errors || ['No valid blocks could be parsed from the provided code.'],
       warnings: result.warnings
     }
@@ -60,6 +62,7 @@ export function codeToBlocks(
     return {
       success: true,
       blockCount: count,
+      baudRate: result.baudRate,
       warnings: result.warnings
     }
   } catch (err) {

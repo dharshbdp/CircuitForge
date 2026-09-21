@@ -24,6 +24,7 @@ export class ArduinoGenerator extends Blockly.CodeGenerator {
   definitions_: Record<string, string> = Object.create(null)
   includes_: Record<string, string> = Object.create(null)
   setups_: Record<string, string> = Object.create(null)
+  baudRate_: number = 115200
   ORDER_NONE: number
   ORDER_ATOMIC: number
 
@@ -35,6 +36,23 @@ export class ArduinoGenerator extends Blockly.CodeGenerator {
 
     this.initHardwareGenerators()
     this.initStandardGenerators()
+  }
+
+  setBaudRate(baudRate: number): void {
+    if (typeof baudRate === 'number' && baudRate > 0) {
+      this.baudRate_ = baudRate
+    }
+  }
+
+  getBaudRate(): number {
+    return this.baudRate_
+  }
+
+  override workspaceToCode(workspace?: Blockly.Workspace, baudRate?: number): string {
+    if (typeof baudRate === 'number' && baudRate > 0) {
+      this.baudRate_ = baudRate
+    }
+    return super.workspaceToCode(workspace)
   }
 
   override init(workspace: Blockly.Workspace): void {
@@ -190,7 +208,7 @@ export class ArduinoGenerator extends Blockly.CodeGenerator {
     this.forBlock['serial_print'] = (block) => {
       const content = this.valueToCode(block, 'CONTENT', Order.NONE) || '""'
       const newline = block.getFieldValue('NEWLINE') === 'TRUE'
-      this.setups_['serial_begin'] = 'Serial.begin(115200);'
+      this.setups_['serial_begin'] = `Serial.begin(${this.baudRate_});`
       const func = newline ? 'Serial.println' : 'Serial.print'
       return `  ${func}(${content});\n`
     }
@@ -253,7 +271,7 @@ export class ArduinoGenerator extends Blockly.CodeGenerator {
     // 18. MQ-2 Sensor Warm-up / Pre-heat
     this.forBlock['sensor_mq2_warmup'] = (block) => {
       const sec = this.valueToCode(block, 'SECONDS', Order.NONE) || '20'
-      this.setups_['serial_begin'] = 'Serial.begin(115200);'
+      this.setups_['serial_begin'] = `Serial.begin(${this.baudRate_});`
       this.setups_['mq2_warmup'] = [
         'Serial.println(F("MQ-2 Sensor Starting..."));',
         `  delay(${sec} * 1000UL);`,
@@ -416,7 +434,7 @@ export class ArduinoGenerator extends Blockly.CodeGenerator {
     // Text: Print to Serial
     this.forBlock['text_print'] = (block) => {
       const msg = this.valueToCode(block, 'TEXT', Order.NONE) || '""'
-      this.setups_['serial_begin'] = 'Serial.begin(115200);'
+      this.setups_['serial_begin'] = `Serial.begin(${this.baudRate_});`
       return `  Serial.println(${msg});\n`
     }
 

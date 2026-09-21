@@ -15,6 +15,7 @@ export interface ParsedBlock {
 export interface ParseResult {
   success: boolean
   blocks: ParsedBlock[]
+  baudRate?: number
   warnings?: string[]
   errors?: string[]
 }
@@ -565,6 +566,10 @@ export function parseCppToBlocks(cppCode: string): ParseResult {
     .replace(/\/\*[\s\S]*?\*\//g, '') // remove multi-line comments
     .replace(/\/\/[^\n]*/g, '') // remove single-line comments
 
+  // Extract explicit baud rate if Serial.begin(baud) is called
+  const serialMatch = cleanCode.match(/Serial\.begin\s*\(\s*(\d+)\s*\)/i)
+  const detectedBaud = serialMatch ? parseInt(serialMatch[1], 10) : undefined
+
   // Locate setup() and loop() bodies respecting nested braces
   const setupBody = extractFunctionBody(cleanCode, 'setup')
   const loopBody = extractFunctionBody(cleanCode, 'loop')
@@ -605,6 +610,7 @@ export function parseCppToBlocks(cppCode: string): ParseResult {
     return {
       success: true,
       blocks: [],
+      baudRate: detectedBaud,
       warnings: ['No recognizable statements found in code.']
     }
   }
@@ -619,13 +625,15 @@ export function parseCppToBlocks(cppCode: string): ParseResult {
     }
     return {
       success: true,
-      blocks: [rootWithPos]
+      blocks: [rootWithPos],
+      baudRate: detectedBaud
     }
   }
 
   return {
     success: false,
     blocks: [],
+    baudRate: detectedBaud,
     errors: ['Failed to construct block hierarchy.']
   }
 }
