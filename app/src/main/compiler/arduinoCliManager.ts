@@ -109,8 +109,7 @@ export async function executeArduinoCli(
     const proc = spawn(binaryPath, args, {
       shell: false,
       env: {
-        ...process.env,
-        ARDUINO_DIRECTORIES_DATA: join(app.getPath('userData'), 'Arduino15')
+        ...process.env
       }
     })
 

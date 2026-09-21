@@ -170,7 +170,7 @@ export async function upload(
   try {
     onLog?.(`[FLASH] Invoking programmer upload...\n`)
     const result = await executeArduinoCli(
-      ['upload', '-p', port, '--fqbn', fqbn, prepared.sketchDir],
+      ['compile', '--upload', '-p', port, '--fqbn', fqbn, prepared.sketchDir],
       onLog
     )
 
