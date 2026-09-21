@@ -39,6 +39,73 @@ export function EditorPage(): React.JSX.Element {
   const [blockCount, setBlockCount] = useState<number>(0)
   const [copiedCode, setCopiedCode] = useState<boolean>(false)
 
+  // Resizable Split Pane Divider state
+  const [splitRatio, setSplitRatio] = useState<number>(() => {
+    try {
+      const saved = localStorage.getItem('circuitforge_split_ratio')
+      if (saved) {
+        const val = parseFloat(saved)
+        if (!isNaN(val) && val >= 20 && val <= 80) return val
+      }
+    } catch {
+      // ignore
+    }
+    return 58 // Default 58% canvas, 42% inspector
+  })
+
+  const [isDraggingSplit, setIsDraggingSplit] = useState<boolean>(false)
+  const splitContainerRef = useRef<HTMLElement | null>(null)
+
+  const handleSplitMouseDown = (e: React.MouseEvent): void => {
+    e.preventDefault()
+    setIsDraggingSplit(true)
+  }
+
+  const handleSplitDoubleClick = (): void => {
+    setSplitRatio(58)
+    try {
+      localStorage.setItem('circuitforge_split_ratio', '58')
+    } catch {
+      // ignore
+    }
+  }
+
+  useEffect(() => {
+    if (!isDraggingSplit) return
+
+    const handleMouseMove = (e: MouseEvent): void => {
+      if (!splitContainerRef.current) return
+      const rect = splitContainerRef.current.getBoundingClientRect()
+      const x = e.clientX - rect.left
+      const percentage = (x / rect.width) * 100
+      // Clamp between 20% and 80%
+      const clamped = Math.min(Math.max(percentage, 20), 80)
+      setSplitRatio(clamped)
+    }
+
+    const handleMouseUp = (): void => {
+      setIsDraggingSplit(false)
+      setSplitRatio((prev) => {
+        try {
+          localStorage.setItem('circuitforge_split_ratio', prev.toString())
+        } catch {
+          // ignore
+        }
+        return prev
+      })
+    }
+
+    window.addEventListener('mousemove', handleMouseMove)
+    window.addEventListener('mouseup', handleMouseUp)
+    document.body.classList.add('cf-resizing')
+
+    return () => {
+      window.removeEventListener('mousemove', handleMouseMove)
+      window.removeEventListener('mouseup', handleMouseUp)
+      document.body.classList.remove('cf-resizing')
+    }
+  }, [isDraggingSplit])
+
   // Real-Time Sensor Telemetry Hook
   const telemetry = useTelemetry()
   const [selectedBoard, setSelectedBoard] = useState<string>('arduino_uno')
@@ -760,9 +827,16 @@ export function EditorPage(): React.JSX.Element {
       </header>
 
       {/* Main Dual-Pane Workspace */}
-      <main className={`cf-main-split view-${viewMode}`}>
+      <main className={`cf-main-split view-${viewMode}`} ref={splitContainerRef}>
         {/* Left Pane: Visual Block Canvas */}
-        <section className="cf-canvas-pane">
+        <section
+          className="cf-canvas-pane"
+          style={
+            viewMode === 'split'
+              ? { flex: `0 0 ${splitRatio}%`, maxWidth: `${splitRatio}%` }
+              : undefined
+          }
+        >
           <div className="cf-canvas-header">
             <div className="cf-canvas-title-group">
               <span className="cf-pane-title">VISUAL LOGIC CANVAS</span>
@@ -824,8 +898,33 @@ export function EditorPage(): React.JSX.Element {
           </div>
         </section>
 
+        {/* Resizable Divider (Visible only in Split View) */}
+        {viewMode === 'split' && (
+          <div
+            className={`cf-split-resizer ${isDraggingSplit ? 'dragging' : ''}`}
+            onMouseDown={handleSplitMouseDown}
+            onDoubleClick={handleSplitDoubleClick}
+            role="separator"
+            aria-orientation="vertical"
+            title="Drag to resize panels (Double-click to reset to 58%)"
+          >
+            <div className="cf-resizer-handle">
+              <span />
+              <span />
+              <span />
+            </div>
+          </div>
+        )}
+
         {/* Right Pane: Inspector & Engineering Tools */}
-        <section className="cf-inspector-pane">
+        <section
+          className="cf-inspector-pane"
+          style={
+            viewMode === 'split'
+              ? { flex: `0 0 ${100 - splitRatio}%`, maxWidth: `${100 - splitRatio}%` }
+              : undefined
+          }
+        >
           {/* Tab Switcher */}
           <div className="cf-inspector-header">
             <div className="cf-tabs" role="tablist">

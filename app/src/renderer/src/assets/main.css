@@ -559,16 +559,76 @@ body {
 
 /* View Mode Visibility Rules */
 .cf-main-split.view-split .cf-canvas-pane {
-  flex: 1 1 58%;
   display: flex;
-  min-width: 320px;
+  min-width: 280px;
+  position: relative;
 }
 
 .cf-main-split.view-split .cf-inspector-pane {
-  flex: 1 1 42%;
   display: flex;
-  min-width: 360px;
-  border-left: 1px solid var(--border-default);
+  min-width: 320px;
+  position: relative;
+}
+
+/* Resizable Split Pane Divider */
+.cf-split-resizer {
+  width: 9px;
+  margin: 0 -4px;
+  cursor: col-resize;
+  position: relative;
+  z-index: 30;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  user-select: none;
+  touch-action: none;
+  background: transparent;
+  transition: background var(--transition-fast);
+}
+
+.cf-split-resizer:hover,
+.cf-split-resizer.dragging {
+  background: var(--bg-surface-active);
+}
+
+.cf-resizer-handle {
+  width: 3px;
+  height: 28px;
+  border-radius: 2px;
+  background: var(--border-default);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  transition: all var(--transition-fast);
+}
+
+.cf-resizer-handle span {
+  width: 1.5px;
+  height: 1.5px;
+  border-radius: 50%;
+  background: var(--text-muted);
+  display: block;
+}
+
+.cf-split-resizer:hover .cf-resizer-handle,
+.cf-split-resizer.dragging .cf-resizer-handle {
+  background: var(--accent-primary);
+  height: 44px;
+  box-shadow: 0 0 6px var(--border-focus);
+}
+
+.cf-split-resizer:hover .cf-resizer-handle span,
+.cf-split-resizer.dragging .cf-resizer-handle span {
+  background: var(--bg-app);
+}
+
+/* While actively dragging, disable pointer events on canvas & textareas for zero latency */
+body.cf-resizing .cf-canvas-pane,
+body.cf-resizing .cf-inspector-pane,
+body.cf-resizing iframe {
+  pointer-events: none !important;
 }
 
 .cf-main-split.view-canvas .cf-canvas-pane {
