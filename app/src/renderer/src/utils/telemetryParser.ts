@@ -24,15 +24,18 @@ export function parseTelemetryLine(line: string): Record<string, number> | null 
     }
   }
 
-  // 2. Try Key-Value pairs (e.g., "temp: 24.5, hum: 60" or "temp=24.5;hum=60")
-  const kvRegex = /([a-zA-Z_][a-zA-Z0-9_]*)\s*[:=]\s*(-?\d+(?:\.\d+)?)/g
+  // 2. Try Key-Value pairs (e.g., "temp: 24.5, hum: 60" or "MQ-2 Value: 185" or "temp=24.5;hum=60")
+  const kvRegex = /([a-zA-Z0-9_][a-zA-Z0-9_\s-]*?)\s*[:=]\s*(-?\d+(?:\.\d+)?)/g
   const kvMatches = [...trimmed.matchAll(kvRegex)]
   if (kvMatches.length > 0) {
     const result: Record<string, number> = {}
     for (const match of kvMatches) {
-      result[match[1]] = parseFloat(match[2])
+      const key = match[1].trim()
+      if (key) {
+        result[key] = parseFloat(match[2])
+      }
     }
-    return result
+    if (Object.keys(result).length > 0) return result
   }
 
   // 3. Try CSV numbers (Arduino Serial Plotter style: "1023, 512, 256")
