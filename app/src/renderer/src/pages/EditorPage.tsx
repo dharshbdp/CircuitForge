@@ -1,16 +1,17 @@
 import { useState, useRef, useEffect, useCallback } from 'react'
-import type * as Blockly from 'blockly'
+import * as Blockly from 'blockly'
 import BlocklyWorkspace from '../components/BlocklyWorkspace'
 import { arduinoGenerator, micropythonGenerator } from '@core/compiler'
 import { loadWorkspace, serializeWorkspace } from '@core/graph/graphSerializer'
 import { SUPPORTED_BOARDS } from '@hardware'
-import type { CompileResult, CircuitForgeProject } from '@shared/types'
+import type { CompileResult, CircuitForgeProject, BlockSynthesisResult } from '@shared/types'
 import { useSerial, useTheme, useTelemetry } from '../hooks'
 import { TelemetryDashboard } from '../components/TelemetryDashboard'
 import { CodeEditor } from '../components/CodeEditor'
 import { CopilotPanel } from '../components/CopilotPanel'
 import { codeToBlocks } from '@core/parser'
 import StarterLibraryModal from '../components/StarterLibraryModal'
+import PromptToBlocksModal from '../components/PromptToBlocksModal'
 import type { StarterProject } from '../data/starterProjects'
 
 const BAUD_RATES = [9600, 19200, 38400, 57600, 115200, 230400]
@@ -127,7 +128,9 @@ export function EditorPage(): React.JSX.Element {
   const [currentFilePath, setCurrentFilePath] = useState<string | null>(null)
   const [isDirty, setIsDirty] = useState<boolean>(false)
   const [isStarterModalOpen, setIsStarterModalOpen] = useState<boolean>(false)
+  const [isPromptModalOpen, setIsPromptModalOpen] = useState<boolean>(false)
   const [projectNotification, setProjectNotification] = useState<string | null>(null)
+
   const isProgrammaticLoadRef = useRef<boolean>(false)
 
   // Terminal input & settings
@@ -355,12 +358,67 @@ export function EditorPage(): React.JSX.Element {
     showNotification(`Loaded template: ${starter.name}`)
   }
 
-  // Keyboard Shortcuts: Ctrl+S (Save), Ctrl+Shift+S (Save As), Ctrl+O (Open), Ctrl+N (New), Ctrl+Shift+B (Update Blocks)
+  // Apply synthesized blocks from natural language prompt (Milestone v0.6 Phase 14)
+  const handleApplySynthesizedBlocks = (
+    result: BlockSynthesisResult,
+    mode: 'replace' | 'append'
+  ): void => {
+    const workspace = workspaceRef.current
+    if (!workspace) return
+
+    isProgrammaticLoadRef.current = true
+
+    try {
+      if (mode === 'replace') {
+        workspace.clear()
+        const workspaceState = {
+          blocks: {
+            languageVersion: 0,
+            blocks: result.blocks
+          }
+        }
+        Blockly.serialization.workspaces.load(workspaceState, workspace)
+      } else {
+        // Calculate vertical position below existing blocks
+        const topBlocks = workspace.getTopBlocks(false)
+        let maxY = 48
+        for (const b of topBlocks) {
+          const pos = b.getRelativeToSurfaceXY()
+          const height = b.getHeightWidth().height
+          const bottom = pos.y + height
+          if (bottom > maxY) {
+            maxY = bottom
+          }
+        }
+
+        const targetY = maxY + 64
+        for (const b of result.blocks) {
+          const blockState = {
+            ...b,
+            x: 48,
+            y: targetY
+          } as unknown as Blockly.serialization.blocks.State
+          Blockly.serialization.blocks.append(blockState, workspace)
+        }
+      }
+
+      setIsDirty(true)
+      showNotification(
+        `Synthesized ${result.blocks.length} visual blocks (${result.source === 'gemini' ? 'Gemini AI' : 'Offline Engine'})`
+      )
+    } catch (err: unknown) {
+      console.error('Failed to apply synthesized blocks:', err)
+      showNotification(`Error applying blocks: ${err instanceof Error ? err.message : String(err)}`)
+    }
+  }
+
+  // Keyboard Shortcuts: Ctrl+S (Save), Ctrl+Shift+S (Save As), Ctrl+O (Open), Ctrl+N (New), Ctrl+Shift+B (Update Blocks), Ctrl+K (AI Prompt)
   const projectHandlersRef = useRef({
     handleSaveProject,
     handleOpenProject,
     handleNewProject,
-    handleUpdateBlocks
+    handleUpdateBlocks,
+    handleOpenPromptModal: () => setIsPromptModalOpen(true)
   })
 
   useEffect(() => {
@@ -368,7 +426,8 @@ export function EditorPage(): React.JSX.Element {
       handleSaveProject,
       handleOpenProject,
       handleNewProject,
-      handleUpdateBlocks
+      handleUpdateBlocks,
+      handleOpenPromptModal: () => setIsPromptModalOpen(true)
     }
   })
 
@@ -390,6 +449,12 @@ export function EditorPage(): React.JSX.Element {
       } else if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key.toLowerCase() === 'b') {
         e.preventDefault()
         projectHandlersRef.current.handleUpdateBlocks()
+      } else if (
+        (e.ctrlKey || e.metaKey) &&
+        (e.key.toLowerCase() === 'k' || (e.shiftKey && e.key.toLowerCase() === 'a'))
+      ) {
+        e.preventDefault()
+        projectHandlersRef.current.handleOpenPromptModal()
       }
     }
     window.addEventListener('keydown', handleKeyDown)
@@ -620,6 +685,25 @@ export function EditorPage(): React.JSX.Element {
                   </svg>
                   <span>Templates</span>
                 </button>
+                <button
+                  className="cf-btn-project cf-btn-project-ai"
+                  onClick={() => setIsPromptModalOpen(true)}
+                  title="Prompt-to-Blocks: Synthesize visual blocks from natural language (Ctrl+K)"
+                >
+                  <svg
+                    width="11"
+                    height="11"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2.5"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
+                  </svg>
+                  <span>AI Prompt</span>
+                </button>
               </div>
             </div>
           </div>
@@ -765,6 +849,26 @@ export function EditorPage(): React.JSX.Element {
                 <polyline points="12 5 19 12 12 19" />
               </svg>
               <span>{isUploading ? 'Uploading...' : 'Upload'}</span>
+            </button>
+
+            <button
+              className="cf-btn-action cf-btn-ai-action"
+              onClick={() => setIsPromptModalOpen(true)}
+              title="Prompt-to-Blocks: Describe circuit in plain English to generate visual blocks (Ctrl+K)"
+            >
+              <svg
+                width="12"
+                height="12"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
+              </svg>
+              <span>AI Prompt</span>
             </button>
           </div>
 
@@ -1416,6 +1520,7 @@ export function EditorPage(): React.JSX.Element {
                 code={selectedLanguage === 'cpp' ? cppCode : pythonCode}
                 workspaceRef={workspaceRef}
                 showNotification={showNotification}
+                onOpenPromptModal={() => setIsPromptModalOpen(true)}
               />
             </div>
           )}
@@ -1427,6 +1532,14 @@ export function EditorPage(): React.JSX.Element {
         isOpen={isStarterModalOpen}
         onClose={() => setIsStarterModalOpen(false)}
         onSelectProject={handleSelectStarterProject}
+      />
+
+      {/* Prompt-to-Blocks AI Modal (Milestone v0.6 Phase 14) */}
+      <PromptToBlocksModal
+        isOpen={isPromptModalOpen}
+        onClose={() => setIsPromptModalOpen(false)}
+        boardId={selectedBoard}
+        onApplyBlocks={handleApplySynthesizedBlocks}
       />
 
       {/* Project Status Notification Toast */}

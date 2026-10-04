@@ -264,13 +264,14 @@ graph TD
   - Generates step-by-step breadboard wiring instructions (e.g. "Connect Servo Signal to Pin 9, Red to 5V, Brown to GND").
 - **Gate / Definition of Done**: User clicks "Explain Circuit" and receives an accurate, grounded explanation and wiring table corresponding to their active blocks.
 
-#### Phase 14: Natural Language to Block Synthesis
-- [ ] Define JSON schema for structured block synthesis (Block types, fields, inputs, and connections).
-- [ ] Implement "Prompt-to-Blocks" UI modal:
+#### Phase 14: Natural Language to Block Synthesis (Completed)
+- [x] Define JSON schema for structured block synthesis (Block types, fields, inputs, and connections).
+- [x] Implement "Prompt-to-Blocks" UI modal:
   - User prompt: e.g. *"When the ultrasonic sensor detects an object closer than 10cm, sound the buzzer on pin 8 and flash the red LED on pin 13."*
   - LLM returns structured block tree.
   - Blockly workspace automatically clears or appends the synthesized blocks.
 - **Gate / Definition of Done**: Prompting a common IoT task generates valid, connected blocks in the workspace that immediately transpile to working C++.
+
 
 #### Phase 15: Circuit and Pin Conflict Diagnostics
 - [ ] Implement static hardware rules engine:

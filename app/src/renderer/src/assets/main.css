@@ -2891,3 +2891,294 @@ body.cf-resizing iframe {
   padding: 0;
   height: 100%;
 }
+
+/* ==========================================================================
+   Milestone v0.6: Phase 14 — Prompt-to-Blocks Natural Language Synthesizer
+   ========================================================================== */
+
+.cf-btn-project-ai,
+.cf-btn-ai-action {
+  background: var(--bg-surface);
+  color: var(--text-primary);
+  border: 1px solid var(--border-default);
+  gap: 5px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  transition: all 0.15s ease;
+}
+
+.cf-btn-project-ai:hover,
+.cf-btn-ai-action:hover {
+  background: var(--bg-surface-hover);
+  border-color: var(--border-focus);
+  color: #ffffff;
+}
+
+.cf-btn-synthesizer {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-default);
+  color: var(--text-primary);
+  font-size: 11px;
+  font-weight: 600;
+  gap: 4px;
+}
+
+.cf-btn-synthesizer:hover {
+  background: var(--bg-surface-hover);
+  border-color: var(--border-focus);
+}
+
+.cf-btn-empty-synthesizer {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  font-size: 11px;
+  padding: 8px 14px;
+}
+
+/* Prompt to Blocks Modal */
+.cf-modal-prompt-blocks {
+  max-width: 680px;
+  width: 92%;
+  max-height: 88vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.cf-prompt-modal-body {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  overflow-y: auto;
+  padding: 16px 20px;
+}
+
+/* Quick Presets */
+.cf-prompt-presets-section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.cf-prompt-presets-label {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  color: var(--text-muted);
+}
+
+.cf-prompt-presets-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.cf-prompt-pill {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: 4px;
+  padding: 4px 8px;
+  font-size: 10.5px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  white-space: nowrap;
+}
+
+.cf-prompt-pill:hover {
+  background: var(--bg-surface-hover);
+  border-color: var(--border-default);
+  color: var(--text-primary);
+}
+
+/* Prompt Input */
+.cf-prompt-input-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.cf-prompt-label {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  color: var(--text-muted);
+}
+
+.cf-prompt-textarea {
+  width: 100%;
+  background: var(--bg-terminal);
+  border: 1px solid var(--border-default);
+  border-radius: 6px;
+  padding: 10px 12px;
+  color: var(--text-primary);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-size: 12.5px;
+  line-height: 1.5;
+  resize: vertical;
+  min-height: 85px;
+  outline: none;
+  transition: border-color 0.15s ease;
+}
+
+.cf-prompt-textarea:focus {
+  border-color: var(--border-focus);
+}
+
+.cf-prompt-footer-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 2px;
+}
+
+.cf-prompt-char-count {
+  font-size: 10px;
+  color: var(--text-muted);
+}
+
+.cf-prompt-mode-selector {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.cf-prompt-mode-label {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  color: var(--text-muted);
+}
+
+.cf-prompt-radio-item {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11px;
+  color: var(--text-secondary);
+  cursor: pointer;
+}
+
+.cf-prompt-radio-item input[type='radio'] {
+  margin: 0;
+  cursor: pointer;
+}
+
+/* Synthesis Review Card */
+.cf-synthesis-preview-card {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-default);
+  border-radius: 6px;
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.cf-synthesis-preview-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.cf-synthesis-status-badge {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 10.5px;
+  font-weight: 700;
+  color: #10b981;
+  letter-spacing: 0.03em;
+}
+
+.cf-synthesis-source-tag {
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  padding: 2px 6px;
+  border-radius: 3px;
+  background: var(--bg-terminal);
+  border: 1px solid var(--border-subtle);
+  color: var(--text-muted);
+}
+
+.cf-synthesis-explanation {
+  font-size: 11.5px;
+  line-height: 1.5;
+  color: var(--text-primary);
+  background: var(--bg-terminal);
+  padding: 10px 12px;
+  border-radius: 4px;
+  border-left: 3px solid var(--text-primary);
+}
+
+.cf-synthesis-explanation p {
+  margin: 0;
+}
+
+/* Synthesized C++ Code Block */
+.cf-synthesis-code-preview {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.cf-synthesis-code-header {
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  color: var(--text-muted);
+}
+
+.cf-synthesis-code-block {
+  margin: 0;
+  background: var(--bg-terminal);
+  border: 1px solid var(--border-subtle);
+  border-radius: 4px;
+  padding: 10px 12px;
+  max-height: 160px;
+  overflow-y: auto;
+  font-family: 'Consolas', 'Courier New', monospace;
+  font-size: 11px;
+  line-height: 1.45;
+  color: var(--text-secondary);
+}
+
+.cf-synthesis-code-block code {
+  font-family: inherit;
+  font-size: inherit;
+  white-space: pre;
+}
+
+/* Modal Actions */
+.cf-prompt-modal-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 20px;
+  border-top: 1px solid var(--border-default);
+  background: var(--bg-surface);
+}
+
+.cf-btn-apply {
+  background: #ffffff !important;
+  color: #000000 !important;
+  font-weight: 700 !important;
+  border: none !important;
+}
+
+.cf-btn-apply:hover {
+  background: #e4e4e7 !important;
+}
+
+.cf-copilot-empty-actions {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  margin-top: 12px;
+}

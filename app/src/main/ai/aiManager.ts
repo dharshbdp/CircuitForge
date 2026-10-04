@@ -5,9 +5,13 @@ import type {
   ExplainCircuitRequest,
   CircuitExplanation,
   WiringStep,
-  AiApiKeyStatus
+  AiApiKeyStatus,
+  BlockSynthesisRequest,
+  BlockSynthesisResult
 } from '@shared/types'
 import { getBoardById } from '../../hardware'
+import { getBlockSchemaPrompt, synthesizeOfflineIntent } from '../../core'
+import { parseCppToBlocks } from '../../core/parser/cppParser'
 
 interface ConfigData {
   geminiApiKey?: string
@@ -483,5 +487,151 @@ Return your response ONLY as valid JSON conforming strictly to this JSON schema:
     const offline = generateOfflineExplanation(request)
     offline.error = `AI connection failed (${err instanceof Error ? err.message : String(err)}). Displaying offline hardware analysis.`
     return offline
+  }
+}
+
+/**
+ * Synthesizes visual Blockly blocks and Arduino C++ from natural language prompts.
+ * Uses Gemini API when configured and online, with seamless deterministic offline fallback.
+ */
+export async function synthesizeBlocks(
+  request: BlockSynthesisRequest
+): Promise<BlockSynthesisResult> {
+  const apiKey = getAiApiKey()
+
+  // If no API key configured, use the deterministic offline intent engine
+  if (!apiKey) {
+    const offline = synthesizeOfflineIntent(request.prompt, request.boardId)
+    return {
+      success: true,
+      explanation: offline.explanation,
+      blocks: offline.blocks as unknown as Record<string, unknown>[],
+      cppCode: offline.cppCode,
+      source: 'offline'
+    }
+  }
+
+  const board = getBoardById(request.boardId)
+  const boardName = board?.name || 'Microcontroller Board'
+  const voltage = board ? `${board.voltage}V` : '5V'
+
+  const schemaGuidelines = getBlockSchemaPrompt()
+
+  const systemInstruction = `You are CircuitForge Synthesizer, an expert embedded firmware generator and visual programming architect.
+Your task is to convert the user's natural language requirements into:
+1. "explanation": A clear, technical explanation of what logic you designed, which pins were chosen, and how the program runs.
+2. "cppCode": Fully working, compilable Arduino C++ code matching the logic.
+3. "blocks": An array of top-level Blockly AST nodes connected via "next" properties and inputs conforming to CircuitForge's block taxonomy.
+
+Target Board: ${boardName} (${voltage} logic).
+
+${schemaGuidelines}
+
+Output JSON Schema:
+{
+  "explanation": "string",
+  "cppCode": "string",
+  "blocks": [
+    {
+      "type": "string",
+      "fields": {},
+      "inputs": {},
+      "next": {}
+    }
+  ]
+}
+
+Return ONLY valid JSON matching this schema.`
+
+  const userPrompt = `Synthesize microcontroller logic for ${boardName}:\n"${request.prompt}"`
+
+  try {
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`
+    const body = {
+      contents: [{ parts: [{ text: userPrompt }] }],
+      systemInstruction: { parts: [{ text: systemInstruction }] },
+      generationConfig: {
+        responseMimeType: 'application/json',
+        temperature: 0.2
+      }
+    }
+
+    const controller = new AbortController()
+    const timeout = setTimeout(() => controller.abort(), 14000)
+
+    const res = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+      signal: controller.signal
+    })
+    clearTimeout(timeout)
+
+    if (!res.ok) {
+      const errText = await res.text()
+      console.warn(`Gemini API synthesis error ${res.status}:`, errText)
+      const offline = synthesizeOfflineIntent(request.prompt, request.boardId)
+      return {
+        success: true,
+        explanation: `${offline.explanation} (Note: Gemini API returned ${res.status}; synthesized via offline rule engine)`,
+        blocks: offline.blocks as unknown as Record<string, unknown>[],
+        cppCode: offline.cppCode,
+        source: 'offline',
+        warnings: [`Cloud AI returned status ${res.status}. Used deterministic offline synthesis.`]
+      }
+    }
+
+    const data = await res.json()
+    const text = data.candidates?.[0]?.content?.parts?.[0]?.text
+    if (!text) {
+      throw new Error('Empty response from Gemini API')
+    }
+
+    const parsed = JSON.parse(text)
+    let blocks = Array.isArray(parsed.blocks) ? parsed.blocks : []
+
+    // If blocks are empty or not provided directly by LLM, compile the generated C++ using our battle-tested parser!
+    if (blocks.length === 0 && parsed.cppCode) {
+      const parseRes = parseCppToBlocks(parsed.cppCode)
+      if (parseRes.success && parseRes.blocks.length > 0) {
+        blocks = parseRes.blocks
+      }
+    }
+
+    // If still no blocks, fallback to offline intent synthesizer
+    if (blocks.length === 0) {
+      const offline = synthesizeOfflineIntent(request.prompt, request.boardId)
+      return {
+        success: true,
+        explanation: offline.explanation,
+        blocks: offline.blocks as unknown as Record<string, unknown>[],
+        cppCode: offline.cppCode,
+        source: 'offline',
+        warnings: [
+          'Synthesized via offline engine due to incomplete block structure from cloud model.'
+        ]
+      }
+    }
+
+    return {
+      success: true,
+      explanation: parsed.explanation || 'Visual blocks and C++ firmware synthesized successfully.',
+      blocks,
+      cppCode: parsed.cppCode || '',
+      source: 'gemini'
+    }
+  } catch (err) {
+    console.warn('AI Synthesis call failed, falling back to offline engine:', err)
+    const offline = synthesizeOfflineIntent(request.prompt, request.boardId)
+    return {
+      success: true,
+      explanation: `${offline.explanation} (Synthesized via deterministic offline engine)`,
+      blocks: offline.blocks as unknown as Record<string, unknown>[],
+      cppCode: offline.cppCode,
+      source: 'offline',
+      warnings: [
+        `Cloud connection failed (${err instanceof Error ? err.message : String(err)}). Used offline engine.`
+      ]
+    }
   }
 }

@@ -12,7 +12,9 @@ import type {
   OpenProjectResult,
   ExplainCircuitRequest,
   CircuitExplanation,
-  AiApiKeyStatus
+  AiApiKeyStatus,
+  BlockSynthesisRequest,
+  BlockSynthesisResult
 } from '../shared/types'
 
 // Custom APIs for renderer
@@ -73,7 +75,11 @@ const api: CircuitForgeAPI = {
 
   setAiApiKey: (apiKey: string): Promise<boolean> => ipcRenderer.invoke('ai:set-api-key', apiKey),
 
-  getAiApiKeyStatus: (): Promise<AiApiKeyStatus> => ipcRenderer.invoke('ai:get-api-key-status')
+  getAiApiKeyStatus: (): Promise<AiApiKeyStatus> => ipcRenderer.invoke('ai:get-api-key-status'),
+
+  // AI Natural Language Block Synthesis (Milestone v0.6 Phase 14)
+  synthesizeBlocks: (request: BlockSynthesisRequest): Promise<BlockSynthesisResult> =>
+    ipcRenderer.invoke('ai:synthesize-blocks', request)
 }
 
 // Use `contextBridge` APIs to expose Electron APIs to

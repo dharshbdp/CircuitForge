@@ -101,6 +101,24 @@ export interface AiApiKeyStatus {
   maskedKey?: string
 }
 
+// AI Natural Language to Block Synthesis (Milestone v0.6 Phase 14)
+export interface BlockSynthesisRequest {
+  prompt: string
+  boardId: string
+  currentBlocksSummary?: string
+  mode?: 'replace' | 'append'
+}
+
+export interface BlockSynthesisResult {
+  success: boolean
+  explanation: string
+  blocks: Record<string, unknown>[]
+  cppCode: string
+  source: 'gemini' | 'offline'
+  error?: string
+  warnings?: string[]
+}
+
 export interface CircuitForgeAPI {
   listSerialPorts: () => Promise<SerialPortDescriptor[]>
   connectSerial: (path: string, baudRate: number) => Promise<boolean>
@@ -121,8 +139,9 @@ export interface CircuitForgeAPI {
   saveProject: (project: CircuitForgeProject, filePath?: string) => Promise<SaveProjectResult>
   openProject: () => Promise<OpenProjectResult>
 
-  // AI Hardware Copilot (Milestone v0.6 Phase 13)
+  // AI Hardware Copilot (Milestone v0.6 Phase 13 & 14)
   explainCircuit: (request: ExplainCircuitRequest) => Promise<CircuitExplanation>
   setAiApiKey: (apiKey: string) => Promise<boolean>
   getAiApiKeyStatus: () => Promise<AiApiKeyStatus>
+  synthesizeBlocks: (request: BlockSynthesisRequest) => Promise<BlockSynthesisResult>
 }

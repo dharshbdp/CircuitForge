@@ -8,12 +8,19 @@ import {
   getCurrentConnectionState
 } from '../serial/serialManager'
 import { getToolchainStatus, installCore, compile, upload } from '../compiler'
-import { explainCircuitWithAi, setAiApiKey, getAiApiKeyStatus } from '../ai/aiManager'
+import {
+  explainCircuitWithAi,
+  setAiApiKey,
+  getAiApiKeyStatus,
+  synthesizeBlocks
+} from '../ai/aiManager'
+
 import type {
   CircuitForgeProject,
   SaveProjectResult,
   OpenProjectResult,
-  ExplainCircuitRequest
+  ExplainCircuitRequest,
+  BlockSynthesisRequest
 } from '../../shared/types'
 
 /**
@@ -195,5 +202,10 @@ export function registerIpcHandlers(getMainWindow: () => BrowserWindow | null): 
 
   ipcMain.handle('ai:get-api-key-status', async () => {
     return getAiApiKeyStatus()
+  })
+
+  // AI Natural Language Block Synthesis (Milestone v0.6 Phase 14)
+  ipcMain.handle('ai:synthesize-blocks', async (_, request: BlockSynthesisRequest) => {
+    return synthesizeBlocks(request)
   })
 }

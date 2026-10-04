@@ -7,6 +7,7 @@ export interface CopilotPanelProps {
   code: string
   workspaceRef?: React.RefObject<Blockly.WorkspaceSvg | null>
   showNotification: (msg: string) => void
+  onOpenPromptModal?: () => void
 }
 
 function getWireDotColor(wireColor: string): string {
@@ -25,7 +26,8 @@ function getWireDotColor(wireColor: string): string {
 export function CopilotPanel({
   boardId,
   code,
-  showNotification
+  showNotification,
+  onOpenPromptModal
 }: CopilotPanelProps): React.JSX.Element {
   const [explanation, setExplanation] = useState<CircuitExplanation | null>(null)
   const [isLoading, setIsLoading] = useState<boolean>(false)
@@ -135,6 +137,28 @@ export function CopilotPanel({
         </div>
 
         <div className="cf-copilot-header-right">
+          {onOpenPromptModal && (
+            <button
+              className="cf-btn-sm cf-btn-synthesizer"
+              onClick={onOpenPromptModal}
+              title="Open Prompt-to-Blocks Synthesizer"
+            >
+              <svg
+                width="12"
+                height="12"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
+              </svg>
+              <span>Synthesizer</span>
+            </button>
+          )}
+
           <button
             className="cf-btn-sm"
             onClick={() => setIsKeyModalOpen(true)}
@@ -252,13 +276,35 @@ export function CopilotPanel({
                 <span>Voltage &amp; Ground Verification</span>
               </div>
             </div>
-            <button
-              className="cf-btn cf-btn-primary"
-              onClick={handleExplainCircuit}
-              disabled={!code.trim()}
-            >
-              Analyze Circuit Now
-            </button>
+            <div className="cf-copilot-empty-actions">
+              <button
+                className="cf-btn cf-btn-primary"
+                onClick={handleExplainCircuit}
+                disabled={!code.trim()}
+              >
+                Analyze Circuit Now
+              </button>
+              {onOpenPromptModal && (
+                <button
+                  className="cf-btn cf-btn-secondary cf-btn-empty-synthesizer"
+                  onClick={onOpenPromptModal}
+                >
+                  <svg
+                    width="12"
+                    height="12"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2.5"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
+                  </svg>
+                  <span>Synthesize from Natural Language</span>
+                </button>
+              )}
+            </div>
           </div>
         )}
 
