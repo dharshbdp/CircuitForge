@@ -39,10 +39,98 @@ export function CodeEditor({
     })
   }
 
-  // Handle Tab key for 2-space indentation and Shift+Tab outdent
+  // Handle keyboard shortcuts (Tab indent/outdent, Ctrl+/ line comment)
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>): void => {
     if (readOnly) return
 
+    // 1. Quick Line Commenting (Ctrl+/ or Cmd+/)
+    if ((e.ctrlKey || e.metaKey) && e.key === '/') {
+      e.preventDefault()
+      const textarea = textareaRef.current
+      if (!textarea) return
+
+      const start = textarea.selectionStart
+      const end = textarea.selectionEnd
+      const commentPrefix = language === 'cpp' ? '// ' : '# '
+      const commentRegex = language === 'cpp' ? /^(\s*)\/\/\s?/ : /^(\s*)#\s?/
+
+      const allLines = value.split('\n')
+
+      // Find 0-indexed line numbers intersecting the selection
+      let charCount = 0
+      let startLineIdx = 0
+      let endLineIdx = 0
+
+      for (let i = 0; i < allLines.length; i++) {
+        const lineLen = allLines[i].length + 1
+        const lineStart = charCount
+        const lineEnd = charCount + allLines[i].length
+
+        if (start >= lineStart && start <= lineEnd) {
+          startLineIdx = i
+        }
+        if (end >= lineStart && end <= lineEnd) {
+          if (end === lineStart && start < end) {
+            endLineIdx = Math.max(startLineIdx, i - 1)
+          } else {
+            endLineIdx = i
+          }
+        }
+        charCount += lineLen
+      }
+
+      const targetLines = allLines.slice(startLineIdx, endLineIdx + 1)
+      const nonBlankLines = targetLines.filter((l) => l.trim().length > 0)
+
+      // Are all non-blank lines currently commented?
+      const areAllCommented =
+        nonBlankLines.length > 0 && nonBlankLines.every((l) => commentRegex.test(l))
+
+      let deltaFirstLine = 0
+      let totalDelta = 0
+
+      const modifiedLines = targetLines.map((line, idx) => {
+        let newLine = line
+        if (areAllCommented) {
+          // Remove comment prefix while preserving indentation
+          newLine = line.replace(commentRegex, '$1')
+        } else {
+          // Add comment prefix preserving indentation
+          if (targetLines.length === 1 || line.trim().length > 0) {
+            const wsMatch = line.match(/^(\s*)/)
+            const ws = wsMatch ? wsMatch[1] : ''
+            const rest = line.slice(ws.length)
+            newLine = `${ws}${commentPrefix}${rest}`
+          }
+        }
+
+        const delta = newLine.length - line.length
+        if (idx === 0) deltaFirstLine = delta
+        totalDelta += delta
+        return newLine
+      })
+
+      const newAllLines = [
+        ...allLines.slice(0, startLineIdx),
+        ...modifiedLines,
+        ...allLines.slice(endLineIdx + 1)
+      ]
+      const nextVal = newAllLines.join('\n')
+
+      onChange(nextVal)
+
+      requestAnimationFrame(() => {
+        if (!textareaRef.current) return
+        const newStart = Math.max(0, start + deltaFirstLine)
+        const newEnd = Math.max(newStart, end + totalDelta)
+        textareaRef.current.selectionStart = newStart
+        textareaRef.current.selectionEnd = newEnd
+        updateCursor()
+      })
+      return
+    }
+
+    // 2. Handle Tab key for 2-space indentation and Shift+Tab outdent (supports single cursor & multi-line selection)
     if (e.key === 'Tab') {
       e.preventDefault()
       const textarea = textareaRef.current
@@ -51,27 +139,83 @@ export function CodeEditor({
       const start = textarea.selectionStart
       const end = textarea.selectionEnd
 
-      if (e.shiftKey) {
-        // Outdent 2 spaces
-        const lineStart = value.lastIndexOf('\n', start - 1) + 1
-        if (value.slice(lineStart, lineStart + 2) === '  ') {
-          const nextVal = value.slice(0, lineStart) + value.slice(lineStart + 2)
-          onChange(nextVal)
-          requestAnimationFrame(() => {
-            textarea.selectionStart = Math.max(lineStart, start - 2)
-            textarea.selectionEnd = Math.max(lineStart, end - 2)
-            updateCursor()
-          })
-        }
-      } else {
-        // Indent 2 spaces
+      // Single cursor position without selection: insert 2 spaces
+      if (start === end && !e.shiftKey) {
         const nextVal = value.substring(0, start) + '  ' + value.substring(end)
         onChange(nextVal)
         requestAnimationFrame(() => {
           textarea.selectionStart = textarea.selectionEnd = start + 2
           updateCursor()
         })
+        return
       }
+
+      // Multi-line selection or Shift+Tab outdent
+      const allLines = value.split('\n')
+      let charCount = 0
+      let startLineIdx = 0
+      let endLineIdx = 0
+
+      for (let i = 0; i < allLines.length; i++) {
+        const lineLen = allLines[i].length + 1
+        const lineStart = charCount
+        const lineEnd = charCount + allLines[i].length
+
+        if (start >= lineStart && start <= lineEnd) {
+          startLineIdx = i
+        }
+        if (end >= lineStart && end <= lineEnd) {
+          if (end === lineStart && start < end) {
+            endLineIdx = Math.max(startLineIdx, i - 1)
+          } else {
+            endLineIdx = i
+          }
+        }
+        charCount += lineLen
+      }
+
+      const targetLines = allLines.slice(startLineIdx, endLineIdx + 1)
+      let deltaFirstLine = 0
+      let totalDelta = 0
+
+      const modifiedLines = targetLines.map((line, idx) => {
+        let newLine = line
+        if (e.shiftKey) {
+          // Outdent up to 2 spaces
+          if (line.startsWith('  ')) {
+            newLine = line.slice(2)
+          } else if (line.startsWith(' ')) {
+            newLine = line.slice(1)
+          }
+        } else {
+          // Indent 2 spaces
+          newLine = '  ' + line
+        }
+
+        const delta = newLine.length - line.length
+        if (idx === 0) deltaFirstLine = delta
+        totalDelta += delta
+        return newLine
+      })
+
+      const newAllLines = [
+        ...allLines.slice(0, startLineIdx),
+        ...modifiedLines,
+        ...allLines.slice(endLineIdx + 1)
+      ]
+      const nextVal = newAllLines.join('\n')
+
+      onChange(nextVal)
+
+      requestAnimationFrame(() => {
+        if (!textareaRef.current) return
+        const newStart = Math.max(0, start + deltaFirstLine)
+        const newEnd = Math.max(newStart, end + totalDelta)
+        textareaRef.current.selectionStart = newStart
+        textareaRef.current.selectionEnd = newEnd
+        updateCursor()
+      })
+      return
     }
   }
 
@@ -109,7 +253,8 @@ export function CodeEditor({
       </div>
       <div className="cf-code-editor-status">
         <span className="cf-code-status-lang">
-          {language === 'cpp' ? 'Arduino C++ (.ino)' : 'MicroPython (.py)'}
+          {language === 'cpp' ? 'Arduino C++ (.ino)' : 'MicroPython (.py)'} &middot; Ctrl+/ to
+          comment
         </span>
         <span className="cf-code-status-pos">
           Ln {cursorPos.line}, Col {cursorPos.col} &middot; {lineCount} lines &middot;{' '}

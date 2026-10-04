@@ -35,7 +35,36 @@ export function TelemetryDashboard({
   isConnected
 }: TelemetryDashboardProps): React.JSX.Element {
   const canvasRef = useRef<HTMLCanvasElement | null>(null)
+  const containerRef = useRef<HTMLDivElement | null>(null)
   const [selectedChannels, setSelectedChannels] = useState<Record<string, boolean>>({})
+  const [canvasDimensions, setCanvasDimensions] = useState<{ width: number; height: number }>({
+    width: 600,
+    height: 240
+  })
+
+  // ResizeObserver for High-DPI canvas & responsive split divider tracking
+  useEffect(() => {
+    const container = containerRef.current
+    if (!container) return
+
+    const updateSize = (): void => {
+      const rect = container.getBoundingClientRect()
+      if (rect.width > 0 && rect.height > 0) {
+        setCanvasDimensions({
+          width: Math.floor(rect.width),
+          height: Math.floor(rect.height)
+        })
+      }
+    }
+
+    updateSize()
+    const observer = new ResizeObserver(() => {
+      updateSize()
+    })
+    observer.observe(container)
+
+    return () => observer.disconnect()
+  }, [])
 
   // Toggle channel visibility on graph
   const toggleChannel = (channel: string): void => {
@@ -69,22 +98,26 @@ export function TelemetryDashboard({
     return result
   }, [history, channels])
 
-  // Canvas Oscilloscope Rendering
+  // Canvas Oscilloscope Rendering (High-DPI Razor-Sharp)
   useEffect(() => {
     const canvas = canvasRef.current
     if (!canvas) return
     const ctx = canvas.getContext('2d')
     if (!ctx) return
 
-    // Set canvas dimensions based on display resolution (retina crisp)
-    const rect = canvas.getBoundingClientRect()
-    const dpr = window.devicePixelRatio || 1
-    canvas.width = rect.width * dpr
-    canvas.height = rect.height * dpr
-    ctx.scale(dpr, dpr)
+    const { width, height } = canvasDimensions
+    if (width <= 0 || height <= 0) return
 
-    const width = rect.width
-    const height = rect.height
+    // Set canvas dimensions based on display resolution (retina / 4K crisp)
+    const dpr = window.devicePixelRatio || 1
+    canvas.width = Math.round(width * dpr)
+    canvas.height = Math.round(height * dpr)
+    canvas.style.width = `${width}px`
+    canvas.style.height = `${height}px`
+
+    // Reset and scale context for High-DPI
+    ctx.setTransform(1, 0, 0, 1, 0, 0)
+    ctx.scale(dpr, dpr)
 
     // Background fill
     ctx.fillStyle = '#0a0a0c'
@@ -184,7 +217,7 @@ export function TelemetryDashboard({
 
       ctx.stroke()
     })
-  }, [history, channels, selectedChannels, stats])
+  }, [history, channels, selectedChannels, stats, canvasDimensions])
 
   return (
     <div className="cf-telemetry-dashboard">
@@ -243,7 +276,7 @@ export function TelemetryDashboard({
       </div>
 
       {/* Main Visual: Oscilloscope Canvas */}
-      <div className="cf-oscilloscope-container">
+      <div className="cf-oscilloscope-container" ref={containerRef}>
         <canvas ref={canvasRef} className="cf-oscilloscope-canvas" />
 
         {/* Legend / Filter Chips */}
