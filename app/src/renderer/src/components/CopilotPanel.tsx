@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import type * as Blockly from 'blockly'
 import type { CircuitExplanation, AiApiKeyStatus } from '@shared/types'
+import type { CircuitDiagnosticsResult } from '@core/validation'
 
 export interface CopilotPanelProps {
   boardId: string
@@ -8,6 +9,8 @@ export interface CopilotPanelProps {
   workspaceRef?: React.RefObject<Blockly.WorkspaceSvg | null>
   showNotification: (msg: string) => void
   onOpenPromptModal?: () => void
+  diagnostics?: CircuitDiagnosticsResult | null
+  blockCount?: number
 }
 
 function getWireDotColor(wireColor: string): string {
@@ -26,8 +29,11 @@ function getWireDotColor(wireColor: string): string {
 export function CopilotPanel({
   boardId,
   code,
+  workspaceRef,
   showNotification,
-  onOpenPromptModal
+  onOpenPromptModal,
+  diagnostics,
+  blockCount = 0
 }: CopilotPanelProps): React.JSX.Element {
   const [explanation, setExplanation] = useState<CircuitExplanation | null>(null)
   const [isLoading, setIsLoading] = useState<boolean>(false)
@@ -108,6 +114,21 @@ export function CopilotPanel({
       showNotification('Wiring table copied to clipboard as Markdown')
       setTimeout(() => setCopiedTable(false), 2000)
     })
+  }
+
+  // Highlight and focus block on the Blockly workspace
+  const handleFocusBlock = (blockId: string): void => {
+    const ws = workspaceRef?.current
+    if (!ws) return
+    const block = ws.getBlockById(blockId)
+    if (block) {
+      block.select()
+      const wsAny = ws as unknown as { centerOnBlock?: (id: string) => void }
+      if (typeof wsAny.centerOnBlock === 'function') {
+        wsAny.centerOnBlock(blockId)
+      }
+      showNotification(`Focused block: ${block.type}`)
+    }
   }
 
   return (
@@ -230,6 +251,87 @@ export function CopilotPanel({
               <line x1="12" y1="16" x2="12.01" y2="16" />
             </svg>
             <span>{explanation.error}</span>
+          </div>
+        )}
+
+        {/* Hardware & Pin Conflict Diagnostics Card (Milestone v0.6 Phase 15) */}
+        {diagnostics && diagnostics.conflicts.length > 0 && (
+          <div
+            className={`cf-copilot-card cf-diagnostics-panel-card ${
+              diagnostics.hasErrors ? 'cf-card-has-errors' : 'cf-card-has-warnings'
+            }`}
+          >
+            <div className="cf-card-header cf-card-header-diagnostics">
+              <div className="cf-diagnostics-header-title">
+                <span className="cf-card-title">PIN &amp; HARDWARE CONFLICT DIAGNOSTICS</span>
+                <div className="cf-diagnostics-header-pills">
+                  {diagnostics.errorCount > 0 && (
+                    <span className="cf-diag-pill cf-diag-pill-error">
+                      {diagnostics.errorCount}{' '}
+                      {diagnostics.errorCount === 1 ? 'CONFLICT' : 'CONFLICTS'}
+                    </span>
+                  )}
+                  {diagnostics.warningCount > 0 && (
+                    <span className="cf-diag-pill cf-diag-pill-warning">
+                      {diagnostics.warningCount}{' '}
+                      {diagnostics.warningCount === 1 ? 'WARNING' : 'WARNINGS'}
+                    </span>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            <p className="cf-diag-summary">{diagnostics.summary}</p>
+
+            <div className="cf-conflict-list">
+              {diagnostics.conflicts.map((conflict) => (
+                <div
+                  key={conflict.id}
+                  className={`cf-conflict-item cf-conflict-${conflict.severity}`}
+                >
+                  <div className="cf-conflict-item-header">
+                    <span className={`cf-severity-badge cf-severity-${conflict.severity}`}>
+                      {conflict.severity === 'error'
+                        ? 'CONFLICT'
+                        : conflict.severity === 'warning'
+                          ? 'WARNING'
+                          : 'ADVISORY'}
+                    </span>
+                    <span className="cf-conflict-pin-tag">PIN {conflict.pin}</span>
+                    <span className="cf-conflict-title">{conflict.title}</span>
+                    {workspaceRef && (
+                      <button
+                        type="button"
+                        className="cf-btn-focus-block"
+                        onClick={() => handleFocusBlock(conflict.blockId)}
+                        title="Highlight block on canvas"
+                      >
+                        Highlight Block
+                      </button>
+                    )}
+                  </div>
+                  <div className="cf-conflict-message">{conflict.message}</div>
+                  <div className="cf-conflict-fix">
+                    <span className="cf-fix-label">RECOMMENDED FIX:</span>
+                    <span className="cf-fix-text">{conflict.suggestedFix}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Clean Bill of Health when blocks are on canvas and 0 conflicts/warnings */}
+        {diagnostics && !diagnostics.hasErrors && !diagnostics.hasWarnings && blockCount > 0 && (
+          <div className="cf-copilot-card cf-diagnostics-ok-card">
+            <div className="cf-diagnostics-ok-content">
+              <span className="cf-dot cf-dot-green" />
+              <span className="cf-ok-title">PIN CONFIGURATION VALID</span>
+              <span className="cf-ok-desc">
+                No pin contention, PWM timer conflicts, or voltage hazards detected for{' '}
+                {boardId.toUpperCase()}.
+              </span>
+            </div>
           </div>
         )}
 

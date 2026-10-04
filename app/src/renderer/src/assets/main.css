@@ -3182,3 +3182,289 @@ body.cf-resizing iframe {
   gap: 8px;
   margin-top: 12px;
 }
+
+/* ==========================================================================
+   Milestone v0.6 Phase 15: Circuit & Pin Conflict Diagnostics Styles
+   ========================================================================== */
+
+/* Ribbon Diagnostics Status Badge */
+.cf-diagnostics-ribbon-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  border: 1px solid var(--border-default);
+  background: var(--bg-surface);
+}
+
+.cf-diag-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+}
+
+.cf-diagnostics-ribbon-badge.cf-diag-error {
+  background: rgba(239, 68, 68, 0.12);
+  border-color: rgba(239, 68, 68, 0.4);
+  color: #f87171;
+}
+
+.cf-diagnostics-ribbon-badge.cf-diag-error .cf-diag-dot {
+  background: #ef4444;
+  box-shadow: 0 0 6px #ef4444;
+}
+
+.cf-diagnostics-ribbon-badge.cf-diag-warning {
+  background: rgba(245, 158, 11, 0.12);
+  border-color: rgba(245, 158, 11, 0.4);
+  color: #fbbf24;
+}
+
+.cf-diagnostics-ribbon-badge.cf-diag-warning .cf-diag-dot {
+  background: #f59e0b;
+  box-shadow: 0 0 6px #f59e0b;
+}
+
+.cf-diagnostics-ribbon-badge.cf-diag-valid {
+  background: rgba(16, 185, 129, 0.08);
+  border-color: rgba(16, 185, 129, 0.3);
+  color: #34d399;
+}
+
+.cf-diagnostics-ribbon-badge.cf-diag-valid .cf-diag-dot {
+  background: #10b981;
+}
+
+.cf-diagnostics-ribbon-badge:hover {
+  filter: brightness(1.15);
+}
+
+/* Copilot Tab Badges */
+.cf-tab-badge-error {
+  background: rgba(239, 68, 68, 0.2) !important;
+  color: #f87171 !important;
+  border: 1px solid rgba(239, 68, 68, 0.4) !important;
+}
+
+.cf-tab-badge-warning {
+  background: rgba(245, 158, 11, 0.2) !important;
+  color: #fbbf24 !important;
+  border: 1px solid rgba(245, 158, 11, 0.4) !important;
+}
+
+/* Copilot Diagnostics Panel Card */
+.cf-diagnostics-panel-card {
+  border-radius: 6px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-default);
+  padding: 14px 16px;
+}
+
+.cf-card-has-errors {
+  border-color: rgba(239, 68, 68, 0.45);
+  box-shadow: 0 0 16px rgba(239, 68, 68, 0.06);
+}
+
+.cf-card-has-warnings {
+  border-color: rgba(245, 158, 11, 0.45);
+  box-shadow: 0 0 16px rgba(245, 158, 11, 0.06);
+}
+
+.cf-card-header-diagnostics {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.cf-diagnostics-header-title {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+}
+
+.cf-diagnostics-header-pills {
+  display: flex;
+  gap: 6px;
+}
+
+.cf-diag-pill {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  padding: 2px 7px;
+  border-radius: 4px;
+}
+
+.cf-diag-pill-error {
+  background: rgba(239, 68, 68, 0.2);
+  border: 1px solid rgba(239, 68, 68, 0.4);
+  color: #f87171;
+}
+
+.cf-diag-pill-warning {
+  background: rgba(245, 158, 11, 0.2);
+  border: 1px solid rgba(245, 158, 11, 0.4);
+  color: #fbbf24;
+}
+
+.cf-diag-summary {
+  font-size: 11.5px;
+  color: var(--text-secondary);
+  margin: 0 0 12px 0;
+  line-height: 1.45;
+}
+
+.cf-conflict-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.cf-conflict-item {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: 5px;
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.cf-conflict-item.cf-conflict-error {
+  border-left: 3px solid #ef4444;
+}
+
+.cf-conflict-item.cf-conflict-warning {
+  border-left: 3px solid #f59e0b;
+}
+
+.cf-conflict-item.cf-conflict-info {
+  border-left: 3px solid #3b82f6;
+}
+
+.cf-conflict-item-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.cf-severity-badge {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  padding: 1px 5px;
+  border-radius: 3px;
+}
+
+.cf-severity-error {
+  background: rgba(239, 68, 68, 0.2);
+  color: #f87171;
+}
+
+.cf-severity-warning {
+  background: rgba(245, 158, 11, 0.2);
+  color: #fbbf24;
+}
+
+.cf-severity-info {
+  background: rgba(59, 130, 246, 0.2);
+  color: #60a5fa;
+}
+
+.cf-conflict-pin-tag {
+  font-family: 'Consolas', 'Courier New', monospace;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 1px 6px;
+  border-radius: 3px;
+  background: var(--bg-terminal);
+  border: 1px solid var(--border-subtle);
+  color: var(--text-primary);
+}
+
+.cf-conflict-title {
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--text-primary);
+  flex: 1;
+}
+
+.cf-btn-focus-block {
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  background: var(--bg-card);
+  border: 1px solid var(--border-default);
+  border-radius: 3px;
+  padding: 2px 7px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  margin-left: auto;
+}
+
+.cf-btn-focus-block:hover {
+  background: var(--bg-surface);
+  color: var(--text-primary);
+  border-color: var(--text-muted);
+}
+
+.cf-conflict-message {
+  font-size: 11px;
+  line-height: 1.45;
+  color: var(--text-secondary);
+}
+
+.cf-conflict-fix {
+  font-size: 10.5px;
+  line-height: 1.4;
+  padding: 6px 10px;
+  border-radius: 4px;
+  background: var(--bg-terminal);
+  border: 1px solid var(--border-subtle);
+  display: flex;
+  gap: 6px;
+}
+
+.cf-fix-label {
+  font-weight: 700;
+  color: var(--text-muted);
+  flex-shrink: 0;
+}
+
+.cf-fix-text {
+  color: var(--text-primary);
+}
+
+/* Clean Bill of Health Card */
+.cf-diagnostics-ok-card {
+  border-radius: 6px;
+  background: rgba(16, 185, 129, 0.05);
+  border: 1px solid rgba(16, 185, 129, 0.25);
+  padding: 10px 14px;
+}
+
+.cf-diagnostics-ok-content {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 11.5px;
+}
+
+.cf-ok-title {
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: #34d399;
+}
+
+.cf-ok-desc {
+  color: var(--text-secondary);
+}

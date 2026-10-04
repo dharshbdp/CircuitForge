@@ -253,7 +253,7 @@ graph TD
 
 ---
 
-### Milestone v0.6 — AI Hardware Copilot and Assistant (Current Milestone)
+### Milestone v0.6 — AI Hardware Copilot and Assistant (Completed)
 *Primary Objective: Layer intelligent circuit reasoning, natural language block synthesis, and automated hardware auditing.*
 
 #### Phase 13: Context-Aware Circuit Explainer (Completed)
@@ -272,13 +272,17 @@ graph TD
   - Blockly workspace automatically clears or appends the synthesized blocks.
 - **Gate / Definition of Done**: Prompting a common IoT task generates valid, connected blocks in the workspace that immediately transpile to working C++.
 
-
-#### Phase 15: Circuit and Pin Conflict Diagnostics
-- [ ] Implement static hardware rules engine:
-  - Detect pin reuse conflicts (e.g. using Pin 0/1 for digital I/O while Serial is active).
-  - Detect PWM conflicts on non-PWM pins.
-  - Detect voltage mismatches (e.g. 5V sensor outputs connected to 3.3V GPIOs on ESP32 without divider warnings).
-- [ ] Inline warning badges in the Blockly workspace highlighting problematic blocks with suggested fixes.
+#### Phase 15: Circuit and Pin Conflict Diagnostics (Completed)
+- [x] Implement static hardware rules engine:
+  - Detect pin reuse conflicts (multiple components sharing pins, ultrasonic Trig == Echo).
+  - Detect Serial UART collisions (pins 0/1 on AVR boards while Serial logging is active).
+  - Detect PWM conflicts on non-PWM pins (e.g. D2, D4, D7, D8, D12, D13 on Arduino Uno).
+  - Detect input-only pin violations (GPIOs 34, 35, 36, 39 on ESP32).
+  - Detect voltage domain hazards (5V HC-SR04 echo or MQ-2 output into 3.3V GPIOs without dividers).
+- [x] Inline warning badges directly on Blockly workspace blocks (`block.setWarningText(...)`).
+- [x] Real-time diagnostics status badge in the Action Ribbon (`PINS VALID` / `N WARNINGS` / `N PIN CONFLICTS`).
+- [x] Pre-flight conflict check in `handleUpload` preventing accidental flashing of hazardous circuits without confirmation.
+- [x] Active Hardware Diagnostics audit cards in `CopilotPanel` with "Highlight Block" canvas navigation.
 - **Gate / Definition of Done**: Workspace flags conflicting pin configurations before any code is flashed to hardware.
 
 ---

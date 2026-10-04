@@ -13,6 +13,11 @@ import { codeToBlocks } from '@core/parser'
 import StarterLibraryModal from '../components/StarterLibraryModal'
 import PromptToBlocksModal from '../components/PromptToBlocksModal'
 import type { StarterProject } from '../data/starterProjects'
+import {
+  diagnoseCircuit,
+  applyBlocklyWarningBadges,
+  type CircuitDiagnosticsResult
+} from '@core/validation'
 
 const BAUD_RATES = [9600, 19200, 38400, 57600, 115200, 230400]
 
@@ -122,6 +127,7 @@ export function EditorPage(): React.JSX.Element {
   const [buildStats, setBuildStats] = useState<CompileResult | null>(null)
   const [lastError, setLastError] = useState<string | null>(null)
   const [compilerLogs, setCompilerLogs] = useState<string[]>([])
+  const [diagnostics, setDiagnostics] = useState<CircuitDiagnosticsResult | null>(null)
 
   // Project Management States (Milestone v0.4 Phase 10)
   const [projectName, setProjectName] = useState<string>('Untitled Project')
@@ -234,7 +240,7 @@ export function EditorPage(): React.JSX.Element {
     }
   }, [selectedBaud, isCodeEdited])
 
-  // Blockly workspace change handler & live dual code generator
+  // Blockly workspace change handler, hardware diagnostics & live dual code generator
   const handleWorkspaceChange = useCallback(
     (workspace: Blockly.WorkspaceSvg): void => {
       const count = workspace.getAllBlocks(false).length
@@ -244,6 +250,16 @@ export function EditorPage(): React.JSX.Element {
       } else {
         setIsDirty(true)
       }
+
+      // Milestone v0.6 Phase 15: Run static hardware rules engine and annotate blocks with warning badges
+      try {
+        const diag = diagnoseCircuit(workspace, selectedBoard)
+        applyBlocklyWarningBadges(workspace, diag)
+        setDiagnostics(diag)
+      } catch (diagErr) {
+        console.error('Failed to run circuit diagnostics:', diagErr)
+      }
+
       try {
         const cpp = arduinoGenerator.workspaceToCode(workspace, selectedBaud)
         setCppCode(cpp)
@@ -258,8 +274,21 @@ export function EditorPage(): React.JSX.Element {
       }
       setIsCodeEdited(false)
     },
-    [selectedBaud]
+    [selectedBaud, selectedBoard]
   )
+
+  // Synchronize circuit diagnostics when target board changes
+  useEffect(() => {
+    if (workspaceRef.current) {
+      try {
+        const diag = diagnoseCircuit(workspaceRef.current, selectedBoard)
+        applyBlocklyWarningBadges(workspaceRef.current, diag)
+        setDiagnostics(diag)
+      } catch (diagErr) {
+        console.error('Failed to update circuit diagnostics on board change:', diagErr)
+      }
+    }
+  }, [selectedBoard])
 
   // Project Operations: New, Save, Save As, Open, Load Template
   const handleNewProject = (): void => {
@@ -269,6 +298,7 @@ export function EditorPage(): React.JSX.Element {
     isProgrammaticLoadRef.current = true
     workspaceRef.current?.clear()
     setBlockCount(0)
+    setDiagnostics(null)
     setProjectName('Untitled Project')
     setCurrentFilePath(null)
     setIsDirty(false)
@@ -466,6 +496,7 @@ export function EditorPage(): React.JSX.Element {
     if (workspaceRef.current) {
       workspaceRef.current.clear()
       setBlockCount(0)
+      setDiagnostics(null)
       setIsDirty(true)
     }
   }
@@ -548,6 +579,21 @@ export function EditorPage(): React.JSX.Element {
       setLastError('No serial port selected. Connect your board and select a COM port first.')
       setActiveTab('build')
       return
+    }
+
+    // Milestone v0.6 Phase 15: Hardware Pin Conflict Pre-Flight Guard
+    if (diagnostics?.hasErrors) {
+      const errorList = diagnostics.conflicts
+        .filter((c) => c.severity === 'error')
+        .map((c) => `• ${c.title}`)
+        .join('\n')
+      const proceed = window.confirm(
+        `Hardware Pin Conflicts Detected (${diagnostics.errorCount}):\n\n${errorList}\n\nFlashing conflicting pin assignments may cause electrical contention, signal latching, or bootloader lockouts.\n\nDo you want to upload anyway?`
+      )
+      if (!proceed) {
+        setActiveTab('copilot')
+        return
+      }
     }
 
     setIsUploading(true)
@@ -870,6 +916,31 @@ export function EditorPage(): React.JSX.Element {
               </svg>
               <span>AI Prompt</span>
             </button>
+
+            {/* Static Hardware Diagnostics Status Badge (Milestone v0.6 Phase 15) */}
+            {diagnostics && blockCount > 0 && (
+              <button
+                type="button"
+                className={`cf-btn-action cf-diagnostics-ribbon-badge ${
+                  diagnostics.hasErrors
+                    ? 'cf-diag-error'
+                    : diagnostics.hasWarnings
+                      ? 'cf-diag-warning'
+                      : 'cf-diag-valid'
+                }`}
+                onClick={() => setActiveTab('copilot')}
+                title={`${diagnostics.summary} (Click to inspect in Copilot)`}
+              >
+                <span className="cf-diag-dot" />
+                <span>
+                  {diagnostics.hasErrors
+                    ? `${diagnostics.errorCount} PIN CONFLICT${diagnostics.errorCount > 1 ? 'S' : ''}`
+                    : diagnostics.hasWarnings
+                      ? `${diagnostics.warningCount} WARNING${diagnostics.warningCount > 1 ? 'S' : ''}`
+                      : 'PINS OK'}
+                </span>
+              </button>
+            )}
           </div>
 
           {/* Right: Board & Hardware Serial Functions */}
@@ -1127,6 +1198,22 @@ export function EditorPage(): React.JSX.Element {
                 aria-selected={activeTab === 'copilot'}
               >
                 <span>AI COPILOT</span>
+                {diagnostics && diagnostics.hasErrors && (
+                  <span
+                    className="cf-tab-badge cf-tab-badge-error"
+                    title={`${diagnostics.errorCount} pin conflicts`}
+                  >
+                    {diagnostics.errorCount}
+                  </span>
+                )}
+                {diagnostics && !diagnostics.hasErrors && diagnostics.hasWarnings && (
+                  <span
+                    className="cf-tab-badge cf-tab-badge-warning"
+                    title={`${diagnostics.warningCount} warnings`}
+                  >
+                    {diagnostics.warningCount}
+                  </span>
+                )}
               </button>
             </div>
           </div>
@@ -1512,7 +1599,7 @@ export function EditorPage(): React.JSX.Element {
             </div>
           )}
 
-          {/* Tab Content: AI Hardware Copilot (Milestone v0.6 Phase 13) */}
+          {/* Tab Content: AI Hardware Copilot (Milestone v0.6 Phase 13 & 15) */}
           {activeTab === 'copilot' && (
             <div className="cf-tab-content cf-tab-copilot">
               <CopilotPanel
@@ -1521,6 +1608,8 @@ export function EditorPage(): React.JSX.Element {
                 workspaceRef={workspaceRef}
                 showNotification={showNotification}
                 onOpenPromptModal={() => setIsPromptModalOpen(true)}
+                diagnostics={diagnostics}
+                blockCount={blockCount}
               />
             </div>
           )}
