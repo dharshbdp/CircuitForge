@@ -9,7 +9,10 @@ import type {
   UploadResult,
   CircuitForgeProject,
   SaveProjectResult,
-  OpenProjectResult
+  OpenProjectResult,
+  ExplainCircuitRequest,
+  CircuitExplanation,
+  AiApiKeyStatus
 } from '../shared/types'
 
 // Custom APIs for renderer
@@ -62,7 +65,15 @@ const api: CircuitForgeAPI = {
   saveProject: (project: CircuitForgeProject, filePath?: string): Promise<SaveProjectResult> =>
     ipcRenderer.invoke('project:save', { project, filePath }),
 
-  openProject: (): Promise<OpenProjectResult> => ipcRenderer.invoke('project:open')
+  openProject: (): Promise<OpenProjectResult> => ipcRenderer.invoke('project:open'),
+
+  // AI Hardware Copilot (Milestone v0.6 Phase 13)
+  explainCircuit: (request: ExplainCircuitRequest): Promise<CircuitExplanation> =>
+    ipcRenderer.invoke('ai:explain-circuit', request),
+
+  setAiApiKey: (apiKey: string): Promise<boolean> => ipcRenderer.invoke('ai:set-api-key', apiKey),
+
+  getAiApiKeyStatus: (): Promise<AiApiKeyStatus> => ipcRenderer.invoke('ai:get-api-key-status')
 }
 
 // Use `contextBridge` APIs to expose Electron APIs to

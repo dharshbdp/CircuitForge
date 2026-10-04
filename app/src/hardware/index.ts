@@ -23,3 +23,7 @@ export const SUPPORTED_BOARDS: BoardProfile[] = [
   ESP32_DEVKIT_PROFILE,
   RASPBERRY_PI_PICO_PROFILE
 ]
+
+export function getBoardById(id: string): BoardProfile | undefined {
+  return SUPPORTED_BOARDS.find((b) => b.id === id)
+}

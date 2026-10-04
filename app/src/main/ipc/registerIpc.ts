@@ -8,7 +8,13 @@ import {
   getCurrentConnectionState
 } from '../serial/serialManager'
 import { getToolchainStatus, installCore, compile, upload } from '../compiler'
-import type { CircuitForgeProject, SaveProjectResult, OpenProjectResult } from '../../shared/types'
+import { explainCircuitWithAi, setAiApiKey, getAiApiKeyStatus } from '../ai/aiManager'
+import type {
+  CircuitForgeProject,
+  SaveProjectResult,
+  OpenProjectResult,
+  ExplainCircuitRequest
+} from '../../shared/types'
 
 /**
  * Register all IPC command and query channels for the main process.
@@ -176,5 +182,18 @@ export function registerIpcHandlers(getMainWindow: () => BrowserWindow | null): 
       const message = err instanceof Error ? err.message : String(err)
       return { success: false, error: message }
     }
+  })
+
+  // AI Hardware Copilot (Milestone v0.6 Phase 13)
+  ipcMain.handle('ai:explain-circuit', async (_, request: ExplainCircuitRequest) => {
+    return explainCircuitWithAi(request)
+  })
+
+  ipcMain.handle('ai:set-api-key', async (_, apiKey: string) => {
+    return setAiApiKey(apiKey)
+  })
+
+  ipcMain.handle('ai:get-api-key-status', async () => {
+    return getAiApiKeyStatus()
   })
 }

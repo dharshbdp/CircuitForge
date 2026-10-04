@@ -256,10 +256,10 @@ graph TD
 ### Milestone v0.6 — AI Hardware Copilot and Assistant (Current Milestone)
 *Primary Objective: Layer intelligent circuit reasoning, natural language block synthesis, and automated hardware auditing.*
 
-#### Phase 13: Context-Aware Circuit Explainer
-- [ ] Implement Main-process AI provider client with streaming response support.
-- [ ] Create Context Extractor: serializes active blocks, pin mappings, and board model into structured prompt context.
-- [ ] Build Copilot sidebar in UI:
+#### Phase 13: Context-Aware Circuit Explainer (Completed)
+- [x] Implement Main-process AI provider client with streaming response support.
+- [x] Create Context Extractor: serializes active blocks, pin mappings, and board model into structured prompt context.
+- [x] Build Copilot sidebar in UI:
   - Explains the purpose and runtime flow of the active visual program in plain English.
   - Generates step-by-step breadboard wiring instructions (e.g. "Connect Servo Signal to Pin 9, Red to 5V, Brown to GND").
 - **Gate / Definition of Done**: User clicks "Explain Circuit" and receives an accurate, grounded explanation and wiring table corresponding to their active blocks.

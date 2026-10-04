@@ -8,6 +8,7 @@ import type { CompileResult, CircuitForgeProject } from '@shared/types'
 import { useSerial, useTheme, useTelemetry } from '../hooks'
 import { TelemetryDashboard } from '../components/TelemetryDashboard'
 import { CodeEditor } from '../components/CodeEditor'
+import { CopilotPanel } from '../components/CopilotPanel'
 import { codeToBlocks } from '@core/parser'
 import StarterLibraryModal from '../components/StarterLibraryModal'
 import type { StarterProject } from '../data/starterProjects'
@@ -34,7 +35,7 @@ export function EditorPage(): React.JSX.Element {
   // Layout & Workspace states
   const [viewMode, setViewMode] = useState<'split' | 'canvas' | 'terminal'>('split')
   const [activeTab, setActiveTab] = useState<
-    'terminal' | 'code' | 'device' | 'build' | 'telemetry'
+    'terminal' | 'code' | 'device' | 'build' | 'telemetry' | 'copilot'
   >('terminal')
   const [blockCount, setBlockCount] = useState<number>(0)
   const [copiedCode, setCopiedCode] = useState<boolean>(false)
@@ -1014,6 +1015,15 @@ export function EditorPage(): React.JSX.Element {
               >
                 <span>DEVICE</span>
               </button>
+
+              <button
+                className={`cf-tab ${activeTab === 'copilot' ? 'active' : ''}`}
+                onClick={() => setActiveTab('copilot')}
+                role="tab"
+                aria-selected={activeTab === 'copilot'}
+              >
+                <span>AI COPILOT</span>
+              </button>
             </div>
           </div>
 
@@ -1395,6 +1405,18 @@ export function EditorPage(): React.JSX.Element {
                   </li>
                 </ol>
               </div>
+            </div>
+          )}
+
+          {/* Tab Content: AI Hardware Copilot (Milestone v0.6 Phase 13) */}
+          {activeTab === 'copilot' && (
+            <div className="cf-tab-content cf-tab-copilot">
+              <CopilotPanel
+                boardId={selectedBoard}
+                code={selectedLanguage === 'cpp' ? cppCode : pythonCode}
+                workspaceRef={workspaceRef}
+                showNotification={showNotification}
+              />
             </div>
           )}
         </section>

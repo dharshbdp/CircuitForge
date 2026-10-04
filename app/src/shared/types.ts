@@ -72,6 +72,35 @@ export interface OpenProjectResult {
   error?: string
 }
 
+// AI Copilot & Hardware Explainer (Milestone v0.6 Phase 13)
+export interface WiringStep {
+  component: string
+  boardPin: string
+  componentPin: string
+  wireColor: string
+  notes?: string
+}
+
+export interface CircuitExplanation {
+  summary: string
+  logicFlow: string[]
+  wiringTable: WiringStep[]
+  powerNotes: string[]
+  isAiGenerated: boolean
+  error?: string
+}
+
+export interface ExplainCircuitRequest {
+  boardId: string
+  code: string
+  blocksJson?: Record<string, unknown>
+}
+
+export interface AiApiKeyStatus {
+  isConfigured: boolean
+  maskedKey?: string
+}
+
 export interface CircuitForgeAPI {
   listSerialPorts: () => Promise<SerialPortDescriptor[]>
   connectSerial: (path: string, baudRate: number) => Promise<boolean>
@@ -91,4 +120,9 @@ export interface CircuitForgeAPI {
   // Project Storage & File Operations (Milestone v0.4 Phase 10)
   saveProject: (project: CircuitForgeProject, filePath?: string) => Promise<SaveProjectResult>
   openProject: () => Promise<OpenProjectResult>
+
+  // AI Hardware Copilot (Milestone v0.6 Phase 13)
+  explainCircuit: (request: ExplainCircuitRequest) => Promise<CircuitExplanation>
+  setAiApiKey: (apiKey: string) => Promise<boolean>
+  getAiApiKeyStatus: () => Promise<AiApiKeyStatus>
 }
