@@ -10,9 +10,9 @@ CircuitForge is a desktop application designed to make microcontroller and IoT d
 
 ---
 
-## Active Milestone: v0.6 (AI Hardware Copilot & Assistant)
+## Active Milestone: v0.7 (AI-Powered Code-to-Blocks Transpiler)
 
-Milestones **v0.1**, **v0.2**, **v0.3**, **v0.4**, and **v0.5** are complete:
+Milestones **v0.1**, **v0.2**, **v0.3**, **v0.4**, **v0.5**, and **v0.6** are complete:
 
 - [x] **v0.1: Hardware Link & Serial Core**:
   - Electron 39 + React 19 + TypeScript + Vite desktop app running on Windows.
@@ -32,15 +32,19 @@ Milestones **v0.1**, **v0.2**, **v0.3**, **v0.4**, and **v0.5** are complete:
   - Real-time HTML5 Canvas oscilloscope with auto-scaling Y-axis, channel filter chips, and metric cards (Latest, Min, Avg, Max).
   - Native `.circuitforge` project file format with save, open, dirty state tracking, and keyboard shortcuts (`Ctrl+S`, `Ctrl+O`, `Ctrl+N`).
   - Built-in Starter Project Library with 5 one-click loadable templates (Blink & Fade, Obstacle Avoidance, Weather Station, RGB Mood Lamp, Gas & Smoke Detector).
-
 - [x] **v0.5: Code-to-Blocks Bidirectional Sync**:
   - Interactive & editable code editor with line numbers gutter, scroll sync, and tab indentation.
   - Deterministic AST reverse transpiler converting Arduino C++ back into visual Blockly blocks.
   - Zero-loss `raw_cpp_code` fallback block preserving custom or unmapped C++ statements.
   - Setup boilerplate filtering for automatic actuator and serial initialization.
   - "Update Blocks from Code" action button, sync status badge (`In Sync` / `Modified`), and `Ctrl+Shift+B` shortcut.
+- [x] **v0.6: AI Hardware Copilot and Assistant**:
+  - **Context-Aware Circuit Explainer**: Plain-English program flow and step-by-step breadboard wiring generation.
+  - **Natural Language to Block Synthesis**: Prompt-to-Blocks modal turning natural language descriptions directly into connected Blockly workspaces.
+  - **Circuit and Pin Conflict Diagnostics**: Static rules engine detecting pin reuse, Serial UART collisions, PWM conflicts, ESP32 input-only violations, and voltage domain hazards.
+  - **Real-Time Visual Feedback & Upload Guard**: Direct Blockly warning badges, Action Ribbon diagnostics badge (`PINS VALID` / `WARNINGS` / `PIN CONFLICTS`), and pre-flight upload guard preventing dangerous flashing.
 
-The current active milestone is **v0.6 (AI Hardware Copilot and Assistant)**. For the full multi-phase plan, refer to [ROADMAP.md](./ROADMAP.md).
+The current active milestone is **v0.7 (AI-Powered Code-to-Blocks Transpiler)**. For the full multi-phase plan, refer to [ROADMAP.md](./ROADMAP.md).
 
 ---
 
@@ -51,8 +55,8 @@ The current active milestone is **v0.6 (AI Hardware Copilot and Assistant)**. Fo
 - **v0.3**: Embedded Compilation and One-Click Flashing (Completed)
 - **v0.4**: Live Telemetry Dashboard and Project Storage (Completed)
 - **v0.5**: Code-to-Blocks Bidirectional Sync (Completed)
-- **v0.6**: AI Hardware Copilot and Assistant (Current — Circuit reasoning, prompt-to-blocks, pin conflict diagnostics)
-- **v0.7**: AI-Powered Code-to-Blocks Transpiler (LLM-assisted conversion of complex/arbitrary Arduino sketches)
+- **v0.6**: AI Hardware Copilot and Assistant (Completed)
+- **v0.7**: AI-Powered Code-to-Blocks Transpiler (Current — LLM-assisted conversion of complex/arbitrary Arduino sketches)
 - **v1.0**: Production Packaging and Polished Release (Cross-platform installers, auto-updater & final polish)
 
 See [ROADMAP.md](./ROADMAP.md) for detailed tasks and architecture breakdown.

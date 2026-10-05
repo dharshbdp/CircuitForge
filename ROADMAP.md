@@ -91,8 +91,9 @@ graph TD
     style P10 fill:#2e7d32,stroke:#1b5e20,color:#fff
     style P11 fill:#2e7d32,stroke:#1b5e20,color:#fff
     style P12 fill:#2e7d32,stroke:#1b5e20,color:#fff
-    style P13 fill:#f57f17,stroke:#e65100,color:#fff
-    style P14 fill:#f57f17,stroke:#e65100,color:#fff
+    style P13 fill:#2e7d32,stroke:#1b5e20,color:#fff
+    style P14 fill:#2e7d32,stroke:#1b5e20,color:#fff
+    style P15 fill:#2e7d32,stroke:#1b5e20,color:#fff
 ```
 
 ---
