@@ -2870,11 +2870,13 @@ body.cf-resizing iframe {
 
 .cf-status-active {
   color: #10b981;
+  font-size: 11px;
   font-weight: 600;
 }
 
 .cf-status-offline {
-  color: #f59e0b;
+  color: var(--text-secondary);
+  font-size: 11px;
   font-weight: 500;
 }
 
@@ -2935,6 +2937,62 @@ body.cf-resizing iframe {
   gap: 6px;
   font-size: 11px;
   padding: 8px 14px;
+}
+
+/* Copilot Modal Header Badges */
+.cf-copilot-badge-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 8px;
+  flex-wrap: wrap;
+}
+
+.cf-copilot-badge {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  padding: 2px 7px;
+  border-radius: 4px;
+  background: var(--bg-terminal);
+  border: 1px solid var(--border-default);
+  color: var(--text-primary);
+  text-transform: uppercase;
+}
+
+.cf-copilot-model-tag,
+.cf-copilot-board-tag,
+.cf-copilot-subbadge {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  padding: 2px 7px;
+  border-radius: 4px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  color: var(--text-secondary);
+}
+
+.cf-ai-online-badge {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  padding: 2px 7px;
+  border-radius: 4px;
+  background: rgba(16, 185, 129, 0.1);
+  border: 1px solid rgba(16, 185, 129, 0.3);
+  color: #10b981;
+}
+
+.cf-ai-offline-badge {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  padding: 2px 7px;
+  border-radius: 4px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  color: var(--text-secondary);
 }
 
 /* Prompt to Blocks Modal */
@@ -3162,6 +3220,51 @@ body.cf-resizing iframe {
   padding: 12px 20px;
   border-top: 1px solid var(--border-default);
   background: var(--bg-surface);
+}
+
+.cf-modal-left-note {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.cf-status-text {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  color: var(--text-secondary);
+}
+
+.cf-status-text::before {
+  content: '';
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--text-muted);
+  flex-shrink: 0;
+}
+
+.cf-status-text.cf-status-online {
+  color: var(--text-secondary);
+  font-size: 11px;
+}
+
+.cf-status-text.cf-status-online::before {
+  background: #10b981;
+  box-shadow: 0 0 5px rgba(16, 185, 129, 0.4);
+}
+
+.cf-status-text.cf-status-offline {
+  color: var(--text-secondary);
+  font-size: 11px;
+}
+
+.cf-status-text.cf-status-offline::before {
+  background: var(--text-muted);
 }
 
 .cf-btn-apply {
