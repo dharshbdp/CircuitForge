@@ -12,7 +12,8 @@ import {
   explainCircuitWithAi,
   setAiApiKey,
   getAiApiKeyStatus,
-  synthesizeBlocks
+  synthesizeBlocks,
+  transpileSketchWithAi
 } from '../ai/aiManager'
 
 import type {
@@ -20,7 +21,8 @@ import type {
   SaveProjectResult,
   OpenProjectResult,
   ExplainCircuitRequest,
-  BlockSynthesisRequest
+  BlockSynthesisRequest,
+  AiTranspileRequest
 } from '../../shared/types'
 
 /**
@@ -207,5 +209,10 @@ export function registerIpcHandlers(getMainWindow: () => BrowserWindow | null): 
   // AI Natural Language Block Synthesis (Milestone v0.6 Phase 14)
   ipcMain.handle('ai:synthesize-blocks', async (_, request: BlockSynthesisRequest) => {
     return synthesizeBlocks(request)
+  })
+
+  // AI Code-to-Blocks Transpiler (Milestone v0.7 Phase 16)
+  ipcMain.handle('ai:transpile-sketch', async (_, request: AiTranspileRequest) => {
+    return transpileSketchWithAi(request)
   })
 }

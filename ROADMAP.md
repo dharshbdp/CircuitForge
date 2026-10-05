@@ -70,7 +70,7 @@ graph TD
         P14 --> P15[Phase 15: Circuit & Pin Conflict Diagnostics]
     end
 
-    subgraph Milestone_0_7 [v0.7: AI Code-to-Blocks Transpiler]
+    subgraph Milestone_0_7 [v0.7: AI Code-to-Blocks Transpiler (Completed)]
         P15 --> P16[Phase 16: LLM-Assisted Full C++ to Block Transpilation]
     end
 
@@ -94,6 +94,7 @@ graph TD
     style P13 fill:#2e7d32,stroke:#1b5e20,color:#fff
     style P14 fill:#2e7d32,stroke:#1b5e20,color:#fff
     style P15 fill:#2e7d32,stroke:#1b5e20,color:#fff
+    style P16 fill:#2e7d32,stroke:#1b5e20,color:#fff
 ```
 
 ---
@@ -288,13 +289,13 @@ graph TD
 
 ---
 
-### Milestone v0.7 — AI-Powered Code-to-Blocks Transpiler
+### Milestone v0.7 — AI-Powered Code-to-Blocks Transpiler (Completed)
 *Primary Objective: Utilize LLM reasoning to translate complex, arbitrary Arduino C++ / MicroPython sketches into visual blocks.*
 
-#### Phase 16: LLM-Assisted Full C++ to Block Transpilation
-- [ ] Build AI Transpiler service that accepts arbitrary, multi-function, or multi-library Arduino sketches.
-- [ ] Synthesize higher-level block structures and custom block configurations from idiomatic C++ code.
-- [ ] Provide side-by-side diff preview allowing the user to review the generated block layout before applying changes to the canvas.
+#### Phase 16: LLM-Assisted Full C++ to Block Transpilation (Completed)
+- [x] Build AI Transpiler service that accepts arbitrary, multi-function, or multi-library Arduino sketches.
+- [x] Synthesize higher-level block structures and custom block configurations from idiomatic C++ code.
+- [x] Provide side-by-side diff preview allowing the user to review the generated block layout before applying changes to the canvas.
 - **Gate / Definition of Done**: Pasting a complex external Arduino sketch converts cleanly into organized, functional visual blocks on the canvas.
 
 ---

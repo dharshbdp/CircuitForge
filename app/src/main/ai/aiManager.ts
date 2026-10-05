@@ -7,7 +7,9 @@ import type {
   WiringStep,
   AiApiKeyStatus,
   BlockSynthesisRequest,
-  BlockSynthesisResult
+  BlockSynthesisResult,
+  AiTranspileRequest,
+  AiTranspileResult
 } from '@shared/types'
 import { getBoardById } from '../../hardware'
 import { getBlockSchemaPrompt, synthesizeOfflineIntent } from '../../core'
@@ -633,5 +635,322 @@ Return ONLY valid JSON matching this schema.`
         `Cloud connection failed (${err instanceof Error ? err.message : String(err)}). Used offline engine.`
       ]
     }
+  }
+}
+
+/**
+ * Recursively counts raw fallback blocks ('raw_cpp_code') in a Blockly blocks tree.
+ */
+export function countRawSnippets(blocks: Record<string, unknown>[]): number {
+  let count = 0
+  function visit(b: Record<string, unknown>): void {
+    if (!b) return
+    if (b.type === 'raw_cpp_code') count++
+    if (b.inputs && typeof b.inputs === 'object') {
+      for (const key of Object.keys(b.inputs)) {
+        const inp = (b.inputs as Record<string, unknown>)[key] as Record<string, unknown>
+        if (inp?.block) visit(inp.block as Record<string, unknown>)
+        if (inp?.shadow) visit(inp.shadow as Record<string, unknown>)
+      }
+    }
+    if (b.next && typeof b.next === 'object') {
+      const nextObj = b.next as Record<string, unknown>
+      if (nextObj.block) visit(nextObj.block as Record<string, unknown>)
+    }
+  }
+  for (const b of blocks) visit(b)
+  return count
+}
+
+/**
+ * Extracts recognized embedded hardware peripherals and pin assignments from C++ code.
+ * Automatically resolves constants, #define macros, and variable pin definitions.
+ */
+export function extractHardwareComponentsFromCode(code: string): string[] {
+  const components: string[] = []
+  const pinVars = new Map<string, string>()
+
+  // 1. Scan #define macros and const/int variable declarations
+  const defineMatches = code.matchAll(/#define\s+([A-Za-z0-9_]+)\s+([A-Za-z0-9_]+)/g)
+  for (const m of defineMatches) {
+    pinVars.set(m[1], m[2])
+  }
+
+  const varMatches = code.matchAll(
+    /(?:const\s+)?(?:int|uint8_t|byte)\s+([A-Za-z0-9_]+)\s*=\s*([A-Za-z0-9_]+)\s*;/g
+  )
+  for (const m of varMatches) {
+    pinVars.set(m[1], m[2])
+  }
+
+  const resolvePin = (p: string): string => {
+    const clean = p.trim().replace(/^['"]|['"]$/g, '')
+    return pinVars.get(clean) || clean
+  }
+
+  // Ultrasonic HC-SR04
+  const ultra =
+    code.match(/readUltrasonicDistance\s*\(\s*([A-Za-z0-9_]+)\s*,\s*([A-Za-z0-9_]+)\s*\)/i) ||
+    code.match(/new\s+NewPing\s*\(\s*([A-Za-z0-9_]+)\s*,\s*([A-Za-z0-9_]+)/i)
+  if (ultra) {
+    const trig = resolvePin(ultra[1])
+    const echo = resolvePin(ultra[2])
+    components.push(`HC-SR04 Ultrasonic (Trig Pin ${trig}, Echo Pin ${echo})`)
+  } else {
+    const trigMatch = code.match(/(?:trig|trigger)\w*\s*=\s*([A-Za-z0-9_]+)/i)
+    const echoMatch = code.match(/(?:echo)\w*\s*=\s*([A-Za-z0-9_]+)/i)
+    if (trigMatch && echoMatch) {
+      const trig = resolvePin(trigMatch[1])
+      const echo = resolvePin(echoMatch[1])
+      components.push(`HC-SR04 Ultrasonic (Trig Pin ${trig}, Echo Pin ${echo})`)
+    }
+  }
+
+  // Servo
+  const servoAttach = [...code.matchAll(/([A-Za-z0-9_]+)\.attach\s*\(\s*([A-Za-z0-9_]+)\s*\)/gi)]
+  for (const m of servoAttach) {
+    const pin = resolvePin(m[2])
+    components.push(`Servo Motor "${m[1]}" (Pin ${pin})`)
+  }
+
+  // DHT Sensor
+  const dhtMatch = code.match(
+    /DHT\s+([A-Za-z0-9_]+)\s*\(\s*([A-Za-z0-9_]+)\s*,\s*([A-Za-z0-9_]+)\s*\)/i
+  )
+  if (dhtMatch) {
+    const pin = resolvePin(dhtMatch[2])
+    const model = resolvePin(dhtMatch[3])
+    components.push(`${model} Temp/Humidity Sensor (Pin ${pin})`)
+  }
+
+  // NeoPixel
+  const neoMatch = code.match(
+    /Adafruit_NeoPixel\s+([A-Za-z0-9_]+)\s*\(\s*([A-Za-z0-9_]+)\s*,\s*([A-Za-z0-9_]+)/i
+  )
+  if (neoMatch) {
+    const count = resolvePin(neoMatch[2])
+    const pin = resolvePin(neoMatch[3])
+    components.push(`WS2812B NeoPixel Strip (${count} LEDs on Pin ${pin})`)
+  }
+
+  // LiquidCrystal / OLED
+  const lcdMatch = code.match(
+    /LiquidCrystal_I2C\s+([A-Za-z0-9_]+)\s*\(\s*(0x[0-9a-fA-F]+)\s*,\s*(\d+)\s*,\s*(\d+)\s*\)/i
+  )
+  if (lcdMatch) {
+    components.push(`I2C LCD Display (${lcdMatch[3]}x${lcdMatch[4]} at ${lcdMatch[2]})`)
+  }
+
+  // Relay
+  const relayMatch = code.match(/(?:relay|switch|fan|pump|valve)\w*\s*=\s*([A-Za-z0-9_]+)/i)
+  if (relayMatch) {
+    const pin = resolvePin(relayMatch[1])
+    components.push(`Relay Module (Pin ${pin})`)
+  }
+
+  // Analog / LDR / MQ-2
+  const analogReads = [...code.matchAll(/analogRead\s*\(\s*([A-Za-z0-9_]+)\s*\)/gi)]
+  for (const m of analogReads) {
+    const pin = resolvePin(m[1])
+    if (!components.some((c) => c.includes(`Pin ${pin}`))) {
+      components.push(`Analog Sensor Input (Pin ${pin})`)
+    }
+  }
+
+  // PWM writes
+  const pwmWrites = [...code.matchAll(/analogWrite\s*\(\s*([A-Za-z0-9_]+)\s*,/gi)]
+  for (const m of pwmWrites) {
+    const pin = resolvePin(m[1])
+    if (!components.some((c) => c.includes(`Pin ${pin}`))) {
+      components.push(`PWM Actuator Output (Pin ${pin})`)
+    }
+  }
+
+  // Digital writes
+  const digWrites = [...code.matchAll(/digitalWrite\s*\(\s*([A-Za-z0-9_]+)\s*,/gi)]
+  for (const m of digWrites) {
+    const pin = resolvePin(m[1])
+    if (!components.some((c) => c.includes(`Pin ${pin}`))) {
+      components.push(`Digital Output (Pin ${pin})`)
+    }
+  }
+
+  return components
+}
+
+/**
+ * Extracts baud rate if Serial.begin(rate) is present in code.
+ */
+function extractBaudRate(code: string): number | undefined {
+  const match = code.match(/Serial\.begin\s*\(\s*(\d+)\s*\)/i)
+  if (match) {
+    const val = parseInt(match[1], 10)
+    if (!isNaN(val) && val > 0) return val
+  }
+  return undefined
+}
+
+/**
+ * Deterministic offline C++ to Blockly transpiler.
+ * Performs AST extraction, peripheral mapping, and raw code snippet preservation.
+ */
+export function transpileOfflineSketch(code: string, boardId: string): AiTranspileResult {
+  const parseResult = parseCppToBlocks(code)
+  const components = extractHardwareComponentsFromCode(code)
+  const baudRate = parseResult.baudRate || extractBaudRate(code)
+  const rawSnippetsCount = countRawSnippets(
+    parseResult.blocks as unknown as Record<string, unknown>[]
+  )
+
+  const board = getBoardById(boardId)
+  const boardName = board?.name || 'Microcontroller Board'
+
+  const totalBlocks = parseResult.blocks.length
+  const nativeBlocks = Math.max(0, totalBlocks - rawSnippetsCount)
+
+  const explanation =
+    `Transpiled sketch into ${totalBlocks} visual block${totalBlocks === 1 ? '' : 's'} (${nativeBlocks} native visual blocks, ${rawSnippetsCount} raw fallback snippet${rawSnippetsCount === 1 ? '' : 's'}) for ${boardName}. ` +
+    (components.length > 0
+      ? `Identified ${components.length} hardware peripheral${components.length === 1 ? '' : 's'}: ${components.join(', ')}.`
+      : 'Extracted embedded control flow, timing, and logic structures.')
+
+  return {
+    success: parseResult.success,
+    blocks: parseResult.blocks as unknown as Record<string, unknown>[],
+    explanation,
+    mappedComponents: components,
+    unmappedSnippetsCount: rawSnippetsCount,
+    detectedBaudRate: baudRate,
+    source: 'offline',
+    warnings: parseResult.warnings
+  }
+}
+
+/**
+ * LLM-Assisted Full C++ to Block Transpilation (Milestone v0.7 Phase 16).
+ * Accepts arbitrary, multi-function, or multi-library Arduino sketches,
+ * maps high-level structures into visual blocks, and wraps irreducible code
+ * in raw_cpp_code blocks.
+ */
+export async function transpileSketchWithAi(
+  request: AiTranspileRequest
+): Promise<AiTranspileResult> {
+  const apiKey = getAiApiKey()
+
+  // Fallback to deterministic offline transpiler if no API key is available
+  if (!apiKey) {
+    return transpileOfflineSketch(request.code, request.boardId)
+  }
+
+  const board = getBoardById(request.boardId)
+  const boardName = board?.name || 'Microcontroller Board'
+  const voltage = board ? `${board.voltage}V` : '5V'
+
+  const schemaGuidelines = getBlockSchemaPrompt()
+
+  const systemInstruction = `You are CircuitForge AI Transpiler, an expert reverse engineering compiler that converts full, arbitrary Arduino C++ sketches into structured visual Blockly block programs.
+Your goal is to parse and convert complex external Arduino sketches (including sketches with custom libraries like Adafruit_NeoPixel, Servo, DHT, LiquidCrystal, multiple functions, custom control state machines, and timer loops) into valid, clean CircuitForge visual blocks.
+
+${schemaGuidelines}
+
+TRANSPILATION RULES:
+1. Deconstruct the program into structured Blockly blocks:
+   - Identify peripheral pins (Trig/Echo for Ultrasonic, data pin for DHT, PWM pin for Servos or LEDs, relay pins, I/O pins) and initialize them.
+   - Convert 'digitalWrite', 'analogWrite', 'digitalRead', 'analogRead', 'delay', 'delayMicroseconds', 'millis', and 'Serial.print/println' into their native block representations.
+   - Convert sensor readings ('sensor_dht', 'sensor_ultrasonic', 'sensor_light_ldr', 'sensor_pir', 'sensor_mq2_read') into corresponding sensor blocks.
+   - Convert servo angle commands ('actuator_servo') and NeoPixel commands ('neopixel_init', 'neopixel_set_color', 'neopixel_clear').
+   - Convert control structures ('if/else', 'for', 'while') and comparisons.
+2. For custom helper functions, complex third-party library classes, or lines that cannot be cleanly expressed by standard blocks, wrap each specific unmapped statement into a "raw_cpp_code" block with a descriptive comment.
+3. Preserve the logical execution flow of the sketch so that transpiling these blocks back to C++ yields equivalent firmware behavior.
+4. Output MUST be ONLY valid JSON adhering to this schema:
+{
+  "explanation": "Human-friendly summary of the transpiled program architecture and peripheral mapping",
+  "mappedComponents": ["Component Description (e.g. Servo Motor on Pin 9)", ...],
+  "detectedBaudRate": 9600,
+  "blocks": [
+    // Top-level Blockly serialized blocks
+  ]
+}`
+
+  const userPrompt = `Transpile this Arduino C++ sketch for target board ${boardName} (${voltage} logic) into visual blocks:\n\n\`\`\`cpp\n${request.code}\n\`\`\``
+
+  try {
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`
+    const body = {
+      contents: [{ parts: [{ text: userPrompt }] }],
+      systemInstruction: { parts: [{ text: systemInstruction }] },
+      generationConfig: {
+        responseMimeType: 'application/json',
+        temperature: 0.1
+      }
+    }
+
+    const controller = new AbortController()
+    const timeout = setTimeout(() => controller.abort(), 20000)
+
+    const res = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+      signal: controller.signal
+    })
+    clearTimeout(timeout)
+
+    if (!res.ok) {
+      const errText = await res.text()
+      console.warn(`Gemini API Transpiler returned status ${res.status}:`, errText)
+      const offline = transpileOfflineSketch(request.code, request.boardId)
+      offline.warnings = [
+        `Cloud AI returned status ${res.status}. Used deterministic offline transpiler.`
+      ]
+      return offline
+    }
+
+    const data = await res.json()
+    const text = data.candidates?.[0]?.content?.parts?.[0]?.text
+    if (!text) {
+      throw new Error('Empty response from Gemini API')
+    }
+
+    const parsed = JSON.parse(text)
+    const blocks: Record<string, unknown>[] = Array.isArray(parsed.blocks) ? parsed.blocks : []
+
+    // If blocks are empty, fallback to offline parser
+    if (blocks.length === 0) {
+      const offline = transpileOfflineSketch(request.code, request.boardId)
+      offline.warnings = [
+        'Transpiled via offline engine due to incomplete block structure from cloud model.'
+      ]
+      return offline
+    }
+
+    const rawCount = countRawSnippets(blocks)
+    const detectedBaud =
+      typeof parsed.detectedBaudRate === 'number'
+        ? parsed.detectedBaudRate
+        : extractBaudRate(request.code)
+    const components =
+      Array.isArray(parsed.mappedComponents) && parsed.mappedComponents.length > 0
+        ? parsed.mappedComponents
+        : extractHardwareComponentsFromCode(request.code)
+
+    return {
+      success: true,
+      blocks,
+      explanation:
+        parsed.explanation ||
+        `Transpiled ${blocks.length} blocks with ${components.length} mapped components.`,
+      mappedComponents: components,
+      unmappedSnippetsCount: rawCount,
+      detectedBaudRate: detectedBaud,
+      source: 'gemini'
+    }
+  } catch (err) {
+    console.warn('AI Transpiler call failed, falling back to offline engine:', err)
+    const offline = transpileOfflineSketch(request.code, request.boardId)
+    offline.warnings = [
+      `Cloud connection failed (${err instanceof Error ? err.message : String(err)}). Used deterministic offline transpiler.`
+    ]
+    return offline
   }
 }

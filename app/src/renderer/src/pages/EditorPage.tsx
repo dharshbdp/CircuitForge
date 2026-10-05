@@ -4,7 +4,12 @@ import BlocklyWorkspace from '../components/BlocklyWorkspace'
 import { arduinoGenerator, micropythonGenerator } from '@core/compiler'
 import { loadWorkspace, serializeWorkspace } from '@core/graph/graphSerializer'
 import { SUPPORTED_BOARDS } from '@hardware'
-import type { CompileResult, CircuitForgeProject, BlockSynthesisResult } from '@shared/types'
+import type {
+  CompileResult,
+  CircuitForgeProject,
+  BlockSynthesisResult,
+  AiTranspileResult
+} from '@shared/types'
 import { useSerial, useTheme, useTelemetry } from '../hooks'
 import { TelemetryDashboard } from '../components/TelemetryDashboard'
 import { CodeEditor } from '../components/CodeEditor'
@@ -12,6 +17,7 @@ import { CopilotPanel } from '../components/CopilotPanel'
 import { codeToBlocks } from '@core/parser'
 import StarterLibraryModal from '../components/StarterLibraryModal'
 import PromptToBlocksModal from '../components/PromptToBlocksModal'
+import AiTranspileModal from '../components/AiTranspileModal'
 import type { StarterProject } from '../data/starterProjects'
 import {
   diagnoseCircuit,
@@ -135,6 +141,7 @@ export function EditorPage(): React.JSX.Element {
   const [isDirty, setIsDirty] = useState<boolean>(false)
   const [isStarterModalOpen, setIsStarterModalOpen] = useState<boolean>(false)
   const [isPromptModalOpen, setIsPromptModalOpen] = useState<boolean>(false)
+  const [isTranspileModalOpen, setIsTranspileModalOpen] = useState<boolean>(false)
   const [projectNotification, setProjectNotification] = useState<string | null>(null)
 
   const isProgrammaticLoadRef = useRef<boolean>(false)
@@ -442,13 +449,73 @@ export function EditorPage(): React.JSX.Element {
     }
   }
 
-  // Keyboard Shortcuts: Ctrl+S (Save), Ctrl+Shift+S (Save As), Ctrl+O (Open), Ctrl+N (New), Ctrl+Shift+B (Update Blocks), Ctrl+K (AI Prompt)
+  // Apply transpiled blocks from external sketch (Milestone v0.7 Phase 16)
+  const handleApplyTranspiledBlocks = (
+    result: AiTranspileResult,
+    mode: 'replace' | 'append'
+  ): void => {
+    const workspace = workspaceRef.current
+    if (!workspace) return
+
+    isProgrammaticLoadRef.current = true
+
+    try {
+      if (mode === 'replace') {
+        workspace.clear()
+        const workspaceState = {
+          blocks: {
+            languageVersion: 0,
+            blocks: result.blocks
+          }
+        }
+        Blockly.serialization.workspaces.load(workspaceState, workspace)
+      } else {
+        // Calculate vertical position below existing blocks
+        const topBlocks = workspace.getTopBlocks(false)
+        let maxY = 48
+        for (const b of topBlocks) {
+          const pos = b.getRelativeToSurfaceXY()
+          const height = b.getHeightWidth().height
+          const bottom = pos.y + height
+          if (bottom > maxY) {
+            maxY = bottom
+          }
+        }
+
+        const targetY = maxY + 64
+        for (const b of result.blocks) {
+          const blockState = {
+            ...b,
+            x: 48,
+            y: targetY
+          } as unknown as Blockly.serialization.blocks.State
+          Blockly.serialization.blocks.append(blockState, workspace)
+        }
+      }
+
+      // If sketch had a detected baud rate, sync it to UI and hardware
+      if (result.detectedBaudRate && BAUD_RATES.includes(result.detectedBaudRate)) {
+        handleBaudChange(result.detectedBaudRate)
+      }
+
+      setIsDirty(true)
+      showNotification(
+        `Transpiled ${result.blocks.length} visual blocks (${result.source === 'gemini' ? 'Gemini AI' : 'Offline AST'})`
+      )
+    } catch (err: unknown) {
+      console.error('Failed to apply transpiled blocks:', err)
+      showNotification(`Error applying blocks: ${err instanceof Error ? err.message : String(err)}`)
+    }
+  }
+
+  // Keyboard Shortcuts: Ctrl+S (Save), Ctrl+Shift+S (Save As), Ctrl+O (Open), Ctrl+N (New), Ctrl+Shift+B (Update Blocks), Ctrl+K (AI Prompt), Ctrl+Shift+T (AI Transpile)
   const projectHandlersRef = useRef({
     handleSaveProject,
     handleOpenProject,
     handleNewProject,
     handleUpdateBlocks,
-    handleOpenPromptModal: () => setIsPromptModalOpen(true)
+    handleOpenPromptModal: () => setIsPromptModalOpen(true),
+    handleOpenTranspileModal: () => setIsTranspileModalOpen(true)
   })
 
   useEffect(() => {
@@ -457,7 +524,8 @@ export function EditorPage(): React.JSX.Element {
       handleOpenProject,
       handleNewProject,
       handleUpdateBlocks,
-      handleOpenPromptModal: () => setIsPromptModalOpen(true)
+      handleOpenPromptModal: () => setIsPromptModalOpen(true),
+      handleOpenTranspileModal: () => setIsTranspileModalOpen(true)
     }
   })
 
@@ -479,6 +547,9 @@ export function EditorPage(): React.JSX.Element {
       } else if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key.toLowerCase() === 'b') {
         e.preventDefault()
         projectHandlersRef.current.handleUpdateBlocks()
+      } else if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key.toLowerCase() === 't') {
+        e.preventDefault()
+        projectHandlersRef.current.handleOpenTranspileModal()
       } else if (
         (e.ctrlKey || e.metaKey) &&
         (e.key.toLowerCase() === 'k' || (e.shiftKey && e.key.toLowerCase() === 'a'))
@@ -749,6 +820,26 @@ export function EditorPage(): React.JSX.Element {
                     <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
                   </svg>
                   <span>AI Prompt</span>
+                </button>
+                <button
+                  className="cf-btn-project cf-btn-project-transpile"
+                  onClick={() => setIsTranspileModalOpen(true)}
+                  title="AI Code-to-Blocks Transpiler: Convert arbitrary Arduino C++ sketches into visual blocks (Ctrl+Shift+T)"
+                >
+                  <svg
+                    width="11"
+                    height="11"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <polyline points="16 18 22 12 16 6" />
+                    <polyline points="8 6 2 12 8 18" />
+                  </svg>
+                  <span>AI Transpile</span>
                 </button>
               </div>
             </div>
@@ -1379,6 +1470,27 @@ export function EditorPage(): React.JSX.Element {
                     </svg>
                     <span>Update Blocks</span>
                   </button>
+
+                  <button
+                    className="cf-btn-update-blocks cf-btn-ai-transpile"
+                    onClick={() => setIsTranspileModalOpen(true)}
+                    title="AI Code-to-Blocks Transpiler: Convert arbitrary external sketches into visual blocks (Ctrl+Shift+T)"
+                  >
+                    <svg
+                      width="12"
+                      height="12"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    >
+                      <polyline points="16 18 22 12 16 6" />
+                      <polyline points="8 6 2 12 8 18" />
+                    </svg>
+                    <span>AI Transpile</span>
+                  </button>
                 </div>
 
                 <div style={{ display: 'flex', gap: '6px' }}>
@@ -1629,6 +1741,16 @@ export function EditorPage(): React.JSX.Element {
         onClose={() => setIsPromptModalOpen(false)}
         boardId={selectedBoard}
         onApplyBlocks={handleApplySynthesizedBlocks}
+      />
+
+      {/* AI Code-to-Blocks Transpiler Modal (Milestone v0.7 Phase 16) */}
+      <AiTranspileModal
+        key={isTranspileModalOpen ? 'open' : 'closed'}
+        isOpen={isTranspileModalOpen}
+        onClose={() => setIsTranspileModalOpen(false)}
+        boardId={selectedBoard}
+        initialCode={cppCode}
+        onApplyBlocks={handleApplyTranspiledBlocks}
       />
 
       {/* Project Status Notification Toast */}

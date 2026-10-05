@@ -119,6 +119,24 @@ export interface BlockSynthesisResult {
   warnings?: string[]
 }
 
+// AI Code-to-Blocks Transpiler (Milestone v0.7 Phase 16)
+export interface AiTranspileRequest {
+  code: string
+  boardId: string
+}
+
+export interface AiTranspileResult {
+  success: boolean
+  blocks: Record<string, unknown>[]
+  explanation: string
+  mappedComponents: string[]
+  unmappedSnippetsCount: number
+  detectedBaudRate?: number
+  source: 'gemini' | 'offline'
+  error?: string
+  warnings?: string[]
+}
+
 export interface CircuitForgeAPI {
   listSerialPorts: () => Promise<SerialPortDescriptor[]>
   connectSerial: (path: string, baudRate: number) => Promise<boolean>
@@ -144,4 +162,7 @@ export interface CircuitForgeAPI {
   setAiApiKey: (apiKey: string) => Promise<boolean>
   getAiApiKeyStatus: () => Promise<AiApiKeyStatus>
   synthesizeBlocks: (request: BlockSynthesisRequest) => Promise<BlockSynthesisResult>
+
+  // AI Code-to-Blocks Transpiler (Milestone v0.7 Phase 16)
+  transpileSketch: (request: AiTranspileRequest) => Promise<AiTranspileResult>
 }

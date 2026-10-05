@@ -14,7 +14,9 @@ import type {
   CircuitExplanation,
   AiApiKeyStatus,
   BlockSynthesisRequest,
-  BlockSynthesisResult
+  BlockSynthesisResult,
+  AiTranspileRequest,
+  AiTranspileResult
 } from '../shared/types'
 
 // Custom APIs for renderer
@@ -79,7 +81,11 @@ const api: CircuitForgeAPI = {
 
   // AI Natural Language Block Synthesis (Milestone v0.6 Phase 14)
   synthesizeBlocks: (request: BlockSynthesisRequest): Promise<BlockSynthesisResult> =>
-    ipcRenderer.invoke('ai:synthesize-blocks', request)
+    ipcRenderer.invoke('ai:synthesize-blocks', request),
+
+  // AI Code-to-Blocks Transpiler (Milestone v0.7 Phase 16)
+  transpileSketch: (request: AiTranspileRequest): Promise<AiTranspileResult> =>
+    ipcRenderer.invoke('ai:transpile-sketch', request)
 }
 
 // Use `contextBridge` APIs to expose Electron APIs to
