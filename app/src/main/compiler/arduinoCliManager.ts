@@ -30,6 +30,8 @@ export async function findArduinoCli(): Promise<string | null> {
   // 2. Bundled application resources directory
   if (process.resourcesPath) {
     searchPaths.push(join(process.resourcesPath, 'bin', exeName))
+    searchPaths.push(join(process.resourcesPath, 'app.asar.unpacked', 'resources', 'bin', exeName))
+    searchPaths.push(join(process.resourcesPath, 'app.asar.unpacked', 'bin', exeName))
   }
 
   // 3. Local workspace resources (development mode)

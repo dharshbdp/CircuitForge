@@ -1,7 +1,9 @@
-appId: com.electron.app
-productName: app
+appId: io.circuitforge.desktop
+productName: CircuitForge
+copyright: Copyright © 2026 CircuitForge Team
 directories:
   buildResources: build
+  output: dist
 files:
   - '!**/.vscode/*'
   - '!src/*'
@@ -12,32 +14,63 @@ files:
 asarUnpack:
   - resources/**
 win:
-  executableName: app
+  executableName: CircuitForge
+  icon: build/icon.ico
+  target:
+    - target: nsis
+      arch:
+        - x64
+    - target: portable
+      arch:
+        - x64
 nsis:
-  artifactName: ${name}-${version}-setup.${ext}
-  shortcutName: ${productName}
-  uninstallDisplayName: ${productName}
+  artifactName: CircuitForge-${version}-Windows-Setup.${ext}
+  shortcutName: CircuitForge
+  uninstallDisplayName: CircuitForge
   createDesktopShortcut: always
+  createStartMenuShortcut: true
+  oneClick: false
+  allowToChangeInstallationDirectory: true
+portable:
+  artifactName: CircuitForge-${version}-Windows-Portable.${ext}
 mac:
+  icon: build/icon.icns
+  target:
+    - target: dmg
+      arch:
+        - x64
+        - arm64
+    - target: zip
+      arch:
+        - x64
+        - arm64
+  category: public.app-category.developer-tools
   entitlementsInherit: build/entitlements.mac.plist
   extendInfo:
-    - NSCameraUsageDescription: Application requests access to the device's camera.
-    - NSMicrophoneUsageDescription: Application requests access to the device's microphone.
-    - NSDocumentsFolderUsageDescription: Application requests access to the user's Documents folder.
-    - NSDownloadsFolderUsageDescription: Application requests access to the user's Downloads folder.
+    - NSCameraUsageDescription: Application requests access to the device camera.
+    - NSMicrophoneUsageDescription: Application requests access to the device microphone.
+    - NSDocumentsFolderUsageDescription: Application requests access to documents for project files.
+    - NSDownloadsFolderUsageDescription: Application requests access to downloads for firmware and library downloads.
   notarize: false
 dmg:
-  artifactName: ${name}-${version}.${ext}
+  artifactName: CircuitForge-${version}-macOS-${arch}.${ext}
 linux:
+  icon: build/icon.png
   target:
-    - AppImage
-    - snap
-    - deb
-  maintainer: electronjs.org
-  category: Utility
+    - target: AppImage
+      arch:
+        - x64
+    - target: deb
+      arch:
+        - x64
+  maintainer: CircuitForge Team <support@circuitforge.dev>
+  category: Development
 appImage:
-  artifactName: ${name}-${version}.${ext}
+  artifactName: CircuitForge-${version}-Linux-${arch}.${ext}
+deb:
+  artifactName: CircuitForge-${version}-Linux-${arch}.${ext}
 npmRebuild: false
 publish:
-  provider: generic
-  url: https://example.com/auto-updates
+  provider: github
+  owner: dharshbdp
+  repo: CircuitForge

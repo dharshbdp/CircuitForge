@@ -5,10 +5,10 @@ node_modules/
 # Production & Build Outputs
 dist/
 out/
-build/
 **/dist/
 **/out/
-**/build/
+!app/build/
+!app/build/**
 
 # Package Manager & Logs
 *.log

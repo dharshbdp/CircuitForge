@@ -74,7 +74,7 @@ graph TD
         P15 --> P16[Phase 16: LLM-Assisted Full C++ to Block Transpilation]
     end
 
-    subgraph Milestone_1_0 [v1.0: Production Packaging & Polished Release]
+    subgraph Milestone_1_0 [v1.0: Production Packaging & Polished Release (Completed)]
         P16 --> P17[Phase 17: Production Packaging & Distribution]
     end
 
@@ -95,6 +95,7 @@ graph TD
     style P14 fill:#2e7d32,stroke:#1b5e20,color:#fff
     style P15 fill:#2e7d32,stroke:#1b5e20,color:#fff
     style P16 fill:#2e7d32,stroke:#1b5e20,color:#fff
+    style P17 fill:#2e7d32,stroke:#1b5e20,color:#fff
 ```
 
 ---
@@ -300,16 +301,16 @@ graph TD
 
 ---
 
-### Milestone v1.0 — Production Packaging and Polished Release
+### Milestone v1.0 — Production Packaging and Polished Release (Completed)
 *Primary Objective: Final polish, automated cross-platform distribution, and signed standalone desktop releases.*
 
-#### Phase 17: Production Packaging and Distribution
-- [ ] Configure `electron-builder` for multi-platform distribution:
+#### Phase 17: Production Packaging and Distribution (Completed)
+- [x] Configure `electron-builder` for multi-platform distribution:
   - Windows: Portable `.exe` and NSIS installer with desktop shortcut.
   - macOS: `.dmg` (Universal / Apple Silicon & Intel).
   - Linux: `.AppImage` and `.deb`.
-- [ ] Set up GitHub Actions automated CI/CD release workflow triggered on version tags.
-- [ ] Offline-first packaging (bundles core templates and offline Blockly libraries).
+- [x] Set up GitHub Actions automated CI/CD release workflow triggered on version tags.
+- [x] Offline-first packaging (bundles core templates and offline Blockly libraries).
 - **Gate / Definition of Done**: Automated release pipeline builds signed/notarized desktop installers ready for student and hobbyist download.
 
 ---

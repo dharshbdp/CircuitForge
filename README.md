@@ -10,9 +10,9 @@ CircuitForge is a desktop application designed to make microcontroller and IoT d
 
 ---
 
-## Active Milestone: v0.7 (AI-Powered Code-to-Blocks Transpiler)
+## Milestone v1.0 — Production Release (Completed)
 
-Milestones **v0.1**, **v0.2**, **v0.3**, **v0.4**, **v0.5**, and **v0.6** are complete:
+All roadmap milestones (**v0.1**, **v0.2**, **v0.3**, **v0.4**, **v0.5**, **v0.6**, **v0.7**, and **v1.0**) are complete:
 
 - [x] **v0.1: Hardware Link & Serial Core**:
   - Electron 39 + React 19 + TypeScript + Vite desktop app running on Windows.
@@ -43,8 +43,18 @@ Milestones **v0.1**, **v0.2**, **v0.3**, **v0.4**, **v0.5**, and **v0.6** are co
   - **Natural Language to Block Synthesis**: Prompt-to-Blocks modal turning natural language descriptions directly into connected Blockly workspaces.
   - **Circuit and Pin Conflict Diagnostics**: Static rules engine detecting pin reuse, Serial UART collisions, PWM conflicts, ESP32 input-only violations, and voltage domain hazards.
   - **Real-Time Visual Feedback & Upload Guard**: Direct Blockly warning badges, Action Ribbon diagnostics badge (`PINS VALID` / `WARNINGS` / `PIN CONFLICTS`), and pre-flight upload guard preventing dangerous flashing.
+- [x] **v0.7: AI-Powered Code-to-Blocks Transpiler**:
+  - **LLM-Assisted Reverse Transpiler**: Converts complex, multi-function, multi-library Arduino sketches into clean visual blocks.
+  - **Deep Symbol & Constant Mapping**: Extracts hardware pins from `#define` macros and global constants.
+  - **Side-by-Side Review Diff**: Visual split review modal showing C++ sketch, mapped hardware chips, block fidelity score, and diff preview before applying.
+  - **Dual Placement Options**: "Replace Active Canvas" or "Append Below Existing" with automatic baud rate synchronization.
+  - **Deterministic Offline Fallback**: Guaranteed offline AST conversion when offline or without an API key.
+- [x] **v1.0: Production Packaging and Standalone Distribution**:
+  - **Multi-Platform Bundles**: Windows NSIS setup installer and standalone Portable `.exe`, macOS DMG and ZIP, Linux AppImage and DEB.
+  - **Automated CI/CD Release Pipeline**: GitHub Actions workflow triggered on version tags building and publishing cross-platform release artifacts automatically.
+  - **Offline-First Architecture**: 100% bundled offline Blockly libraries, starter projects, and embedded toolchain fallback without external CDN dependencies.
 
-The current active milestone is **v0.7 (AI-Powered Code-to-Blocks Transpiler)**. For the full multi-phase plan, refer to [ROADMAP.md](./ROADMAP.md).
+For the complete multi-phase architecture and development log, refer to [ROADMAP.md](./ROADMAP.md).
 
 ---
 
@@ -56,8 +66,8 @@ The current active milestone is **v0.7 (AI-Powered Code-to-Blocks Transpiler)**.
 - **v0.4**: Live Telemetry Dashboard and Project Storage (Completed)
 - **v0.5**: Code-to-Blocks Bidirectional Sync (Completed)
 - **v0.6**: AI Hardware Copilot and Assistant (Completed)
-- **v0.7**: AI-Powered Code-to-Blocks Transpiler (Current — LLM-assisted conversion of complex/arbitrary Arduino sketches)
-- **v1.0**: Production Packaging and Polished Release (Cross-platform installers, auto-updater & final polish)
+- **v0.7**: AI-Powered Code-to-Blocks Transpiler (Completed)
+- **v1.0**: Production Packaging and Polished Release (Completed)
 
 See [ROADMAP.md](./ROADMAP.md) for detailed tasks and architecture breakdown.
 
@@ -114,6 +124,24 @@ CircuitForge/
 4. **Build production bundles**:
    ```powershell
    npm.cmd run build
+   ```
+
+5. **Package standalone desktop distributions**:
+   ```powershell
+   # Windows NSIS installer & Portable .exe
+   npm.cmd run build:win
+
+   # Portable standalone executable only
+   npm.cmd run build:portable
+
+   # Unpacked application directory (for inspection & local execution)
+   npm.cmd run build:unpack
+
+   # macOS (DMG & ZIP)
+   npm.cmd run build:mac
+
+   # Linux (AppImage & DEB)
+   npm.cmd run build:linux
    ```
 
 ---
